@@ -4,7 +4,6 @@ Cloudinary
 Cloudinary allows web applications to manage web resources in the cloud leveraging cloud-solutions. 
 Cloudinary offers a solution to the entire asset management workflow, from upload to transformations, optimizations, storage and delivery. 
 
-
 ## Setup ######################################################################
 
 To install the Cloudinary Ruby GEM, run:
