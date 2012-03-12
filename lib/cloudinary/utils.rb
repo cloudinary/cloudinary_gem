@@ -18,7 +18,7 @@ class Cloudinary::Utils
     
     gravity = options.delete(:gravity)
     quality = options.delete(:quality)
-    named_transformation = Array(options.delete(:transformation)).join(".")
+    named_transformation = build_array(options.delete(:transformation)).join(".")
     prefix = options.delete(:prefix)
 
     params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :q=>quality, :g=>gravity, :p=>prefix}
@@ -94,5 +94,13 @@ class Cloudinary::Utils
       end
     end
     defined?(JSON) ? JSON.parse(str) : ActiveSupport::JSON.decode(str)
+  end
+
+  def self.build_array(array)
+    case array
+      when Array then array
+      when nil then []
+      else [array]
+    end
   end
 end

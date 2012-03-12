@@ -10,11 +10,10 @@ class Cloudinary::Uploader
                 :transformation => Cloudinary::Utils.generate_transformation_string(options),
                 :public_id=> options[:public_id],
                 :format=>options[:format],
-                :tags=>options[:tags] && Array(options[:tags]).join(",")}.reject{|k,v| v.blank?}    
+                :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}.reject{|k,v| v.blank?}    
       if options[:eager]
         params[:eager] = options[:eager].map do
-          |transformation|
-          transformation, format = Array(transformation) # format is optional
+          |transformation, format|
           [Cloudinary::Utils.generate_transformation_string(transformation.clone), format].compact.join("/")
         end.join("|")
       end
@@ -69,7 +68,7 @@ class Cloudinary::Uploader
       {
         :timestamp=>Time.now.to_i,
         :tag=>tag,
-        :public_ids => Array(public_ids),
+        :public_ids => Cloudinary::Utils.build_array(public_ids),
         :command => command
       }    
     end    
