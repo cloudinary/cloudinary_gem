@@ -14,7 +14,9 @@ class Cloudinary::Uploader
       if options[:eager]
         params[:eager] = options[:eager].map do
           |transformation, format|
-          [Cloudinary::Utils.generate_transformation_string(transformation.clone), format].compact.join("/")
+          transformation = transformation.clone
+          format = transformation.delete(:format) || format
+          [Cloudinary::Utils.generate_transformation_string(transformation), format].compact.join("/")
         end.join("|")
       end
       if file.respond_to?(:read) || file =~ /^https?:/
