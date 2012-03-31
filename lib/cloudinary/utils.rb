@@ -45,7 +45,8 @@ class Cloudinary::Utils
     version = options.delete(:version)
 
     format = options.delete(:format)
-    source = "#{source}.#{format}" if format
+    source = "#{source}.#{format}" if format && type != :fetch
+    source = smart_escape(source) if [:fetch, :file].include?(type)
     
     # Configuration options
     # newsodrome.cloudinary.com, images.newsodrome.com, cloudinary.com/res/newsodrome, a9fj209daf.cloudfront.net
@@ -76,6 +77,13 @@ class Cloudinary::Utils
     source = prefix + "/" + [resource_type, 
      type, transformation, version ? "v#{version}" : nil,
      source].reject(&:blank?).join("/").gsub("//", "/")
+  end
+  
+  # Based on CGI::unescape. In addition does not escape / : 
+  def self.smart_escape(string)
+    string.gsub(/([^ a-zA-Z0-9_.-\/:]+)/) do
+      '%' + $1.unpack('H2' * $1.bytesize).join('%').upcase
+    end.tr(' ', '+')
   end
   
   def self.random_public_id

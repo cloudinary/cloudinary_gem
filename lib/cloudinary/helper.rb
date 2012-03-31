@@ -13,6 +13,10 @@ module CloudinaryHelper
 
     image_tag(source, options)
   end
+
+  def fetch_image_tag(profile, options = {})    
+    cl_image_tag(profile, {:type=>:fetch}.merge(options))
+  end
   
   def facebook_profile_image_tag(profile, options = {})    
     cl_image_tag(profile, {:type=>:facebook}.merge(options))
