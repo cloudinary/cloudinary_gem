@@ -4,62 +4,13 @@ require "cloudinary/version"
 require "cloudinary/utils"
 require "cloudinary/uploader"
 require "cloudinary/downloader"
-require "cloudinary/migrator"  
 require "cloudinary/blob" 
+require "cloudinary/static" 
 require 'active_support' 
-if defined?(::CarrierWave)
-  require "cloudinary/carrier_wave"
-end  
-
-if defined?(::ActionView::Base)
-  require "cloudinary/helper"  
-end
-
-if !nil.respond_to?(:blank?)
-class Object
-  def blank?
-    respond_to?(:empty?) ? empty? : !self
-  end
-end
-
-class NilClass #:nodoc:
-  def blank?
-    true
-  end
-end
-
-class FalseClass #:nodoc:
-  def blank?
-    true
-  end
-end
-
-class TrueClass #:nodoc:
-  def blank?
-    false
-  end
-end
-
-class Array #:nodoc:
-  alias_method :blank?, :empty?
-end
-
-class Hash #:nodoc:
-  alias_method :blank?, :empty?
-end
-
-class String #:nodoc:
-  def blank?
-    self !~ /\S/
-  end
-end
-
-class Numeric #:nodoc:
-  def blank?
-    false
-  end
-end  
-end
+require "cloudinary/missing"
+require "cloudinary/carrier_wave" if defined?(::CarrierWave)
+require "cloudinary/helper" if defined?(::ActionView::Base)
+require "cloudinary/railtie" if defined?(Rails)
 
 module Cloudinary  
   @@config = nil

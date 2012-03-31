@@ -9,14 +9,13 @@ class Cloudinary::Uploader
       params = {:timestamp=>Time.now.to_i,
                 :transformation => Cloudinary::Utils.generate_transformation_string(options),
                 :public_id=> options[:public_id],
+                :callback=> options[:callback],
                 :format=>options[:format],
                 :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}.reject{|k,v| v.blank?}    
       if options[:eager]
         params[:eager] = options[:eager].map do
           |transformation, format|
-          transformation = transformation.clone
-          format = transformation.delete(:format) || format
-          [Cloudinary::Utils.generate_transformation_string(transformation), format].compact.join("/")
+          [Cloudinary::Utils.generate_transformation_string(transformation.clone), format].compact.join("/")
         end.join("|")
       end
       if file.respond_to?(:read) || file =~ /^https?:/
@@ -25,6 +24,15 @@ class Cloudinary::Uploader
         params[:file] = File.open(file, "rb")
       end
       [params, [:file]]
+    end              
+  end
+
+  def self.destroy(public_id, options={})
+    call_api("destroy", options) do    
+      {
+        :timestamp=>Time.now.to_i,
+        :public_id=> public_id
+      }
     end              
   end
     

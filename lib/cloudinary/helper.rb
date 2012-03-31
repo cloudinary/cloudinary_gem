@@ -1,6 +1,9 @@
 # Copyright Cloudinary
 
-module CloudinaryHelper  
+module CloudinaryHelper
+  include ActionView::Helpers::AssetTagHelper  
+  alias :original_image_tag :image_tag
+      
   # Examples
   # cl_image_tag "israel.png", :width=>100, :height=>100, :alt=>"hello" # W/H are not sent to cloudinary
   # cl_image_tag "israel.png", :width=>100, :height=>100, :alt=>"hello", :crop=>:fit # W/H are sent to cloudinary
@@ -11,7 +14,21 @@ module CloudinaryHelper
     options[:height] = options.delete(:html_height) if options.include?(:html_height)
     options[:size] = options.delete(:html_size) if options.include?(:html_size)
 
-    image_tag(source, options)
+    original_image_tag(source, options)
+  end
+
+  def cl_image_path(source, options = {})
+    options = options.clone
+    url = cloudinary_url(source, options)
+    image_path(url, options)    
+  end
+    
+  def image_tag(*args)
+    if Cloudinary.config.enhance_image_tag
+      cl_image_tag(*args)
+    else
+      original_image_tag(*args)
+    end
   end
 
   def fetch_image_tag(profile, options = {})    
@@ -56,3 +73,12 @@ module CloudinaryHelper
 end
 
 ActionView::Base.send :include, CloudinaryHelper
+
+if defined?(Sass::Rails)
+  class Sass::Rails::Resolver
+    def image_path(img)
+      Cloudinary::Utils.cloudinary_url(img, :type=>:file)      
+    end      
+  end  
+end
+

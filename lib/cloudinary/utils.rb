@@ -10,8 +10,8 @@ class Cloudinary::Utils
     height = options[:height]
     size = options.delete(:size)
     width, height = size.split("x") if size    
-    options.delete(:width) if width && width < 1 
-    options.delete(:height) if height && height < 1    
+    options.delete(:width) if width && width.to_f < 1 
+    options.delete(:height) if height && height.to_f < 1    
      
     crop = options.delete(:crop)
     width=height=nil if crop.nil?
@@ -43,21 +43,27 @@ class Cloudinary::Utils
     type = options.delete(:type) || :upload
     resource_type = options.delete(:resource_type) || "image"
     version = options.delete(:version)
-
     format = options.delete(:format)
-    source = "#{source}.#{format}" if format && type != :fetch
-    source = smart_escape(source) if [:fetch, :file].include?(type)
     
     # Configuration options
     # newsodrome.cloudinary.com, images.newsodrome.com, cloudinary.com/res/newsodrome, a9fj209daf.cloudfront.net
     cloud_name = options.delete(:cloud_name) || Cloudinary.config.cloud_name || raise("Must supply cloud_name in tag or in configuration")
+    secure = options.delete(:secure) || Cloudinary.config.secure
+    private_cdn = options.delete(:private_cdn) || Cloudinary.config.private_cdn    
+    secure_distribution = options.delete(:secure_distribution) || Cloudinary.config.secure_distribution
+    
+    @metadata ||= Cloudinary::Static.metadata
+    if @metadata["images/#{source}"]
+      return source if !Cloudinary.config.static_image_support
+      type = :file
+      original_source = source
+      source = @metadata["images/#{source}"]["public_id"]
+      source += File.extname(original_source) if !format
+    end
     
     if cloud_name.start_with?("/")
       prefix = "/res" + cloud_name
     else
-      secure = options.delete(:secure) || Cloudinary.config.secure
-      private_cdn = options.delete(:private_cdn) || Cloudinary.config.private_cdn    
-      secure_distribution = options.delete(:secure_distribution) || Cloudinary.config.secure_distribution
       if secure && secure_distribution.nil?
         if private_cdn
           raise "secure_distribution not defined"
@@ -74,6 +80,8 @@ class Cloudinary::Utils
       prefix += "/#{cloud_name}" if !private_cdn
     end
     
+    source = "#{source}.#{format}" if format && type != :fetch
+    source = smart_escape(source) if [:fetch, :file].include?(type)
     source = prefix + "/" + [resource_type, 
      type, transformation, version ? "v#{version}" : nil,
      source].reject(&:blank?).join("/").gsub("//", "/")
