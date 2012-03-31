@@ -9,6 +9,7 @@ module CloudinaryHelper
     source = cloudinary_url(source, options)
     options[:width] = options.delete(:html_width) if options.include?(:html_width)
     options[:height] = options.delete(:html_height) if options.include?(:html_height)
+    options[:size] = options.delete(:html_size) if options.include?(:html_size)
 
     image_tag(source, options)
   end
