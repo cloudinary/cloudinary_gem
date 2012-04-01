@@ -63,18 +63,20 @@ class Cloudinary::Static
     options = options.clone
     delete_missing = options.delete(:delete_missing)
     metadata = self.metadata
-    found = Set.new
+    found_paths = Set.new
+    found_public_ids = Set.new
     metadata_lines = []
     self.discover do
       |path, public_path|
-      next if found.include?(path)
-      found << path
+      next if found_paths.include?(path)
+      found_paths << path
       data = Rails.root.join(path).read(:mode=>"rb")
       ext = path.extname
       format = ext[1..-1]
       md5 = Digest::MD5.hexdigest(data)
       public_id = prefix.join(public_path)
       public_id = "#{public_id.dirname}/#{public_id.basename(ext)}-#{md5}"
+      found_public_ids << public_id
       current_metadata = metadata.delete(public_path.to_s)      
       if current_metadata && current_metadata["public_id"] == public_id # Signature match
         result = current_metadata
@@ -85,8 +87,9 @@ class Cloudinary::Static
       end
       metadata_lines << [public_path, public_id, Time.now.to_i, result["version"], result["width"], result["height"]].join("\t")+"\n"
     end
-    File.open(self.metadata_file_path, "w"){|f| f.print(metadata_lines.join)}    
-    trash = metadata.to_a + self.metadata(metadata_trash_file_path, false) 
+    File.open(self.metadata_file_path, "w"){|f| f.print(metadata_lines.join)}
+    # Files no longer needed 
+    trash = metadata.to_a + self.metadata(metadata_trash_file_path, false).reject{|public_path, info| found_public_ids.include?(info["public_id"])} 
     
     if delete_missing
       trash.each do
