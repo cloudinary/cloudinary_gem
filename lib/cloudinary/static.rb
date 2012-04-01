@@ -3,6 +3,7 @@ class Cloudinary::Static
   IGNORE_FILES = [".svn", "CVS", "RCS", ".git", ".hg", /^.htaccess/]
   STATIC_IMAGE_DIRS = ["app/assets/images", "public/images"]
   METADATA_FILE = ".cloudinary.static"
+  METADATA_TRASH_FILE = ".cloudinary.static.trash"
   
   def self.discover
     ignore_files = Cloudinary.config.ignore_files || IGNORE_FILES 
@@ -32,25 +33,29 @@ class Cloudinary::Static
   def self.metadata_file_path
     Rails.root.join(METADATA_FILE)
   end
+
+  def self.metadata_trash_file_path
+    Rails.root.join(METADATA_TRASH_FILE)
+  end
   
-  def self.metadata 
-    metadata = {}
-    if File.exist?(metadata_file_path)
-      IO.foreach(metadata_file_path) do
+  def self.metadata(metadata_file = metadata_file_path, hash=true) 
+    metadata = []
+    if File.exist?(metadata_file)
+      IO.foreach(metadata_file) do
         |line|
         line.strip!
         next if line.blank?
         path, public_id, upload_time, version, width, height = line.split("\t")
-        metadata[path] = {
+        metadata << [path, {
           "public_id" => public_id, 
           "upload_time" => UTC.at(upload_time.to_i), 
           "version" => version,
           "width" => width.to_i,
           "height" => height.to_i
-        }
+        }]
       end
     end
-    metadata
+    hash ? Hash[*metadata.flatten] : metadata
   end
 
   def self.sync(options={})
@@ -80,13 +85,22 @@ class Cloudinary::Static
       end
       metadata_lines << [public_path, public_id, Time.now.to_i, result["version"], result["width"], result["height"]].join("\t")+"\n"
     end
-    File.open(self.metadata_file_path, "w"){|f| f.print(metadata_lines.join)}
-    # TODO if delete missing is false, should we keep the metadata?
+    File.open(self.metadata_file_path, "w"){|f| f.print(metadata_lines.join)}    
+    trash = metadata.to_a + self.metadata(metadata_trash_file_path, false) 
+    
     if delete_missing
-      metadata.each do
+      trash.each do
         |path, info|
         Cloudinary::Uploader.destroy(info["public_id"], options)
       end
+      FileUtils.rm_f(self.metadata_trash_file_path)
+    else
+      # Add current removed file to the trash file.
+      metadata_lines = trash.map do
+        |public_path, info|
+        [public_path, info["public_id"], info["upload_time"].to_i, info["version"], info["width"], info["height"]].join("\t")+"\n"
+      end
+      File.open(self.metadata_trash_file_path, "w"){|f| f.print(metadata_lines.join)}    
     end
   end
 end

@@ -3,6 +3,7 @@
 module CloudinaryHelper
   include ActionView::Helpers::AssetTagHelper  
   alias :original_image_tag :image_tag
+  alias :original_image_path :image_path
       
   # Examples
   # cl_image_tag "israel.png", :width=>100, :height=>100, :alt=>"hello" # W/H are not sent to cloudinary
@@ -20,7 +21,7 @@ module CloudinaryHelper
   def cl_image_path(source, options = {})
     options = options.clone
     url = cloudinary_url(source, options)
-    image_path(url, options)    
+    original_image_path(url, options)    
   end
     
   def image_tag(*args)
@@ -28,6 +29,14 @@ module CloudinaryHelper
       cl_image_tag(*args)
     else
       original_image_tag(*args)
+    end
+  end
+
+  def image_path(*args)
+    if Cloudinary.config.enhance_image_tag
+      cl_image_path(*args)
+    else
+      original_image_path(*args)
     end
   end
 
@@ -76,8 +85,13 @@ ActionView::Base.send :include, CloudinaryHelper
 
 if defined?(Sass::Rails)
   class Sass::Rails::Resolver
+    alias :original_image_path :image_path
     def image_path(img)
-      Cloudinary::Utils.cloudinary_url(img, :type=>:file)      
+      if Cloudinary.config.enhance_image_tag
+        Cloudinary::Utils.cloudinary_url(img, :type=>:asset)
+      else
+        original_image_path(img)
+      end      
     end      
   end  
 end

@@ -45,17 +45,23 @@ class Cloudinary::Utils
     version = options.delete(:version)
     format = options.delete(:format)
     
-    # Configuration options
-    # newsodrome.cloudinary.com, images.newsodrome.com, cloudinary.com/res/newsodrome, a9fj209daf.cloudfront.net
     cloud_name = options.delete(:cloud_name) || Cloudinary.config.cloud_name || raise("Must supply cloud_name in tag or in configuration")
     secure = options.delete(:secure) || Cloudinary.config.secure
     private_cdn = options.delete(:private_cdn) || Cloudinary.config.private_cdn    
     secure_distribution = options.delete(:secure_distribution) || Cloudinary.config.secure_distribution
     
+    return source if :type != :fetch && source.match(%r(^https?:/)i)
+    if source.start_with?("/") 
+      if source.start_with?("/images/")
+        source = source.sub(%r(/images/), '')
+      else
+        return source
+      end
+    end 
     @metadata ||= Cloudinary::Static.metadata
     if @metadata["images/#{source}"]
       return source if !Cloudinary.config.static_image_support
-      type = :file
+      type = :asset
       original_source = source
       source = @metadata["images/#{source}"]["public_id"]
       source += File.extname(original_source) if !format
@@ -81,10 +87,10 @@ class Cloudinary::Utils
     end
     
     source = "#{source}.#{format}" if format && type != :fetch
-    source = smart_escape(source) if [:fetch, :file].include?(type)
+    source = smart_escape(source) if [:fetch, :asset].include?(type)
     source = prefix + "/" + [resource_type, 
      type, transformation, version ? "v#{version}" : nil,
-     source].reject(&:blank?).join("/").gsub("//", "/")
+     source].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
   end
   
   # Based on CGI::unescape. In addition does not escape / : 
