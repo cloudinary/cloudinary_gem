@@ -40,7 +40,7 @@ class Cloudinary::Utils
   def self.cloudinary_url(source, options = {})
     transformation = self.generate_transformation_string(options)
 
-    type = options.delete(:type) || :upload
+    type = options.delete(:type)
     resource_type = options.delete(:resource_type) || "image"
     version = options.delete(:version)
     format = options.delete(:format)
@@ -50,7 +50,7 @@ class Cloudinary::Utils
     private_cdn = options.delete(:private_cdn) || Cloudinary.config.private_cdn    
     secure_distribution = options.delete(:secure_distribution) || Cloudinary.config.secure_distribution
     
-    return source if :type != :fetch && source.match(%r(^https?:/)i)
+    return source if :type.nil? && source.match(%r(^https?:/)i)
     if source.start_with?("/") 
       if source.start_with?("/images/")
         source = source.sub(%r(/images/), '')
@@ -58,6 +58,7 @@ class Cloudinary::Utils
         return source
       end
     end 
+    type ||= :upload
     @metadata ||= Cloudinary::Static.metadata
     if @metadata["images/#{source}"]
       return source if !Cloudinary.config.static_image_support
