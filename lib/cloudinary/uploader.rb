@@ -11,6 +11,7 @@ class Cloudinary::Uploader
                 :public_id=> options[:public_id],
                 :callback=> options[:callback],
                 :format=>options[:format],
+                :type=>options[:type],
                 :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}.reject{|k,v| v.blank?}    
       if options[:eager]
         params[:eager] = options[:eager].map do
@@ -31,6 +32,7 @@ class Cloudinary::Uploader
     call_api("destroy", options) do    
       {
         :timestamp=>Time.now.to_i,
+        :type=>options[:type],
         :public_id=> public_id
       }
     end              

@@ -92,6 +92,14 @@ class Cloudinary::Utils
      type, transformation, version ? "v#{version}" : nil,
      source].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
   end
+
+  def self.asset_file_name(path)
+    data = Rails.root.join(path).read(:mode=>"rb")
+    ext = path.extname
+    md5 = Digest::MD5.hexdigest(data)
+    public_id = "#{path.basename(ext)}-#{md5}"
+    "#{public_id}#{ext}"    
+  end
   
   # Based on CGI::unescape. In addition does not escape / : 
   def self.smart_escape(string)

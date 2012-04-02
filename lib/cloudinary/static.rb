@@ -59,7 +59,6 @@ class Cloudinary::Static
   end
 
   def self.sync(options={})
-    prefix = Pathname.new("static")
     options = options.clone
     delete_missing = options.delete(:delete_missing)
     metadata = self.metadata
@@ -74,15 +73,14 @@ class Cloudinary::Static
       ext = path.extname
       format = ext[1..-1]
       md5 = Digest::MD5.hexdigest(data)
-      public_id = prefix.join(public_path)
-      public_id = "#{public_id.dirname}/#{public_id.basename(ext)}-#{md5}"
+      public_id = "#{public_path.basename(ext)}-#{md5}"
       found_public_ids << public_id
       current_metadata = metadata.delete(public_path.to_s)      
       if current_metadata && current_metadata["public_id"] == public_id # Signature match
         result = current_metadata
       else
         result = Cloudinary::Uploader.upload(Cloudinary::Blob.new(data, :original_filename=>path.to_s),
-          options.merge(:format=>format, :public_id=>public_id)
+          options.merge(:format=>format, :public_id=>public_id, :type=>:asset)
         )
       end
       metadata_lines << [public_path, public_id, Time.now.to_i, result["version"], result["width"], result["height"]].join("\t")+"\n"
@@ -94,7 +92,7 @@ class Cloudinary::Static
     if delete_missing
       trash.each do
         |path, info|
-        Cloudinary::Uploader.destroy(info["public_id"], options)
+        Cloudinary::Uploader.destroy(info["public_id"], options.merge(:type=>:asset))
       end
       FileUtils.rm_f(self.metadata_trash_file_path)
     else
