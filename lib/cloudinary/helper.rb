@@ -26,7 +26,8 @@ module CloudinaryHelper
     
   def image_tag(*args)
     if Cloudinary.config.enhance_image_tag
-      cl_image_tag(*args)
+      source, options = args
+      cl_image_tag(source, {:type=>:asset}.merge(options || {}))
     else
       original_image_tag(*args)
     end
@@ -34,7 +35,8 @@ module CloudinaryHelper
 
   def image_path(*args)
     if Cloudinary.config.enhance_image_tag
-      cl_image_path(*args)
+      source, options = args
+      cl_image_path(source, {:type=>:asset}.merge(options || {}))
     else
       original_image_path(*args)
     end

@@ -51,7 +51,7 @@ class Cloudinary::Utils
     private_cdn = options.delete(:private_cdn) || Cloudinary.config.private_cdn    
     secure_distribution = options.delete(:secure_distribution) || Cloudinary.config.secure_distribution
     
-    return source if :type.nil? && source.match(%r(^https?:/)i)
+    return source if (type.nil? || type == :asset) && source.match(%r(^https?:/)i)
     if source.start_with?("/") 
       if source.start_with?("/images/")
         source = source.sub(%r(/images/), '')
@@ -67,6 +67,8 @@ class Cloudinary::Utils
       original_source = source
       source = @metadata["images/#{source}"]["public_id"]
       source += File.extname(original_source) if !format
+    elsif type == :asset
+      return source # requested asset, but no metadata - probably local file. return.
     end
     
     if cloud_name.start_with?("/")
