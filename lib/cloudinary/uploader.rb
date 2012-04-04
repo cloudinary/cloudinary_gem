@@ -12,7 +12,7 @@ class Cloudinary::Uploader
                 :callback=> options[:callback],
                 :format=>options[:format],
                 :type=>options[:type],
-                :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}.reject{|k,v| v.blank?}    
+                :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}    
       if options[:eager]
         params[:eager] = options[:eager].map do
           |transformation, format|
@@ -104,7 +104,7 @@ class Cloudinary::Uploader
     resource_type = options.delete(:resource_type) || "image"
     result = nil
     cloud_name = Cloudinary.config.cloud_name || raise("Must supply cloud_name")
-    RestClient::Request.execute(:method => :post, :url => "#{cloudinary}/v1_1/#{cloud_name}/#{resource_type}/#{action}", :payload => params, :timeout=>60) do
+    RestClient::Request.execute(:method => :post, :url => "#{cloudinary}/v1_1/#{cloud_name}/#{resource_type}/#{action}", :payload => params.reject{|k, v| v.blank?}, :timeout=>60) do
       |response, request, tmpresult|
       raise "Server returned unexpected status code - #{response.code} - #{response.body}" if ![200,400,500].include?(response.code)
       begin

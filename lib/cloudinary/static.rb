@@ -1,6 +1,7 @@
 require 'find'
 class Cloudinary::Static
-  IGNORE_FILES = [".svn", "CVS", "RCS", ".git", ".hg", /^.htaccess/]
+  IGNORE_FILES = [".svn", "CVS", "RCS", ".git", ".hg"]
+  SUPPORTED_IMAGES = [/\.gif$/i, /\.jpe?g$/i, /\.png$/i, /\.bmp$/i, /\.ico$/i]
   STATIC_IMAGE_DIRS = ["app/assets/images", "public/images"]
   METADATA_FILE = ".cloudinary.static"
   METADATA_TRASH_FILE = ".cloudinary.static.trash"
@@ -14,11 +15,13 @@ class Cloudinary::Static
       dir.find do
         |path|
         file = path.basename.to_s
-        if IGNORE_FILES.any?{|pattern| pattern.is_a?(String) ? pattern == file : file.match(pattern)}
+        if ignore_files.any?{|pattern| pattern.is_a?(String) ? pattern == file : file.match(pattern)}
           Find.prune
           next
         elsif path.directory?
           next
+        elsif SUPPORTED_IMAGES.none?{|pattern| pattern.is_a?(String) ? pattern == file : file.match(pattern)}
+          next          
         else
           relative_path = path.relative_path_from(Rails.root)
           public_path = path.relative_path_from(dir.dirname)
@@ -65,6 +68,7 @@ class Cloudinary::Static
     found_paths = Set.new
     found_public_ids = Set.new
     metadata_lines = []
+    counts = { :not_changed => 0, :uploaded => 0, :deleted => 0, :not_found => 0}
     self.discover do
       |path, public_path|
       next if found_paths.include?(path)
@@ -77,8 +81,12 @@ class Cloudinary::Static
       found_public_ids << public_id
       current_metadata = metadata.delete(public_path.to_s)      
       if current_metadata && current_metadata["public_id"] == public_id # Signature match
+        counts[:not_changed] += 1
+        $stderr.print "#{public_path} - #{public_id} - Not changed\n"
         result = current_metadata
       else
+        counts[:uploaded] += 1
+        $stderr.print "#{public_path} - #{public_id} - Uploading\n"
         result = Cloudinary::Uploader.upload(Cloudinary::Blob.new(data, :original_filename=>path.to_s),
           options.merge(:format=>format, :public_id=>public_id, :type=>:asset)
         )
@@ -86,12 +94,18 @@ class Cloudinary::Static
       metadata_lines << [public_path, public_id, Time.now.to_i, result["version"], result["width"], result["height"]].join("\t")+"\n"
     end
     File.open(self.metadata_file_path, "w"){|f| f.print(metadata_lines.join)}
+    metadata.to_a.each do |path, info|
+      counts[:not_found] += 1
+      $stderr.print "#{path} - #{info["public_id"]} - Not found\n"      
+    end
     # Files no longer needed 
     trash = metadata.to_a + self.metadata(metadata_trash_file_path, false).reject{|public_path, info| found_public_ids.include?(info["public_id"])} 
     
     if delete_missing
       trash.each do
         |path, info|
+        counts[:deleted] += 1
+        $stderr.print "#{path} - #{info["public_id"]} - Deleting\n"
         Cloudinary::Uploader.destroy(info["public_id"], options.merge(:type=>:asset))
       end
       FileUtils.rm_f(self.metadata_trash_file_path)
@@ -103,5 +117,8 @@ class Cloudinary::Static
       end
       File.open(self.metadata_trash_file_path, "w"){|f| f.print(metadata_lines.join)}    
     end
+    
+    $stderr.print "\nCompleted syncing static resources to Cloudinary\n"
+    $stderr.print counts.sort.reject{|k,v| v == 0}.map{|k,v| "#{v} #{k.to_s.gsub('_', ' ').capitalize}"}.join(", ") + "\n"
   end
 end
