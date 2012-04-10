@@ -25,7 +25,7 @@ class Cloudinary::Utils
     named_transformation = build_array(options.delete(:transformation)).join(".")
     prefix = options.delete(:prefix)
 
-    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :q=>quality, :g=>gravity, :p=>prefix, :x=>x, :y=>y, :radius=>radius}
+    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :q=>quality, :g=>gravity, :p=>prefix, :x=>x, :y=>y, :r=>radius}
     transformation = params.reject{|k,v| v.blank?}.map{|k,v| [k.to_s, v]}.sort_by(&:first).map{|k,v| "#{k}_#{v}"}.join(",")
     raw_transformation = options.delete(:raw_transformation)
     transformation = [transformation, raw_transformation].reject(&:blank?).join(",")
