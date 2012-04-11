@@ -99,12 +99,12 @@ class Cloudinary::Uploader
     
     params[:signature] = Cloudinary::Utils.api_sign_request(params.reject{|k,v| non_signable.include?(k)}, api_secret)
     params[:api_key] = api_key
-    cloudinary = options.delete(:upload_prefix) || Cloudinary.config.upload_prefix || "https://api.cloudinary.com"
 
-    resource_type = options.delete(:resource_type) || "image"
     result = nil
-    cloud_name = Cloudinary.config.cloud_name || raise("Must supply cloud_name")
-    RestClient::Request.execute(:method => :post, :url => "#{cloudinary}/v1_1/#{cloud_name}/#{resource_type}/#{action}", :payload => params.reject{|k, v| v.blank?}, :timeout=>60) do
+    
+    api_url = Cloudinary::Utils.cloudinary_api_url(action, {:resource_type => options.delete(:resource_type), :upload_prefix => options.delete(:upload_prefix)})
+    
+    RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject{|k, v| v.blank?}, :timeout=>60) do
       |response, request, tmpresult|
       raise "Server returned unexpected status code - #{response.code} - #{response.body}" if ![200,400,500].include?(response.code)
       begin

@@ -1,5 +1,3 @@
-# Copyright Cloudinary
-
 module CloudinaryHelper
   include ActionView::Helpers::AssetTagHelper  
   alias :original_image_tag :image_tag
@@ -75,6 +73,35 @@ module CloudinaryHelper
 
   def cl_sprite_tag(source, options = {})
     stylesheet_link_tag(cl_sprite_url(source, options))
+  end
+
+  # cl_form_tag was originally contributed by Milovan Zogovic
+  def cl_form_tag(callback_url, options={}, &block)
+    form_options = options.delete(:form) || {}
+    form_options[:method] = :post
+    form_options[:multipart] = true
+     
+    options[:timestamp] = Time.now.to_i
+    options[:callback] = callback_url    
+    options[:transformation] = Cloudinary::Utils.generate_transformation_string(options[:transformation]) if options[:transformation]
+    options[:tags] = Cloudinary::Utils.build_array(options[:tags]).join(",") if options[:tags]  
+    options[:signature] = Cloudinary::Utils.api_sign_request(options, Cloudinary.config.api_secret)  
+    options[:api_key] = Cloudinary.config.api_key
+  
+    api_url = Cloudinary::Utils.cloudinary_api_url("upload", 
+                {:resource_type => options.delete(:resource_type), :upload_prefix => options.delete(:upload_prefix)})
+
+    form_tag(api_url, form_options) do
+      content = []
+  
+      options.each do |name, value|
+        content << hidden_field_tag(name, value)
+      end
+  
+      content << capture(&block)
+  
+      content.join("\n").html_safe
+    end
   end
 
   def cloudinary_url(source, options = {})

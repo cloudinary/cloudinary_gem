@@ -10,7 +10,8 @@ require 'active_support'
 require "cloudinary/missing"
 require "cloudinary/carrier_wave" if defined?(::CarrierWave)
 require "cloudinary/helper" if defined?(::ActionView::Base)
-require "cloudinary/railtie" if defined?(Rails)
+require "cloudinary/controller" if defined?(::ActionController::Base)
+require "cloudinary/railtie" if defined?(Rails) && defined?(Rails::Railtie)
 
 module Cloudinary  
   @@config = nil

@@ -99,6 +99,13 @@ class Cloudinary::Utils
      type, transformation, version ? "v#{version}" : nil,
      source].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
   end
+  
+  def self.cloudinary_api_url(action = 'upload', options = {})
+    cloudinary = options[:upload_prefix] || Cloudinary.config.upload_prefix || "https://api.cloudinary.com"
+    cloud_name = Cloudinary.config.cloud_name || raise("Must supply cloud_name")
+    resource_type = options[:resource_type] || "image"
+    return [cloudinary, "v1_1", cloud_name, resource_type, action].join("/")
+  end
 
   def self.asset_file_name(path)
     data = Rails.root.join(path).read(:mode=>"rb")
