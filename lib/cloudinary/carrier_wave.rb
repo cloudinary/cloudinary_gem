@@ -132,6 +132,7 @@ module Cloudinary::CarrierWave
     if(args.first)
       super
     else
+      return nil if blank?
       options = self.class.version_names.blank? ? {} : self.transformation
       Cloudinary::Utils.cloudinary_url(self.my_filename, options.clone)
     end
@@ -206,9 +207,20 @@ module Cloudinary::CarrierWave
         end
         
         if uploader.metadata["version"]
-          raise "Only ActiveRecord supported at the moment!" if !(uploader.model.class.respond_to?(:update_all) && uploader.model.class.respond_to?(:primary_key))
-          primary_key = uploader.model.class.primary_key.to_sym
-          uploader.model.class.update_all(["#{uploader.mounted_as}=?", "v#{uploader.metadata["version"]}/#{identifier.split("/").last}"], {primary_key=>uploader.model.send(primary_key)})
+
+          name = "v#{uploader.metadata["version"]}/#{identifier.split("/").last}"
+          model_class = uploader.model.class
+          if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)
+            primary_key = model_class.primary_key.to_sym
+            model_class.update_all({uploader.mounted_as=>name}, {primary_key=>uploader.model.send(primary_key)})
+            uploader.model.send :write_attribute, uploader.mounted_as, name
+          elsif model_class.respond_to?(:update_all) && uploader.model.respond_to?(:_id)
+            # Mongoid support
+            model_class.where(:_id=>uploader.model._id).update_all(uploader.mounted_as=>name)
+            uploader.model.send :write_attribute, uploader.mounted_as, name
+          else
+            raise "Only ActiveRecord and Mongoid are supported at the moment!"
+          end
         end
         # Will throw an exception on error
       else
