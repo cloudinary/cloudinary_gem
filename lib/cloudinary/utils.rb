@@ -1,5 +1,6 @@
 # Copyright Cloudinary
 require 'digest/sha1'
+require 'zlib'
 
 class Cloudinary::Utils
   SHARED_CDN = "d3jpl91pxevbkh.cloudfront.net"
@@ -51,7 +52,7 @@ class Cloudinary::Utils
     private_cdn = options.delete(:private_cdn) || Cloudinary.config.private_cdn    
     secure_distribution = options.delete(:secure_distribution) || Cloudinary.config.secure_distribution
     force_remote = options.delete(:force_remote)  
-
+    
     if !force_remote    
       return source if (type.nil? || type == :asset) && source.match(%r(^https?:/)i)
       if source.start_with?("/") 
@@ -73,6 +74,9 @@ class Cloudinary::Utils
       end
     end
     type ||= :upload
+
+    source = "#{source}.#{format}" if format && type != :fetch
+    source = smart_escape(source) if [:fetch, :asset].include?(type)
     
     if cloud_name.start_with?("/")
       prefix = "/res" + cloud_name
@@ -88,13 +92,13 @@ class Cloudinary::Utils
       if secure
         prefix = "https://#{secure_distribution}"
       else
-        prefix = "http://#{private_cdn ? "#{cloud_name}-" : ""}res.cloudinary.com"
+        cdn_subdomain = options.include?(:cdn_subdomain) ? options[:cdn_subdomain] : Cloudinary.config.cdn_subdomain
+        subdomain = cdn_subdomain ? "a#{(Zlib::crc32(source) % 5) + 1}." : ""
+        prefix = "http://#{subdomain}#{private_cdn ? "#{cloud_name}-" : ""}res.cloudinary.com"
       end    
       prefix += "/#{cloud_name}" if !private_cdn
     end
     
-    source = "#{source}.#{format}" if format && type != :fetch
-    source = smart_escape(source) if [:fetch, :asset].include?(type)
     source = prefix + "/" + [resource_type, 
      type, transformation, version ? "v#{version}" : nil,
      source].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
