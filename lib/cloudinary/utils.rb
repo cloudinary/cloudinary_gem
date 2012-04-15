@@ -23,14 +23,23 @@ class Cloudinary::Utils
     
     gravity = options.delete(:gravity)
     quality = options.delete(:quality)
-    named_transformation = build_array(options.delete(:transformation)).join(".")
+    base_transformations = build_array(options.delete(:transformation))
+    if base_transformations.any?{|base_transformation| base_transformation.is_a?(Hash)}
+      base_transformations = base_transformations.map do
+        |base_transformation|
+        base_transformation.is_a?(Hash) ? generate_transformation_string(base_transformation) : generate_transformation_string(:transformation=>base_transformation)
+      end
+    else      
+      named_transformation = base_transformations.join(".")
+      base_transformations = []
+    end
     prefix = options.delete(:prefix)
 
     params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :q=>quality, :g=>gravity, :p=>prefix, :x=>x, :y=>y, :r=>radius}
     transformation = params.reject{|k,v| v.blank?}.map{|k,v| [k.to_s, v]}.sort_by(&:first).map{|k,v| "#{k}_#{v}"}.join(",")
     raw_transformation = options.delete(:raw_transformation)
     transformation = [transformation, raw_transformation].reject(&:blank?).join(",")
-    transformation    
+    (base_transformations << transformation).reject(&:blank?).join("/")    
   end
   
   def self.api_sign_request(params_to_sign, api_secret)
