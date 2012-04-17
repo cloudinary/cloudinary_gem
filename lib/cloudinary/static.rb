@@ -9,7 +9,7 @@ class Cloudinary::Static
   def self.discover
     ignore_files = Cloudinary.config.ignore_files || IGNORE_FILES 
     relative_dirs = Cloudinary.config.statis_image_dirs || STATIC_IMAGE_DIRS
-    dirs = relative_dirs.map{|dir| Rails.root.join(dir)}.select(&:exist?)
+    dirs = relative_dirs.map{|dir| self.root.join(dir)}.select(&:exist?)
     dirs.each do
       |dir|
       dir.find do
@@ -23,7 +23,7 @@ class Cloudinary::Static
         elsif SUPPORTED_IMAGES.none?{|pattern| pattern.is_a?(String) ? pattern == file : file.match(pattern)}
           next          
         else
-          relative_path = path.relative_path_from(Rails.root)
+          relative_path = path.relative_path_from(self.root)
           public_path = path.relative_path_from(dir.dirname)
           yield(relative_path, public_path)
         end
@@ -33,12 +33,16 @@ class Cloudinary::Static
   
   UTC = ActiveSupport::TimeZone["UTC"]
   
+  def self.root
+    defined?(Rails) ? Rails.root : Pathname.new(".")
+  end
+  
   def self.metadata_file_path
-    Rails.root.join(METADATA_FILE)
+    self.root.join(METADATA_FILE)
   end
 
   def self.metadata_trash_file_path
-    Rails.root.join(METADATA_TRASH_FILE)
+    self.root.join(METADATA_TRASH_FILE)
   end
   
   def self.metadata(metadata_file = metadata_file_path, hash=true) 
@@ -73,7 +77,7 @@ class Cloudinary::Static
       |path, public_path|
       next if found_paths.include?(path)
       found_paths << path
-      data = Rails.root.join(path).read(:mode=>"rb")
+      data = self.root.join(path).read(:mode=>"rb")
       ext = path.extname
       format = ext[1..-1]
       md5 = Digest::MD5.hexdigest(data)

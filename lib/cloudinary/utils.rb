@@ -7,10 +7,10 @@ class Cloudinary::Utils
   
   # Warning: options are being destructively updated!
   def self.generate_transformation_string(options={})
+    size = options.delete(:size)
+    options[:width], options[:height] = size.split("x") if size    
     width = options[:width]
     height = options[:height]
-    size = options.delete(:size)
-    width, height = size.split("x") if size    
     options.delete(:width) if width && width.to_f < 1 
     options.delete(:height) if height && height.to_f < 1    
      
@@ -71,7 +71,7 @@ class Cloudinary::Utils
           return source
         end
       end 
-      @metadata ||= Cloudinary::Static.metadata
+      @metadata ||= defined?(Cloudinary::Static) ? Cloudinary::Static.metadata : {}
       if @metadata["images/#{source}"]
         return source if !Cloudinary.config.static_image_support
         type = :asset

@@ -5,7 +5,7 @@ require "cloudinary/utils"
 require "cloudinary/uploader"
 require "cloudinary/downloader"
 require "cloudinary/blob" 
-require "cloudinary/static" 
+require "cloudinary/static" if defined?(::ActiveSupport)
 require 'active_support' 
 require "cloudinary/missing"
 require "cloudinary/carrier_wave" if defined?(::CarrierWave)
