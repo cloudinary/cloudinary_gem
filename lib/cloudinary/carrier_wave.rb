@@ -1,6 +1,8 @@
 # Copyright Cloudinary
 require 'pp'
 module Cloudinary::CarrierWave
+  CLOUDINARY_PATH = /^([^\/]+)\/upload\/v(\d+)\/([^\/]+)#([^\/]+)$/
+  
   class UploadError < StandardError
     attr_reader :http_code
     def initialize(message, http_code)
@@ -55,8 +57,40 @@ module Cloudinary::CarrierWave
     base.storage Cloudinary::CarrierWave::Storage
     base.extend ClassMethods
     base.send(:attr_accessor, :metadata)
+    base.send(:alias_method, :original_cache!, :cache!)
+    base.send(:alias_method, :original_cache_name, :cache_name)
+    base.send(:alias_method, :original_retrieve_from_cache!, :retrieve_from_cache!)
+    base.send(:include, Override)
   end
   
+  module Override
+    def cache!(new_file)
+      if new_file.is_a?(String) && new_file.match(CLOUDINARY_PATH)
+        @file = CloudinaryFile.new(new_file)
+        self.original_filename = @cache_id = @my_filename = @filename = @file.original_filename
+      else
+        original_cache!(new_file)
+      end
+    end
+
+    def retrieve_from_cache!(new_file)
+      if new_file.is_a?(String) && new_file.match(CLOUDINARY_PATH)
+        @file = CloudinaryFile.new(new_file)
+        self.original_filename = @cache_id = @my_filename = @filename = @file.original_filename
+      else
+        original_retrieve_from_cache!(new_file)
+      end
+    end
+    
+    def cache_name
+      if @file.is_a?(CloudinaryFile)
+        return @file.to_s
+      else
+        return original_cache_name
+      end
+    end
+  end
+      
   def set_or_yell(hash, attr, value)
     raise "conflicting transformation on #{attr} #{value}!=#{hash[attr]}" if hash[attr]
     hash[attr] = value
@@ -129,12 +163,13 @@ module Cloudinary::CarrierWave
   end
   
   def url(*args)
-    if(args.first)
+    if args.first && !args.first.is_a?(Hash)
       super
     else
-      return nil if blank?
-      options = self.class.version_names.blank? ? {} : self.transformation
-      Cloudinary::Utils.cloudinary_url(self.my_filename, options.clone)
+      return nil if self.my_identifier.blank?
+      options = args.extract_options!
+      options = options.merge(self.class.version_names.blank? ? {} : self.transformation)
+      Cloudinary::Utils.cloudinary_url(self.my_filename, options)
     end
   end
 
@@ -143,16 +178,17 @@ module Cloudinary::CarrierWave
   end
 
   def stored_filename
-    @stored_filename ||= model.read_uploader(mounted_as)
+    @stored_filename = model.read_uploader(mounted_as) if @stored_filename.blank?
+    @stored_filename
   end  
 
   def my_filename
-    @my_filename ||= stored_filename || ("#{self.public_id}.#{self.format}")
+    @my_filename ||= stored_filename.present? ? stored_filename : ("#{self.public_id}.#{self.format}")
   end
     
   def public_id
     return @public_id if @public_id
-    if stored_filename
+    if stored_filename.present?
       last_dot = stored_filename.rindex(".")
       @public_id = last_dot ? stored_filename[0, last_dot] : stored_filename 
     end    
@@ -165,8 +201,18 @@ module Cloudinary::CarrierWave
     @file = RemoteFile.new(uri, @filename)
   end
   
-  def blank?
-    self.filename.blank? && self.stored_filename.blank?
+  def my_identifier
+    (self.filename || self.stored_filename.present?) ? self.my_filename : nil    
+  end
+  
+  class RemoveableFile
+    def initialize(identifier)
+      @public_id = identifier.split("/").last.split(".").first
+    end
+    
+    def delete
+      Cloudinary::Uploader.destroy(@public_id)
+    end
   end
   
   class RemoteFile
@@ -181,10 +227,33 @@ module Cloudinary::CarrierWave
     end
   end
   
+  class CloudinaryFile
+    attr_reader :original_filename, :version
+    def initialize(file_info)
+      resource_type, @version, @original_filename, @signature = file_info.scan(CLOUDINARY_PATH).first
+      raise "Cloudinary CarrierWave integration supports images only" if resource_type != "image"
+      public_id = @original_filename[0..(@original_filename.rindex(".")-1)]
+      expected_signature = Cloudinary::Utils.api_sign_request({:public_id=>public_id, :version=>version}, Cloudinary.config.api_secret)
+      if @signature != expected_signature
+        raise CarrierWave::IntegrityError, I18n.translate(:"errors.messages.cloudinary_signature_error", :public_id=>public_id, :default=>"Invalid signature for #{public_id}")
+      end
+    end
+    
+    def to_s
+      "image/upload/v#{@version}/#{@original_filename}##{@signature}"
+    end
+
+    def delete
+      # Do nothing. This is a virtual file.
+    end
+  end
+  
   class Storage < ::CarrierWave::Storage::Abstract
     def store!(file)
       # Moved to identifier...
       if uploader.class.version_names.blank?
+        return store_cloudinary_version(file.version) if file.is_a?(CloudinaryFile)
+        
         # This is the toplevel, need to upload the actual file.     
         params = uploader.transformation.dup
         params[:return_error] = true
@@ -206,35 +275,41 @@ module Cloudinary::CarrierWave
           raise UploadError.new(uploader.metadata["error"]["message"], uploader.metadata["error"]["http_code"])
         end
         
-        if uploader.metadata["version"]
-
-          name = "v#{uploader.metadata["version"]}/#{identifier.split("/").last}"
-          model_class = uploader.model.class
-          if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)
-            primary_key = model_class.primary_key.to_sym
-            model_class.update_all({uploader.mounted_as=>name}, {primary_key=>uploader.model.send(primary_key)})
-            uploader.model.send :write_attribute, uploader.mounted_as, name
-          elsif model_class.respond_to?(:update_all) && uploader.model.respond_to?(:_id)
-            # Mongoid support
-            model_class.where(:_id=>uploader.model._id).update_all(uploader.mounted_as=>name)
-            uploader.model.send :write_attribute, uploader.mounted_as, name
-          else
-            raise "Only ActiveRecord and Mongoid are supported at the moment!"
-          end
-        end
+        store_cloudinary_version(uploader.metadata["version"]) if uploader.metadata["version"]
         # Will throw an exception on error
       else
         raise "nested versions are not allowed." if (uploader.class.version_names.length > 1)
         # Do nothing
       end
+      nil
+    end
+    
+    def store_cloudinary_version(version)
+      name = "v#{version}/#{identifier.split("/").last}"
+      model_class = uploader.model.class
+      if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)
+        primary_key = model_class.primary_key.to_sym
+        model_class.update_all({uploader.mounted_as=>name}, {primary_key=>uploader.model.send(primary_key)})
+        uploader.model.send :write_attribute, uploader.mounted_as, name
+      elsif model_class.respond_to?(:update_all) && uploader.model.respond_to?(:_id)
+        # Mongoid support
+        model_class.where(:_id=>uploader.model._id).update_all(uploader.mounted_as=>name)
+        uploader.model.send :write_attribute, uploader.mounted_as, name
+      else
+        raise "Only ActiveRecord and Mongoid are supported at the moment!"
+      end
     end
     
     def retrieve!(identifier)
-      # Do nothing
+      if uploader.class.version_names.blank?
+        return RemoveableFile.new(identifier)
+      else
+        return nil # Version files should not be deleted.
+      end      
     end 
     
     def identifier
-      (uploader.filename || uploader.stored_filename) ? uploader.my_filename : nil
+      uploader.my_identifier      
     end   
   end
 end

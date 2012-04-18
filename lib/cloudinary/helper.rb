@@ -81,12 +81,9 @@ module CloudinaryHelper
     form_options[:method] = :post
     form_options[:multipart] = true
      
-    options[:timestamp] = Time.now.to_i
-    options[:callback] = callback_url    
-    options[:transformation] = Cloudinary::Utils.generate_transformation_string(options[:transformation]) if options[:transformation]
-    options[:tags] = Cloudinary::Utils.build_array(options[:tags]).join(",") if options[:tags]  
-    options[:signature] = Cloudinary::Utils.api_sign_request(options, Cloudinary.config.api_secret)  
-    options[:api_key] = Cloudinary.config.api_key
+    params = Cloudinary::Uploader.build_upload_params(options.merge(:callback=>callback_url))  
+    params[:signature] = Cloudinary::Utils.api_sign_request(params, Cloudinary.config.api_secret)  
+    params[:api_key] = Cloudinary.config.api_key
   
     api_url = Cloudinary::Utils.cloudinary_api_url("upload", 
                 {:resource_type => options.delete(:resource_type), :upload_prefix => options.delete(:upload_prefix)})
@@ -94,7 +91,7 @@ module CloudinaryHelper
     form_tag(api_url, form_options) do
       content = []
   
-      options.each do |name, value|
+      params.each do |name, value|
         content << hidden_field_tag(name, value)
       end
   
@@ -104,10 +101,67 @@ module CloudinaryHelper
     end
   end
 
+  CLOUDINARY_JS_CONFIG_PARAMS = [:api_key, :cloud_name, :private_cdn, :secure_distribution, :cdn_subdomain]
+  def cloudinary_js_config
+    params = {}
+    CLOUDINARY_JS_CONFIG_PARAMS.each{|param| params[param] = Cloudinary.config.send(param)}    
+    content_tag("script", "$.cloudinary.config(#{params.to_json});".html_safe, :type=>"text/javascript")      
+  end
+
   def cloudinary_url(source, options = {})
     options[:secure] = request.ssl? if !options.include?(:secure) && defined?(request) && request && request.respond_to?(:ssl?)
     Cloudinary::Utils.cloudinary_url(source, options)
   end  
+
+  def cl_image_upload(object_name, method, options={})
+    cl_image_upload_tag("#{object_name}[#{method}]", options)
+  end
+  
+  def cl_image_upload_tag(field, options={})
+    html_options = options.delete(:html) || {}
+    cloudinary_upload_url = Cloudinary::Utils.cloudinary_api_url("upload", {:resource_type=>:auto}.merge(options))
+    
+    api_key = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
+    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
+
+    cloudinary_params = Cloudinary::Uploader.build_upload_params(options)
+    cloudinary_params[:callback] = build_callback_url(options)
+    cloudinary_params[:signature] = Cloudinary::Utils.api_sign_request(cloudinary_params, api_secret)
+    cloudinary_params[:api_key] = api_key
+
+    tag_options = html_options.merge(:type=>"file", :name=>"file", 
+      :"data-url"=>cloudinary_upload_url,
+      :"data-form-data"=>cloudinary_params.reject{|k, v| v.blank?}.to_json,
+      :"data-cloudinary-field"=>field,
+      :"class" => [html_options[:class], "cloudinary-fileupload"].flatten.compact 
+    ).reject{|k,v| v.blank?}
+    content_tag("input", nil, tag_options)
+  end
+  
+  def self.included(base)
+    ActionView::Helpers::FormBuilder.send(:include, Cloudinary::FormBuilder)
+  end
+  
+  private
+  def build_callback_url(options)
+    callback_path = options.delete(:callback_cors) || Cloudinary.config.callback_cors || "/cloudinary_cors.html"
+    if !callback_path.match(/^https?:\/\//)
+      callback_url = request.scheme + "://"
+      callback_url << request.host
+      if request.scheme == "https" && request.port != 443 ||
+        request.scheme == "http" && request.port != 80
+        callback_url << ":#{request.port}"
+      end
+      callback_url << callback_path
+    end
+    callback_url
+  end  
+end
+
+module Cloudinary::FormBuilder
+  def cl_image_upload(method, options={})
+    @template.cl_image_upload(@object_name, method, objectify_options(options))
+  end
 end
 
 ActionView::Base.send :include, CloudinaryHelper

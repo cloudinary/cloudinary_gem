@@ -4,23 +4,28 @@ require 'json'
 
 class Cloudinary::Uploader
   
+  def self.build_upload_params(options)
+    params = {:timestamp=>Time.now.to_i,
+              :transformation => Cloudinary::Utils.generate_transformation_string(options),
+              :public_id=> options[:public_id],
+              :callback=> options[:callback],
+              :format=>options[:format],
+              :type=>options[:type],
+              :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}    
+    if options[:eager]
+      params[:eager] = options[:eager].map do
+        |transformation, format|
+        transformation = transformation.clone
+        format = transformation.delete(:format) || format
+        [Cloudinary::Utils.generate_transformation_string(transformation), format].compact.join("/")
+      end.join("|")
+    end
+    params    
+  end
+   
   def self.upload(file, options={})
     call_api("upload", options) do    
-      params = {:timestamp=>Time.now.to_i,
-                :transformation => Cloudinary::Utils.generate_transformation_string(options),
-                :public_id=> options[:public_id],
-                :callback=> options[:callback],
-                :format=>options[:format],
-                :type=>options[:type],
-                :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}    
-      if options[:eager]
-        params[:eager] = options[:eager].map do
-          |transformation, format|
-          transformation = transformation.clone
-          format = transformation.delete(:format) || format
-          [Cloudinary::Utils.generate_transformation_string(transformation), format].compact.join("/")
-        end.join("|")
-      end
+      params = build_upload_params(options)
       if file.respond_to?(:read) || file =~ /^https?:/
         params[:file] = file
       else 
