@@ -1,3 +1,4 @@
+require 'digest/md5'
 module CloudinaryHelper
   include ActionView::Helpers::AssetTagHelper  
   alias :original_image_tag :image_tag
@@ -46,6 +47,10 @@ module CloudinaryHelper
   
   def facebook_profile_image_tag(profile, options = {})    
     cl_image_tag(profile, {:type=>:facebook}.merge(options))
+  end
+
+  def gravatar_profile_image_tag(email, options = {})    
+    cl_image_tag(Digest::MD5.hexdigest(email.strip.downcase), {:type=>:gravatar, :format=>:jpg}.merge(options))
   end
 
   def twitter_profile_image_tag(profile, options = {})    
