@@ -72,9 +72,8 @@ class Cloudinary::Utils
         end
       end 
       @metadata ||= defined?(Cloudinary::Static) ? Cloudinary::Static.metadata : {}
-      if @metadata["images/#{source}"]
-        return source if !Cloudinary.config.static_image_support
-        type = :asset
+      if type == :asset && @metadata["images/#{source}"]
+        return source if !Cloudinary.config.static_image_support        
         original_source = source
         source = @metadata["images/#{source}"]["public_id"]
         source += File.extname(original_source) if !format
@@ -84,7 +83,7 @@ class Cloudinary::Utils
     end
     type ||= :upload
 
-    source = "#{source}.#{format}" if format && type != :fetch
+    source = "#{source}.#{format}" if !format.blank? && type != :fetch
     source = smart_escape(source) if [:fetch, :asset].include?(type)
     
     if cloud_name.start_with?("/")
