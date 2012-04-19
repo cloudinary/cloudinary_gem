@@ -16,22 +16,30 @@ require "cloudinary/railtie" if defined?(Rails) && defined?(Rails::Railtie)
 module Cloudinary  
   @@config = nil
   
-  def self.config(new_config=nil)    
-    @@config = new_config if new_config
-    if block_given?
-      @@config = OpenStruct.new
-      yield(@@config)
-    end 
+  def self.config(new_config=nil)
+    first_time = @@config.nil?
+    @@config ||= OpenStruct.new((YAML.load_file(Rails.root.join("config").join("cloudinary.yml"))[Rails.env] rescue {}))
+        
     # Heroku support
-    if @@config.nil? && ENV["CLOUDINARY_CLOUD_NAME"]
-      @@config = OpenStruct.new(
+    if first_time && ENV["CLOUDINARY_CLOUD_NAME"]
+      set_config(
         "cloud_name" => ENV["CLOUDINARY_CLOUD_NAME"],
         "api_key" => ENV["CLOUDINARY_API_KEY"],
         "api_secret" => ENV["CLOUDINARY_API_SECRET"],
         "secure_distribution" => ENV["CLOUDINARY_SECURE_DISTRIBUTION"],
         "private_cdn" => ENV["CLOUDINARY_PRIVATE_CDN"].to_s == 'true'
       )
-    end    
-    @@config ||= OpenStruct.new((YAML.load_file(Rails.root.join("config").join("cloudinary.yml"))[Rails.env] rescue {}))
+    end
+
+    set_config(new_config) if new_config
+    yield(@@config) if block_given?
+
+    @@config    
+  end
+  
+  private
+  
+  def self.set_config(new_config)
+    new_config.each{|k,v| @@config.send(:"#{k}=", v) if !v.nil?}
   end
 end
