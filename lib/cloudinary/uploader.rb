@@ -13,7 +13,7 @@ class Cloudinary::Uploader
               :type=>options[:type],
               :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}    
     if options[:eager]
-      params[:eager] = options[:eager].map do
+      params[:eager] = Cloudinary::Utils.build_array(options[:eager]).map do
         |transformation, format|
         transformation = transformation.clone
         format = transformation.delete(:format) || format

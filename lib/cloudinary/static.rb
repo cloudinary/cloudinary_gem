@@ -94,9 +94,9 @@ class Cloudinary::Static
         $stderr.print "#{public_path} - #{public_id} - Uploading\n"
         result = Cloudinary::Uploader.upload(Cloudinary::Blob.new(data, :original_filename=>path.to_s),
           options.merge(:format=>format, :public_id=>public_id, :type=>:asset)
-        )
+        ).merge("upload_time"=>Time.now)        
       end
-      metadata_lines << [public_path, public_id, Time.now.to_i, result["version"], result["width"], result["height"]].join("\t")+"\n"
+      metadata_lines << [public_path, public_id, result["upload_time"].to_i, result["version"], result["width"], result["height"]].join("\t")+"\n"
     end
     File.open(self.metadata_file_path, "w"){|f| f.print(metadata_lines.join)}
     metadata.to_a.each do |path, info|

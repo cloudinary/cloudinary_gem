@@ -28,7 +28,7 @@ class Cloudinary::Utils
     if base_transformations.any?{|base_transformation| base_transformation.is_a?(Hash)}
       base_transformations = base_transformations.map do
         |base_transformation|
-        base_transformation.is_a?(Hash) ? generate_transformation_string(base_transformation) : generate_transformation_string(:transformation=>base_transformation)
+        base_transformation.is_a?(Hash) ? generate_transformation_string(base_transformation.clone) : generate_transformation_string(:transformation=>base_transformation)
       end
     else      
       named_transformation = base_transformations.join(".")
