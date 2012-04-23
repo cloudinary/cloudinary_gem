@@ -97,7 +97,7 @@ module CloudinaryHelper
       content = []
   
       params.each do |name, value|
-        content << hidden_field_tag(name, value)
+        content << hidden_field_tag(name, value, :id => nil)
       end
   
       content << capture(&block)
