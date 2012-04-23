@@ -50,6 +50,7 @@ class Cloudinary::Utils
 
   # Warning: options are being destructively updated!
   def self.cloudinary_url(source, options = {})
+    original_source = source
     transformation = self.generate_transformation_string(options)
 
     type = options.delete(:type)
@@ -64,22 +65,21 @@ class Cloudinary::Utils
     force_remote = options.delete(:force_remote)  
     
     if !force_remote    
-      return source if (type.nil? || type == :asset) && source.match(%r(^https?:/)i)
+      return original_source if (type.nil? || type == :asset) && source.match(%r(^https?:/)i)
       if source.start_with?("/") 
         if source.start_with?("/images/")
           source = source.sub(%r(/images/), '')
         else
-          return source
+          return original_source
         end
       end 
       @metadata ||= defined?(Cloudinary::Static) ? Cloudinary::Static.metadata : {}
       if type == :asset && @metadata["images/#{source}"]
-        return source if !Cloudinary.config.static_image_support        
-        original_source = source
+        return original_source if !Cloudinary.config.static_image_support        
         source = @metadata["images/#{source}"]["public_id"]
         source += File.extname(original_source) if !format
       elsif type == :asset
-        return source # requested asset, but no metadata - probably local file. return.
+        return original_source # requested asset, but no metadata - probably local file. return.
       end
     end
     type ||= :upload
