@@ -171,7 +171,8 @@ end
 
 ActionView::Base.send :include, CloudinaryHelper
 
-if defined?(Sass::Rails)
+begin
+  require 'sass-rails'
   class Sass::Rails::Resolver
     alias :original_image_path :image_path
     def image_path(img)
@@ -182,9 +183,11 @@ if defined?(Sass::Rails)
       end      
     end      
   end  
+rescue LoadError
+  # no sass rails support. Ignore.
 end
 
-if defined?(Sass::Script::Functions)
+begin
   require 'sass/script/functions'
   module Sass::Script::Functions
     def cloudinary_url(public_id, sass_options={})
@@ -195,4 +198,7 @@ if defined?(Sass::Script::Functions)
     end
     declare :cloudinary_url, [:string], :var_kwargs => true
   end
+rescue LoadError
+  # no sass support. Ignore.
 end
+  
