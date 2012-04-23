@@ -173,6 +173,10 @@ module Cloudinary::CarrierWave
     end
   end
 
+  def recreate_versions!
+    # Do nothing
+  end
+  
   def process!(new_file=nil)
     # Do nothing
   end
