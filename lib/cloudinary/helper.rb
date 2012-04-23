@@ -184,3 +184,15 @@ if defined?(Sass::Rails)
   end  
 end
 
+if defined?(Sass::Script::Functions)
+  require 'sass/script/functions'
+  module Sass::Script::Functions
+    def cloudinary_url(public_id, sass_options={})
+      options = {}
+      sass_options.each{|k, v| options[k.to_sym] = v.value}
+      url = Cloudinary::Utils.cloudinary_url(public_id.value, {:type=>:asset}.merge(options))
+      Sass::Script::String.new("url(#{url})")      
+    end
+    declare :cloudinary_url, [:string], :var_kwargs => true
+  end
+end
