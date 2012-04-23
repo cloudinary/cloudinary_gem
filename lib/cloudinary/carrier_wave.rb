@@ -178,12 +178,12 @@ module Cloudinary::CarrierWave
   end
 
   def stored_filename
-    @stored_filename = model.read_uploader(mounted_as) if @stored_filename.blank?
-    @stored_filename
+    model.read_uploader(mounted_as)
   end  
 
   def my_filename
-    @my_filename ||= stored_filename.present? ? stored_filename : ("#{self.public_id}.#{self.format}")
+    return stored_filename if stored_filename.present?
+    @my_filename ||= "#{self.public_id}.#{self.format}"
   end
     
   def public_id

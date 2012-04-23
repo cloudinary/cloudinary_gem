@@ -1,3 +1,4 @@
+require 'active_support/time'
 require 'find'
 class Cloudinary::Static
   IGNORE_FILES = [".svn", "CVS", "RCS", ".git", ".hg"]

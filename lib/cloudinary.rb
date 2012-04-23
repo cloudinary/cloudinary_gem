@@ -1,12 +1,13 @@
 # Copyright Cloudinary
 require "ostruct"
+require "pathname"
+require "yaml"
 require "cloudinary/version"
 require "cloudinary/utils"
 require "cloudinary/uploader"
 require "cloudinary/downloader"
 require "cloudinary/blob" 
 require "cloudinary/static" if defined?(::ActiveSupport)
-require 'active_support' 
 require "cloudinary/missing"
 require "cloudinary/carrier_wave" if defined?(::CarrierWave)
 require "cloudinary/helper" if defined?(::ActionView::Base)
@@ -18,7 +19,7 @@ module Cloudinary
   
   def self.config(new_config=nil)
     first_time = @@config.nil?
-    @@config ||= OpenStruct.new((YAML.load_file(Rails.root.join("config").join("cloudinary.yml"))[Rails.env] rescue {}))
+    @@config ||= OpenStruct.new((YAML.load_file(config_dir.join("cloudinary.yml"))[config_env] rescue {}))
         
     # Heroku support
     if first_time && ENV["CLOUDINARY_CLOUD_NAME"]
@@ -38,6 +39,18 @@ module Cloudinary
   end
   
   private
+  
+  def self.config_env
+    return ENV["CLOUDINARY_ENV"] if ENV["CLOUDINARY_ENV"]
+    return Rails.env if defined?(Rails)
+    nil
+  end
+  
+  def self.config_dir
+    return Pathname.new(ENV["CLOUDINARY_CONFIG_DIR"]) if ENV["CLOUDINARY_CONFIG_DIR"] 
+    return Rails.root.join("config") if defined?(Rails)
+    Pathname.new("config")
+  end
   
   def self.set_config(new_config)
     new_config.each{|k,v| @@config.send(:"#{k}=", v) if !v.nil?}
