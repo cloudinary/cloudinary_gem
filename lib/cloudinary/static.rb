@@ -1,5 +1,6 @@
-require 'active_support/time'
 require 'find'
+require 'time'
+require 'set'
 class Cloudinary::Static
   IGNORE_FILES = [".svn", "CVS", "RCS", ".git", ".hg"]
   SUPPORTED_IMAGES = [/\.gif$/i, /\.jpe?g$/i, /\.png$/i, /\.bmp$/i, /\.ico$/i]
@@ -32,8 +33,6 @@ class Cloudinary::Static
     end
   end
   
-  UTC = ActiveSupport::TimeZone["UTC"]
-  
   def self.root
     defined?(Rails) ? Rails.root : Pathname.new(".")
   end
@@ -56,7 +55,7 @@ class Cloudinary::Static
         path, public_id, upload_time, version, width, height = line.split("\t")
         metadata << [path, {
           "public_id" => public_id, 
-          "upload_time" => UTC.at(upload_time.to_i), 
+          "upload_time" => Time.at(upload_time.to_i).getutc, 
           "version" => version,
           "width" => width.to_i,
           "height" => height.to_i

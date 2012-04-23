@@ -7,7 +7,7 @@ require "cloudinary/utils"
 require "cloudinary/uploader"
 require "cloudinary/downloader"
 require "cloudinary/blob" 
-require "cloudinary/static" if defined?(::ActiveSupport)
+require "cloudinary/static"
 require "cloudinary/missing"
 require "cloudinary/carrier_wave" if defined?(::CarrierWave)
 require "cloudinary/helper" if defined?(::ActionView::Base)
