@@ -21,6 +21,8 @@ class Cloudinary::Utils
     y = options.delete(:y)
     radius = options.delete(:radius)
     default_image = options.delete(:default_image)
+    background = options.delete(:background)
+    background = background.sub(/^#/, 'rgb:') if background
     
     gravity = options.delete(:gravity)
     quality = options.delete(:quality)
@@ -36,7 +38,7 @@ class Cloudinary::Utils
     end
     prefix = options.delete(:prefix)
 
-    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :q=>quality, :g=>gravity, :p=>prefix, :x=>x, :y=>y, :r=>radius, :d=>default_image}
+    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :q=>quality, :g=>gravity, :p=>prefix, :x=>x, :y=>y, :r=>radius, :d=>default_image, :b=>background}
     transformation = params.reject{|k,v| v.blank?}.map{|k,v| [k.to_s, v]}.sort_by(&:first).map{|k,v| "#{k}_#{v}"}.join(",")
     raw_transformation = options.delete(:raw_transformation)
     transformation = [transformation, raw_transformation].reject(&:blank?).join(",")

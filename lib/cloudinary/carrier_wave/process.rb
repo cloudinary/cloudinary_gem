@@ -69,6 +69,7 @@ module Cloudinary::CarrierWave
       when :resize_and_pad
         set_or_yell(@transformation, :width, args[0])    
         set_or_yell(@transformation, :height, args[1])
+        set_or_yell(@transformation, :background, args[2].to_s.downcase)
         set_or_yell(@transformation, :gravity, args[3].to_s.downcase)
         set_or_yell(@transformation, :crop, :pad)
       when :scale 
