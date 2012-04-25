@@ -20,7 +20,7 @@ module CloudinaryHelper
   def cl_image_path(source, options = {})
     options = options.clone
     url = cloudinary_url(source, options)
-    original_image_path(url, options)    
+    original_image_path(url)    
   end
     
   def image_tag(*args)
