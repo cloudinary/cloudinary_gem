@@ -139,6 +139,10 @@ class Cloudinary::Utils
   def self.random_public_id
     (defined?(ActiveSupport::SecureRandom) ? ActiveSupport::SecureRandom : SecureRandom).base64(16).downcase.gsub(/[^a-z0-9]/, "")    
   end
+
+  def self.signed_preloaded_image(result)
+    "#{result["resource_type"]}/upload/v#{result["version"]}/#{[result["public_id"], result["format"]].join(".")}##{result["signature"]}"
+  end
   
   @@json_decode = false
   def self.json_decode(str)
