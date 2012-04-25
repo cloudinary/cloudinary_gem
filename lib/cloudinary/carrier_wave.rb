@@ -21,11 +21,13 @@ module Cloudinary::CarrierWave
   
   def retrieve_from_store!(identifier)
     if identifier.blank?
-      @file = @version = @stored_public_id = nil
+      @file = @stored_version = @stored_public_id = nil
+      self.original_filename = nil
     else
       @file = CloudinaryFile.new(identifier, self)
-      @stored_public_id = @file.public_id
+      @public_id = @stored_public_id = @file.public_id
       @stored_version = @file.version
+      self.original_filename = @file.filename
     end
   end  
            

@@ -107,11 +107,9 @@ module Cloudinary::CarrierWave
       # No local format. The reset should be handled by main uploader
       uploader = self.model.send(self.mounted_as)
       return uploader.format
-    elsif self.blank? # No file present, can't autodetect
-      return "png" # TODO Default format? 
     else
       # Try to auto-detect format
-      format = Cloudinary::CarrierWave.split_format(original_filename || identifier).last
+      format = Cloudinary::CarrierWave.split_format(original_filename || "").last
       return format || "png" # TODO Default format? 
     end
   end

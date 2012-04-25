@@ -14,6 +14,7 @@ module Cloudinary::CarrierWave
       @cache_id = "unused" # must not be blank 
     else
       super
+      @public_id = nil # allow overriding public_id
     end
   end
 
@@ -26,6 +27,7 @@ module Cloudinary::CarrierWave
       @cache_id = "unused" # must not be blank 
     else
       super
+      @public_id = nil # allow overriding public_id
     end
   end
   
