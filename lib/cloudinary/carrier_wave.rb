@@ -11,13 +11,10 @@ module Cloudinary::CarrierWave
     base.storage Cloudinary::CarrierWave::Storage
     base.extend ClassMethods
     base.send(:attr_accessor, :metadata)
+    base.send(:attr_reader, :stored_version)
         
-    override_in_versions(base, :filename, :blank?, :stored_version)
+    override_in_versions(base, :blank?, :full_public_id)
   end  
-  
-  def stored_version
-    @stored_version
-  end
   
   def retrieve_from_store!(identifier)
     if identifier.blank?
@@ -38,13 +35,19 @@ module Cloudinary::CarrierWave
       return super if self.blank?
       options = args.extract_options!
       options = self.transformation.merge(options) if self.version_name.present?
-      public_id = Cloudinary::CarrierWave.split_format(self.filename).first
-      Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :version=>self.stored_version}.merge(options))
+      Cloudinary::Utils.cloudinary_url(self.full_public_id, {:format=>self.format}.merge(options))
     end
   end
       
+  def full_public_id
+    return nil if self.blank?
+    return self.my_public_id if self.stored_version.blank?
+    return "v#{self.stored_version}/#{self.my_public_id}"
+  end    
+
   def filename
-    self.blank? ? nil : [self.my_public_id, self.format].join(".")
+    return nil if self.blank?
+    return [self.full_public_id, self.format].join(".")
   end
       
   # public_id to use for uploaded file. Can be overridden by caller. Random public_id will be used otherwise.  
@@ -83,8 +86,13 @@ module Cloudinary::CarrierWave
     def initialize(identifier, uploader)
       @uploader = uploader
       @identifier = identifier
-      version, @filename = @identifier.split("/")
-      @version = version[1..-1] # remove 'v' prefix 
+      if @identifier.include?("/")
+        version, @filename = @identifier.split("/")
+        @version = version[1..-1] # remove 'v' prefix
+      else
+        @filename = @identifier
+        @version = nil 
+      end
       @public_id, @format = Cloudinary::CarrierWave.split_format(@filename)      
     end
     
