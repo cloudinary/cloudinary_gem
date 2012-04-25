@@ -188,6 +188,7 @@ rescue LoadError
 end
 
 begin
+  require 'sass'
   require 'sass/script/functions'
   module Sass::Script::Functions
     def cloudinary_url(public_id, sass_options={})

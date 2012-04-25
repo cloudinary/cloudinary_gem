@@ -10,7 +10,7 @@ To install the Cloudinary Ruby GEM, run:
 
 	$ gem install cloudinary
 
-I you use Rails 3.x or higher, edit your Gemfile, add the following line and run 'bundle'
+If you use Rails 3.x or higher, edit your Gemfile, add the following line and run 'bundle'
 
 	$ gem 'cloudinary'
 
@@ -18,17 +18,21 @@ Or in Rails 2.x, edit your environment.rb and add:
 
 	$ config.gem 'cloudinary'
 
-If you would like to use our optional integration module of image uploads with ActiveRecord using CarrierWave, install CarrierWave to:
+If you would like to use our optional integration module of image uploads with ActiveRecord using CarrierWave, install CarrierWave GEM:
 
 	$ gem install carrierwave
 
 Rails 3.x Gemfile:
 
 	$ gem 'carrierwave'
+	$ gem 'cloudinary'
 
 Rails 2.x environment.rb
 
 	$ config.gem 'carrierwave', :version => '~> 0.4.1'
+	$ config.gem 'cloudinary'
+
+Note: The CarrierWave GEM should be loaded before the Cloudinary GEM.
 
 
 ## Usage ######################################################################
