@@ -64,6 +64,7 @@ class Cloudinary::Utils
     secure_distribution = options.delete(:secure_distribution) || Cloudinary.config.secure_distribution
     force_remote = options.delete(:force_remote)  
     
+    return original_source if source.blank?
     if !force_remote    
       return original_source if (type.nil? || type == :asset) && source.match(%r(^https?:/)i)
       if source.start_with?("/") 
