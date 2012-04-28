@@ -96,7 +96,9 @@ module Cloudinary::CarrierWave
   end
 
   def tags
-    @tags ||= self.class.processors.select{|processor| processor[0] == :tags}.map(&:last).first
+    @tags ||= self.class.processors.select{|processor| processor[0] == :tags}.map(&:second).first
+    raise "tags cannot be used in versions." if @tags.present? && self.version_name.present?
+    @tags
   end
   
   def format

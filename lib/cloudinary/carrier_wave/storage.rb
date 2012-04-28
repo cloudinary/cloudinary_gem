@@ -8,6 +8,7 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
       params[:return_error] = true
       params[:format] = uploader.format
       params[:public_id] = uploader.my_public_id
+      uploader.versions.values.each(&:tags) # Validate no tags in versions
       params[:tags] = uploader.tags if uploader.tags 
       eager_versions = uploader.versions.values.select(&:eager)
       params[:eager] = eager_versions.map{|version| [version.transformation, version.format]} if eager_versions.length > 0
