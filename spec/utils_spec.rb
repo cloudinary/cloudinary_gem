@@ -166,4 +166,23 @@ describe Cloudinary::Utils do
     options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/fetch/http://blah.com/hello%3Fa%3Db" 
   end 
+
+  it "should support background" do
+    options = {:background=>"red"}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/b_red/test" 
+    options = {:background=>"#112233"}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/b_rgb:112233/test" 
+  end
+  
+  it "should support default_image" do
+    options = {:default_image=>"default"}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/d_default/test" 
+  end
+  
 end
