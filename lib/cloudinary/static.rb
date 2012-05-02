@@ -4,13 +4,13 @@ require 'set'
 class Cloudinary::Static
   IGNORE_FILES = [".svn", "CVS", "RCS", ".git", ".hg"]
   SUPPORTED_IMAGES = [/\.gif$/i, /\.jpe?g$/i, /\.png$/i, /\.bmp$/i, /\.ico$/i]
-  STATIC_IMAGE_DIRS = ["app/assets/images", "public/images"]
+  STATIC_IMAGE_DIRS = ["app/assets/images", "lib/assets/images", "vendor/assets/images", "public/images"]
   METADATA_FILE = ".cloudinary.static"
   METADATA_TRASH_FILE = ".cloudinary.static.trash"
   
   def self.discover
     ignore_files = Cloudinary.config.ignore_files || IGNORE_FILES 
-    relative_dirs = Cloudinary.config.statis_image_dirs || STATIC_IMAGE_DIRS
+    relative_dirs = Cloudinary.config.static_image_dirs || STATIC_IMAGE_DIRS
     dirs = relative_dirs.map{|dir| self.root.join(dir)}.select(&:exist?)
     dirs.each do
       |dir|
