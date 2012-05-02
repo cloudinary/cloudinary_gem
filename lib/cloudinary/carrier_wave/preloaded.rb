@@ -10,7 +10,7 @@ module Cloudinary::CarrierWave
       @file = PreloadedCloudinaryFile.new(new_file)
       @stored_version = @file.version
       @public_id = @stored_public_id = @file.public_id
-      self.original_filename = @file.original_filename
+      self.original_filename = sanitize(@file.original_filename)
       @cache_id = "unused" # must not be blank 
     else
       super
@@ -23,7 +23,7 @@ module Cloudinary::CarrierWave
       @file = PreloadedCloudinaryFile.new(new_file)
       @stored_version = @file.version
       @public_id = @stored_public_id = @file.public_id
-      self.original_filename = @file.original_filename
+      self.original_filename = sanitize(@file.original_filename)
       @cache_id = "unused" # must not be blank 
     else
       super

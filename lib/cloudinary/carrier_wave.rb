@@ -24,7 +24,7 @@ module Cloudinary::CarrierWave
       @file = CloudinaryFile.new(identifier, self)
       @public_id = @stored_public_id = @file.public_id
       @stored_version = @file.version
-      self.original_filename = @file.filename
+      self.original_filename = sanitize(@file.filename)
     end
   end  
            
@@ -74,6 +74,12 @@ module Cloudinary::CarrierWave
   
   def process!(new_file=nil)
     # Do nothing
+  end
+  
+  SANITIZE_REGEXP = CarrierWave::SanitizedFile.respond_to?(:sanitize_regexp) ? CarrierWave::SanitizedFile.sanitize_regexp : /[^a-zA-Z0-9\.\-\+_]/
+  def sanitize(filename)
+    return nil if filename.nil?
+    filename.gsub(SANITIZE_REGEXP, '_')
   end
   
   # Should removed files be removed from Cloudinary as well. Can be overridden.
