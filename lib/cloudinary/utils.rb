@@ -143,7 +143,7 @@ class Cloudinary::Utils
   end
 
   def self.signed_preloaded_image(result)
-    "#{result["resource_type"]}/upload/v#{result["version"]}/#{[result["public_id"], result["format"]].join(".")}##{result["signature"]}"
+    "#{result["resource_type"]}/upload/v#{result["version"]}/#{[result["public_id"], result["format"]].reject(&:blank?).join(".")}##{result["signature"]}"
   end
   
   @@json_decode = false
