@@ -2,6 +2,7 @@
 require "ostruct"
 require "pathname"
 require "yaml"
+require "uri"
 require "cloudinary/version"
 require "cloudinary/utils"
 require "cloudinary/uploader"
@@ -29,6 +30,15 @@ module Cloudinary
         "api_secret" => ENV["CLOUDINARY_API_SECRET"],
         "secure_distribution" => ENV["CLOUDINARY_SECURE_DISTRIBUTION"],
         "private_cdn" => ENV["CLOUDINARY_PRIVATE_CDN"].to_s == 'true'
+      )
+    elsif first_time && ENV["CLOUDINARY_URL"]
+      uri = URI.parse(ENV["CLOUDINARY_URL"])
+      set_config(
+        "cloud_name" => uri.host,
+        "api_key" => uri.user,
+        "api_secret" => uri.password,
+        "private_cdn" => !uri.path.blank?,
+        "secure_distribution" => uri.path[1..-1]
       )
     end
 
