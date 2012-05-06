@@ -184,5 +184,12 @@ describe Cloudinary::Utils do
     options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/d_default/test" 
   end
+
+  it "should support angle" do
+    options = {:angle=>"55"}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/a_55/test" 
+  end
   
 end

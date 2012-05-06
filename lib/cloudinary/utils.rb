@@ -17,15 +17,9 @@ class Cloudinary::Utils
     crop = options.delete(:crop)
     width=height=nil if crop.nil?
 
-    x = options.delete(:x)
-    y = options.delete(:y)
-    radius = options.delete(:radius)
-    default_image = options.delete(:default_image)
     background = options.delete(:background)
     background = background.sub(/^#/, 'rgb:') if background
-    
-    gravity = options.delete(:gravity)
-    quality = options.delete(:quality)
+        
     base_transformations = build_array(options.delete(:transformation))
     if base_transformations.any?{|base_transformation| base_transformation.is_a?(Hash)}
       base_transformations = base_transformations.map do
@@ -36,9 +30,13 @@ class Cloudinary::Utils
       named_transformation = base_transformations.join(".")
       base_transformations = []
     end
-    prefix = options.delete(:prefix)
 
-    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :q=>quality, :g=>gravity, :p=>prefix, :x=>x, :y=>y, :r=>radius, :d=>default_image, :b=>background}
+    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background}
+    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :p=>:prefix, :a=>:angle }.each do
+      |param, option|
+      params[param] = options.delete(option)
+    end    
+
     transformation = params.reject{|k,v| v.blank?}.map{|k,v| [k.to_s, v]}.sort_by(&:first).map{|k,v| "#{k}_#{v}"}.join(",")
     raw_transformation = options.delete(:raw_transformation)
     transformation = [transformation, raw_transformation].reject(&:blank?).join(",")
