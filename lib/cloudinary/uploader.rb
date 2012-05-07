@@ -45,6 +45,15 @@ class Cloudinary::Uploader
     end              
   end
     
+  TEXT_PARAMS = [:public_id, :font_family, :font_size, :font_color, :text_align, :font_weight, :font_style, :background, :opacity, :text_decoration]  
+  def self.text(text, options={})
+    call_api("text", options) do
+      params = {:timestamp => Time.now.to_i, :text=>text}
+      TEXT_PARAMS.each{|k| params[k] = options[k] if !options[k].nil?}
+      params
+    end
+  end  
+    
   def self.generate_sprite(tag, options={})
     version_store = options.delete(:version_store)
     
