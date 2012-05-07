@@ -192,4 +192,11 @@ describe Cloudinary::Utils do
     result.should == "http://res.cloudinary.com/test123/image/upload/a_55/test" 
   end
   
+  it "should support overlay" do
+    options = {:overlay=>"text:hello"}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/l_text:hello/test" 
+  end
+  
 end
