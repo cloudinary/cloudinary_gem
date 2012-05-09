@@ -109,7 +109,7 @@ module Cloudinary::CarrierWave
 
   def self.split_format(identifier)
     last_dot = identifier.rindex(".")
-    return [public_id, nil] if last_dot.nil?
+    return [identifier, nil] if last_dot.nil?
     public_id = identifier[0, last_dot]
     format = identifier[last_dot+1..-1]
     return [public_id, format]    
