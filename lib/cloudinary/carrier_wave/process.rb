@@ -77,7 +77,7 @@ module Cloudinary::CarrierWave
         set_or_yell(@transformation, :height, args[1])
         set_or_yell(@transformation, :crop, :scale)
       when :crop
-        set_or_yell(@transformation, :width, args[0])    
+        set_or_yell(@transformation, :width, args[0])
         set_or_yell(@transformation, :height, args[1])
         set_or_yell(@transformation, :gravity, args[2].to_s.downcase)
         set_or_yell(@transformation, :crop, :crop)
@@ -87,9 +87,11 @@ module Cloudinary::CarrierWave
           set_or_yell(@transformation, attr, value)
         end
       else
-        send(name).each do
-          |attr, value|        
-          set_or_yell(@transformation, attr, value)
+        if args.blank?
+          send(name).each do
+            |attr, value|        
+            set_or_yell(@transformation, attr, value)
+          end
         end
       end
     end
