@@ -86,6 +86,11 @@ module Cloudinary::CarrierWave
           |attr, value|        
           set_or_yell(@transformation, attr, value)
         end
+      else
+        send(name).each do
+          |attr, value|        
+          set_or_yell(@transformation, attr, value)
+        end
       end
     end
     @transformation     
