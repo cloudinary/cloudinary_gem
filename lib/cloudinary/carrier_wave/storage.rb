@@ -1,8 +1,18 @@
 class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
   def store!(file)
     if uploader.class.version_names.blank?
-      return store_cloudinary_version(file.version) if file.is_a?(Cloudinary::CarrierWave::PreloadedCloudinaryFile)
-      
+      case file
+      when Cloudinary::CarrierWave::PreloadedCloudinaryFile 
+        return store_cloudinary_version(file.version)
+      when Cloudinary::CarrierWave::CloudinaryFile
+        return nil # Nothing to do
+      when Cloudinary::CarrierWave::RemoteFile
+        data = file.uri.to_s
+      else 
+        data = file.file
+        data.rewind if !file.is_path? && data.respond_to?(:rewind)
+      end
+            
       # This is the toplevel, need to upload the actual file.     
       params = uploader.transformation.dup
       params[:return_error] = true
@@ -13,13 +23,6 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
       eager_versions = uploader.versions.values.select(&:eager)
       params[:eager] = eager_versions.map{|version| [version.transformation, version.format]} if eager_versions.length > 0
       
-      data = nil
-      if (file.is_a?(Cloudinary::CarrierWave::RemoteFile))
-        data = file.uri.to_s
-      else
-        data = file.file
-        data.rewind if !file.is_path? && data.respond_to?(:rewind)
-      end
       uploader.metadata = Cloudinary::Uploader.upload(data, params)
       if uploader.metadata["error"]
         raise Cloudinary::CarrierWave::UploadError.new(uploader.metadata["error"]["message"], uploader.metadata["error"]["http_code"])
