@@ -32,7 +32,7 @@ class Cloudinary::Utils
     end
 
     params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background}
-    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :p=>:prefix, :a=>:angle, :l=>:overlay }.each do
+    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :p=>:prefix, :a=>:angle, :l=>:overlay, :f=>:fetch_format }.each do
       |param, option|
       params[param] = options.delete(option)
     end    
@@ -50,10 +50,11 @@ class Cloudinary::Utils
 
   # Warning: options are being destructively updated!
   def self.cloudinary_url(source, options = {})
-    original_source = source
+    type = options.delete(:type)
+
+    options[:fetch_format] ||= options.delete(:format) if type == :fetch 
     transformation = self.generate_transformation_string(options)
 
-    type = options.delete(:type)
     resource_type = options.delete(:resource_type) || "image"
     version = options.delete(:version)
     format = options.delete(:format)
@@ -64,6 +65,7 @@ class Cloudinary::Utils
     secure_distribution = options.delete(:secure_distribution) || Cloudinary.config.secure_distribution
     force_remote = options.delete(:force_remote)  
     
+    original_source = source
     return original_source if source.blank?
     if !force_remote    
       return original_source if (type.nil? || type == :asset) && source.match(%r(^https?:/)i)

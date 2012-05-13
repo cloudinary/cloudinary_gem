@@ -199,4 +199,12 @@ describe Cloudinary::Utils do
     result.should == "http://res.cloudinary.com/test123/image/upload/l_text:hello/test" 
   end
   
+  it "should support format for fetch urls" do
+    options = {:format=>"jpg", :type=>:fetch}
+    result = Cloudinary::Utils.cloudinary_url("http://cloudinary.com/images/logo.png", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/fetch/f_jpg/http://cloudinary.com/images/logo.png" 
+  end
+  
+  
 end
