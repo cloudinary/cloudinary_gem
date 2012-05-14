@@ -32,7 +32,7 @@ class Cloudinary::Utils
     end
 
     params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background}
-    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :p=>:prefix, :a=>:angle, :l=>:overlay, :f=>:fetch_format }.each do
+    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :p=>:prefix, :a=>:angle, :l=>:overlay, :f=>:fetch_format, :e=>:effects }.each do
       |param, option|
       params[param] = options.delete(option)
     end    

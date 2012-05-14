@@ -206,5 +206,11 @@ describe Cloudinary::Utils do
     result.should == "http://res.cloudinary.com/test123/image/fetch/f_jpg/http://cloudinary.com/images/logo.png" 
   end
   
+  it "should support effects" do
+    options = {:effects=>"sepia"}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/e_sepia/test" 
+  end
   
 end
