@@ -206,22 +206,22 @@ describe Cloudinary::Utils do
     result.should == "http://res.cloudinary.com/test123/image/fetch/f_jpg/http://cloudinary.com/images/logo.png" 
   end
   
-  it "should support effects" do
-    options = {:effects=>"sepia"}
+  it "should support effect" do
+    options = {:effect=>"sepia"}
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/e_sepia/test" 
   end
 
-  it "should support effects with hash param" do
-    options = {:effects=>{"sepia"=>10}}
+  it "should support effect with hash param" do
+    options = {:effect=>{"sepia"=>10}}
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/e_sepia:10/test" 
   end
 
-  it "should support effects with array param" do
-    options = {:effects=>["sepia", 10]}
+  it "should support effect with array param" do
+    options = {:effect=>["sepia", 10]}
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/e_sepia:10/test" 
