@@ -212,5 +212,19 @@ describe Cloudinary::Utils do
     options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/e_sepia/test" 
   end
+
+  it "should support effects with hash param" do
+    options = {:effects=>{"sepia"=>10}}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/e_sepia:10/test" 
+  end
+
+  it "should support effects with array param" do
+    options = {:effects=>["sepia", 10]}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/e_sepia:10/test" 
+  end
   
 end

@@ -30,9 +30,12 @@ class Cloudinary::Utils
       named_transformation = base_transformations.join(".")
       base_transformations = []
     end
+    
+    effects = options.delete(:effects)
+    effects = Array(effects).flatten.join(":") if effects.is_a?(Array) || effects.is_a?(Hash)
 
-    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background}
-    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :p=>:prefix, :a=>:angle, :l=>:overlay, :f=>:fetch_format, :e=>:effects }.each do
+    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effects}
+    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :p=>:prefix, :a=>:angle, :l=>:overlay, :f=>:fetch_format }.each do
       |param, option|
       params[param] = options.delete(option)
     end    
