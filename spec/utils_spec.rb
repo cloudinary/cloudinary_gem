@@ -226,5 +226,12 @@ describe Cloudinary::Utils do
     options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/e_sepia:10/test" 
   end
+
+  it "should not pass width/height to html for overlay" do
+    options = {:overlay=>"text:hello", :height=>100, :width=>100}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/h_100,l_text:hello,w_100/test" 
+  end
   
 end

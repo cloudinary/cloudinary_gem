@@ -11,11 +11,13 @@ class Cloudinary::Utils
     options[:width], options[:height] = size.split("x") if size    
     width = options[:width]
     height = options[:height]
-    options.delete(:width) if width && width.to_f < 1 
-    options.delete(:height) if height && height.to_f < 1    
+    has_overlay = !options[:overlay].blank?
+    
+    options.delete(:width) if width && (width.to_f < 1 || has_overlay) 
+    options.delete(:height) if height && (height.to_f < 1 || has_overlay)
      
     crop = options.delete(:crop)
-    width=height=nil if crop.nil?
+    width=height=nil if crop.nil? && !has_overlay
 
     background = options.delete(:background)
     background = background.sub(/^#/, 'rgb:') if background
