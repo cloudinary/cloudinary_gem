@@ -40,7 +40,7 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
   def store_cloudinary_version(version)
     name = "v#{version}/#{identifier.split("/").last}"
     model_class = uploader.model.class
-    column = uploader.model.send(:_mounter, uploader.mounted_as).serialization_column
+    column = uploader.model.send(:_mounter, uploader.mounted_as).send(:serialization_column)
     if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)
       primary_key = model_class.primary_key.to_sym
       model_class.update_all({column=>name}, {primary_key=>uploader.model.send(primary_key)})
