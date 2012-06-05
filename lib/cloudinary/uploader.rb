@@ -61,7 +61,7 @@ class Cloudinary::Uploader
       {
         :timestamp=>Time.now.to_i,
         :tag=>tag,
-        :transformation => Cloudinary::Utils.generate_transformation_string(options)
+        :transformation => Cloudinary::Utils.generate_transformation_string(options.merge(:fetch_format=>options[:format]))        
       }    
     end
     
