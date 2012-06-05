@@ -40,14 +40,17 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
   def store_cloudinary_version(version)
     name = "v#{version}/#{identifier.split("/").last}"
     model_class = uploader.model.class
+    column = uploader.model.send(:_mounter, uploader.mounted_as).serialization_column
     if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)
       primary_key = model_class.primary_key.to_sym
-      model_class.update_all({uploader.mounted_as=>name}, {primary_key=>uploader.model.send(primary_key)})
-      uploader.model.send :write_attribute, uploader.mounted_as, name
-    elsif model_class.respond_to?(:update_all) && uploader.model.respond_to?(:_id)
+      model_class.update_all({column=>name}, {primary_key=>uploader.model.send(primary_key)})
+      uploader.model.send :write_attribute, column, name
+    elsif defined?(Mongoid::Document) && uploader.model.is_a?(Mongoid::Document)
       # Mongoid support
-      model_class.where(:_id=>uploader.model._id).update_all(uploader.mounted_as=>name)
-      uploader.model.send :write_attribute, uploader.mounted_as, name
+      uploader.model.set(column, name)
+    elsif model_class.respond_to?(:update_all) && uploader.model.respond_to?(:_id)
+      model_class.where(:_id=>uploader.model._id).update_all(column=>name)
+      uploader.model.send :write_attribute, column, name
     else
       raise "Only ActiveRecord and Mongoid are supported at the moment!"
     end
