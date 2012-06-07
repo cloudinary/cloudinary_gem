@@ -177,7 +177,7 @@ begin
     alias :original_image_path :image_path
     def image_path(img)
       if Cloudinary.config.enhance_image_tag
-        Cloudinary::Utils.cloudinary_url(img, :type=>:asset)
+        original_image_path(Cloudinary::Utils.cloudinary_url(img, :type=>:asset))
       else
         original_image_path(img)
       end      
