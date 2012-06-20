@@ -192,13 +192,6 @@ describe Cloudinary::Utils do
     result.should == "http://res.cloudinary.com/test123/image/upload/a_55/test" 
   end
   
-  it "should support overlay" do
-    options = {:overlay=>"text:hello"}
-    result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
-    result.should == "http://res.cloudinary.com/test123/image/upload/l_text:hello/test" 
-  end
-  
   it "should support format for fetch urls" do
     options = {:format=>"jpg", :type=>:fetch}
     result = Cloudinary::Utils.cloudinary_url("http://cloudinary.com/images/logo.png", options)
@@ -227,11 +220,20 @@ describe Cloudinary::Utils do
     result.should == "http://res.cloudinary.com/test123/image/upload/e_sepia:10/test" 
   end
 
-  it "should not pass width/height to html for overlay" do
-    options = {:overlay=>"text:hello", :height=>100, :width=>100}
-    result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
-    result.should == "http://res.cloudinary.com/test123/image/upload/h_100,l_text:hello,w_100/test" 
+  {:overlay=>:l, :underlay=>:u}.each do |param, letter|
+    it "should support #{param}" do
+      options = {param=>"text:hello"}
+      result = Cloudinary::Utils.cloudinary_url("test", options)
+      options.should == {}
+      result.should == "http://res.cloudinary.com/test123/image/upload/#{letter}_text:hello/test" 
+    end
+    
+    it "should not pass width/height to html for #{param}" do
+      options = {param=>"text:hello", :height=>100, :width=>100}
+      result = Cloudinary::Utils.cloudinary_url("test", options)
+      options.should == {}
+      result.should == "http://res.cloudinary.com/test123/image/upload/h_100,#{letter}_text:hello,w_100/test" 
+    end
   end
-  
+ 
 end

@@ -11,13 +11,13 @@ class Cloudinary::Utils
     options[:width], options[:height] = size.split("x") if size    
     width = options[:width]
     height = options[:height]
-    has_overlay = !options[:overlay].blank?
+    has_layer = !options[:overlay].blank? || !options[:underlay].blank?
     
-    options.delete(:width) if width && (width.to_f < 1 || has_overlay) 
-    options.delete(:height) if height && (height.to_f < 1 || has_overlay)
+    options.delete(:width) if width && (width.to_f < 1 || has_layer) 
+    options.delete(:height) if height && (height.to_f < 1 || has_layer)
      
     crop = options.delete(:crop)
-    width=height=nil if crop.nil? && !has_overlay
+    width=height=nil if crop.nil? && !has_layer
 
     background = options.delete(:background)
     background = background.sub(/^#/, 'rgb:') if background
@@ -37,7 +37,7 @@ class Cloudinary::Utils
     effect = Array(effect).flatten.join(":") if effect.is_a?(Array) || effect.is_a?(Hash)
 
     params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect}
-    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :p=>:prefix, :a=>:angle, :l=>:overlay, :f=>:fetch_format }.each do
+    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :p=>:prefix, :a=>:angle, :l=>:overlay, :u=>:underlay, :f=>:fetch_format }.each do
       |param, option|
       params[param] = options.delete(option)
     end    
