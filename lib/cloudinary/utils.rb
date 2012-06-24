@@ -49,7 +49,7 @@ class Cloudinary::Utils
   end
   
   def self.api_sign_request(params_to_sign, api_secret)
-    to_sign = params_to_sign.reject{|k,v| v.blank?}.map{|k,v| [k.to_s, v.is_a?(Array) ? v.join(",") : v]}.sort_by(&:first).map{|k,v| "#{k}=#{v}"}.join("&")
+    to_sign = params_to_sign.reject{|k,v| v.nil? || v == ""}.map{|k,v| [k.to_s, v.is_a?(Array) ? v.join(",") : v]}.sort_by(&:first).map{|k,v| "#{k}=#{v}"}.join("&")
     Digest::SHA1.hexdigest("#{to_sign}#{api_secret}")
   end
 
