@@ -11,6 +11,7 @@ class Cloudinary::Uploader
               :callback=> options[:callback],
               :format=>options[:format],
               :type=>options[:type],
+              :backup=>options[:backup],
               :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}    
     if options[:eager]
       params[:eager] = Cloudinary::Utils.build_array(options[:eager]).map do
