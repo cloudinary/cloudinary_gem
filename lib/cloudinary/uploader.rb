@@ -117,7 +117,7 @@ class Cloudinary::Uploader
 
     result = nil
     
-    api_url = Cloudinary::Utils.cloudinary_api_url(action, {:resource_type => options.delete(:resource_type), :upload_prefix => options.delete(:upload_prefix)})
+    api_url = Cloudinary::Utils.cloudinary_api_url(action, options)
     
     RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=>60) do
       |response, request, tmpresult|

@@ -48,8 +48,12 @@ class Cloudinary::Utils
     (base_transformations << transformation).reject(&:blank?).join("/")    
   end
   
+  def self.api_string_to_sign(params_to_sign)
+    params_to_sign.map{|k,v| [k.to_s, v.is_a?(Array) ? v.join(",") : v]}.reject{|k,v| v.nil? || v == ""}.sort_by(&:first).map{|k,v| "#{k}=#{v}"}.join("&")
+  end
+  
   def self.api_sign_request(params_to_sign, api_secret)
-    to_sign = params_to_sign.reject{|k,v| v.nil? || v == ""}.map{|k,v| [k.to_s, v.is_a?(Array) ? v.join(",") : v]}.sort_by(&:first).map{|k,v| "#{k}=#{v}"}.join("&")
+    to_sign = api_string_to_sign(params_to_sign)
     Digest::SHA1.hexdigest("#{to_sign}#{api_secret}")
   end
 
@@ -125,7 +129,7 @@ class Cloudinary::Utils
   
   def self.cloudinary_api_url(action = 'upload', options = {})
     cloudinary = options[:upload_prefix] || Cloudinary.config.upload_prefix || "https://api.cloudinary.com"
-    cloud_name = Cloudinary.config.cloud_name || raise("Must supply cloud_name")
+    cloud_name = options[:cloud_name] || Cloudinary.config.cloud_name || raise("Must supply cloud_name")
     resource_type = options[:resource_type] || "image"
     return [cloudinary, "v1_1", cloud_name, resource_type, action].join("/")
   end
