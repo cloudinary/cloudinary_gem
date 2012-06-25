@@ -114,7 +114,7 @@ module CloudinaryHelper
   end
 
   def cloudinary_url(source, options = {})
-    options[:secure] = request.ssl? if !options.include?(:secure) && defined?(request) && request && request.respond_to?(:ssl?)
+    options[:ssl_detected] = request.ssl? if defined?(request) && request && request.respond_to?(:ssl?)
     Cloudinary::Utils.cloudinary_url(source, options)
   end  
 

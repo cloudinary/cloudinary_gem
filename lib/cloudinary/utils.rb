@@ -64,9 +64,10 @@ class Cloudinary::Utils
     version = options.delete(:version)
     format = options.delete(:format)
     
-    cloud_name = options.delete(:cloud_name) || Cloudinary.config.cloud_name || raise("Must supply cloud_name in tag or in configuration")
+    cloud_name = options.delete(:cloud_name) || Cloudinary.config.cloud_name || raise("Must supply cloud_name in tag or in configuration")    
     secure = options.delete(:secure)
-    secure = Cloudinary.config.secure if secure.nil?
+    ssl_detected = options.delete(:ssl_detected)
+    secure = ssl_detected || Cloudinary.config.secure if secure.nil?
     private_cdn = options.delete(:private_cdn) || Cloudinary.config.private_cdn    
     secure_distribution = options.delete(:secure_distribution) || Cloudinary.config.secure_distribution
     force_remote = options.delete(:force_remote)  

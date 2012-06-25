@@ -8,6 +8,7 @@ describe Cloudinary::Utils do
       config.cloud_name = "test123"
       config.secure_distribution = nil
       config.private_cdn = false
+      config.secure = false
     end
   end
   
@@ -235,5 +236,27 @@ describe Cloudinary::Utils do
       result.should == "http://res.cloudinary.com/test123/image/upload/h_100,#{letter}_text:hello,w_100/test" 
     end
   end
- 
+
+  it "should use ssl_detected if secure is not given as parameter and not set to true in configuration" do    
+    options = {:ssl_detected=>true}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "https://d3jpl91pxevbkh.cloudfront.net/test123/image/upload/test" 
+  end 
+
+  it "should use secure if given over ssl_detected and configuration" do    
+    options = {:ssl_detected=>true, :secure=>false}
+    Cloudinary.config.secure = true
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/test" 
+  end 
+
+  it "should use secure: true from configuration over ssl_detected" do    
+    options = {:ssl_detected=>false}
+    Cloudinary.config.secure = true
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "https://d3jpl91pxevbkh.cloudfront.net/test123/image/upload/test" 
+  end 
 end
