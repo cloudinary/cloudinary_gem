@@ -109,7 +109,11 @@ module CloudinaryHelper
   CLOUDINARY_JS_CONFIG_PARAMS = [:api_key, :cloud_name, :private_cdn, :secure_distribution, :cdn_subdomain]
   def cloudinary_js_config
     params = {}
-    CLOUDINARY_JS_CONFIG_PARAMS.each{|param| params[param] = Cloudinary.config.send(param)}    
+    CLOUDINARY_JS_CONFIG_PARAMS.each do
+      |param| 
+      value = Cloudinary.config.send(param)
+      params[param] = value if !value.nil?
+    end    
     content_tag("script", "$.cloudinary.config(#{params.to_json});".html_safe, :type=>"text/javascript")      
   end
 
