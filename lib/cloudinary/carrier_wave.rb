@@ -32,13 +32,20 @@ module Cloudinary::CarrierWave
     if args.first && !args.first.is_a?(Hash)
       super
     else
-      return super if self.blank?
+      if self.blank?
+        url = self.default_url
+        return url if !url.blank?
+        public_id = self.default_public_id
+        return nil if public_id.nil?
+      else
+        public_id = self.full_public_id
+      end      
       options = args.extract_options!
       options = self.transformation.merge(options) if self.version_name.present?
-      Cloudinary::Utils.cloudinary_url(self.full_public_id, {:format=>self.format}.merge(options))
+      Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format}.merge(options))
     end
   end
-      
+
   def full_public_id
     return nil if self.blank?
     return self.my_public_id if self.stored_version.blank?
@@ -48,6 +55,11 @@ module Cloudinary::CarrierWave
   def filename
     return nil if self.blank?
     return [self.full_public_id, self.format].join(".")
+  end
+
+  # default public_id to use if no uploaded file. Override with public_id of an uploaded image if you want a default image.
+  def default_public_id
+    nil
   end
       
   # public_id to use for uploaded file. Can be overridden by caller. Random public_id will be used otherwise.  
