@@ -12,6 +12,7 @@ class Cloudinary::Uploader
               :format=>options[:format],
               :type=>options[:type],
               :backup=>options[:backup],
+              :invalidate=>options[:invalidate],
               :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}    
     if options[:eager]
       params[:eager] = Cloudinary::Utils.build_array(options[:eager]).map do
@@ -41,7 +42,8 @@ class Cloudinary::Uploader
       {
         :timestamp=>Time.now.to_i,
         :type=>options[:type],
-        :public_id=> public_id
+        :public_id=> public_id,
+        :invalidate=>options[:invalidate],
       }
     end              
   end
