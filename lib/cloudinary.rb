@@ -14,6 +14,7 @@ require "cloudinary/carrier_wave" if defined?(::CarrierWave)
 require "cloudinary/helper" if defined?(::ActionView::Base)
 require "cloudinary/controller" if defined?(::ActionController::Base)
 require "cloudinary/railtie" if defined?(Rails) && defined?(Rails::Railtie)
+require "cloudinary/engine" if defined?(Rails) && defined?(Rails::Engine)
 
 module Cloudinary  
   @@config = nil
