@@ -37,7 +37,9 @@ class Cloudinary::Utils
     effect = Array(effect).flatten.join(":") if effect.is_a?(Array) || effect.is_a?(Hash)
 
     params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect}
-    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :p=>:prefix, :a=>:angle, :l=>:overlay, :u=>:underlay, :f=>:fetch_format }.each do
+    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, 
+      :p=>:prefix, :a=>:angle, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page 
+    }.each do
       |param, option|
       params[param] = options.delete(option)
     end    
