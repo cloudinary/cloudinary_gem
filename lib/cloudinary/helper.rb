@@ -148,12 +148,7 @@ module CloudinaryHelper
   end
   
   def cl_private_download_url(public_id, format, options = {})
-    api_key = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
-    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
-    cloudinary_params = {:timestamp=>Time.now.to_i, :public_id=>public_id, :format=>format}.reject{|k, v| v.blank?}
-    cloudinary_params[:signature] = Cloudinary::Utils.api_sign_request(cloudinary_params, api_secret)
-    cloudinary_params[:api_key] = api_key
-    return Cloudinary::Utils.cloudinary_api_url("download", options) + "?" + cloudinary_params.to_query 
+    Cloudinary::Utils.private_download_url(public_id, format, options)
   end
   
   def self.included(base)

@@ -136,6 +136,25 @@ class Cloudinary::Utils
     return [cloudinary, "v1_1", cloud_name, resource_type, action].join("/")
   end
 
+  def self.private_download_url(public_id, format, options = {})
+    api_key = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
+    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
+    cloudinary_params = {:timestamp=>Time.now.to_i, :public_id=>public_id, :format=>format}.reject{|k, v| v.blank?}
+    cloudinary_params[:signature] = Cloudinary::Utils.api_sign_request(cloudinary_params, api_secret)
+    cloudinary_params[:api_key] = api_key
+    return Cloudinary::Utils.cloudinary_api_url("download", options) + "?" + cloudinary_params.to_query 
+  end
+
+  def self.zip_download_url(tag, options = {})
+    api_key = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
+    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
+    cloudinary_params = {:timestamp=>Time.now.to_i, :tag=>tag, :transformation=>generate_transformation_string(options)}.reject{|k, v| v.blank?}
+    cloudinary_params[:signature] = Cloudinary::Utils.api_sign_request(cloudinary_params, api_secret)
+    cloudinary_params[:api_key] = api_key
+    return Cloudinary::Utils.cloudinary_api_url("download_tag.zip", options) + "?" + cloudinary_params.to_query 
+  end
+
+
   def self.asset_file_name(path)
     data = Rails.root.join(path).read(:mode=>"rb")
     ext = path.extname
