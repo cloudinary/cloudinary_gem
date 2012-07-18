@@ -76,7 +76,9 @@ class Cloudinary::Utils
     secure = ssl_detected || Cloudinary.config.secure if secure.nil?
     private_cdn = options.delete(:private_cdn) || Cloudinary.config.private_cdn    
     secure_distribution = options.delete(:secure_distribution) || Cloudinary.config.secure_distribution
+    cname = options.delete(:cname) || Cloudinary.config.cname
     force_remote = options.delete(:force_remote)  
+    cdn_subdomain = options.include?(:cdn_subdomain) ? options.delete(:cdn_subdomain) : Cloudinary.config.cdn_subdomain
     
     original_source = source
     return original_source if source.blank?
@@ -117,9 +119,9 @@ class Cloudinary::Utils
       if secure
         prefix = "https://#{secure_distribution}"
       else
-        cdn_subdomain = options.include?(:cdn_subdomain) ? options[:cdn_subdomain] : Cloudinary.config.cdn_subdomain
         subdomain = cdn_subdomain ? "a#{(Zlib::crc32(source) % 5) + 1}." : ""
-        prefix = "http://#{subdomain}#{private_cdn ? "#{cloud_name}-" : ""}res.cloudinary.com"
+        host = cname.blank? ? "#{private_cdn ? "#{cloud_name}-" : ""}res.cloudinary.com" : cname
+        prefix = "http://#{subdomain}#{host}"
       end    
       prefix += "/#{cloud_name}" if !private_cdn
     end

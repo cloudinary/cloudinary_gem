@@ -259,4 +259,18 @@ describe Cloudinary::Utils do
     options.should == {}
     result.should == "https://d3jpl91pxevbkh.cloudfront.net/test123/image/upload/test" 
   end 
+
+  it "should support extenal cname" do
+    options = {:cname=>"hello.com"}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://hello.com/test123/image/upload/test" 
+  end
+
+  it "should support extenal cname with cdn_subdomain on" do
+    options = {:cname=>"hello.com", :cdn_subdomain=>true}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://a2.hello.com/test123/image/upload/test" 
+  end
 end
