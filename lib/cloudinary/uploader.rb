@@ -4,6 +4,16 @@ require 'json'
 
 class Cloudinary::Uploader
   
+  def self.build_eager(eager)
+    return nil if eager.nil?
+    Cloudinary::Utils.build_array(eager).map do
+      |transformation, format|
+      transformation = transformation.clone
+      format = transformation.delete(:format) || format
+      [Cloudinary::Utils.generate_transformation_string(transformation), format].compact.join("/")
+    end.join("|")
+  end
+  
   def self.build_upload_params(options)
     params = {:timestamp=>Time.now.to_i,
               :transformation => Cloudinary::Utils.generate_transformation_string(options),
@@ -13,15 +23,8 @@ class Cloudinary::Uploader
               :type=>options[:type],
               :backup=>options[:backup],
               :invalidate=>options[:invalidate],
+              :eager=>build_eager(options[:eager]),
               :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}    
-    if options[:eager]
-      params[:eager] = Cloudinary::Utils.build_array(options[:eager]).map do
-        |transformation, format|
-        transformation = transformation.clone
-        format = transformation.delete(:format) || format
-        [Cloudinary::Utils.generate_transformation_string(transformation), format].compact.join("/")
-      end.join("|")
-    end
     params    
   end
    
@@ -44,6 +47,18 @@ class Cloudinary::Uploader
         :type=>options[:type],
         :public_id=> public_id,
         :invalidate=>options[:invalidate],
+      }
+    end              
+  end
+
+  def self.explicit(public_id, options={})
+    call_api("explicit", options) do    
+      {
+        :timestamp=>Time.now.to_i,
+        :type=>options[:type],
+        :public_id=> public_id,
+        :callback=> options[:callback],
+        :eagar=>build_eager(options[:eager]),
       }
     end              
   end
