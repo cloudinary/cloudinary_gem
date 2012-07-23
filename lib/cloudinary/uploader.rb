@@ -58,7 +58,7 @@ class Cloudinary::Uploader
         :type=>options[:type],
         :public_id=> public_id,
         :callback=> options[:callback],
-        :eagar=>build_eager(options[:eager]),
+        :eager=>build_eager(options[:eager]),
       }
     end              
   end
