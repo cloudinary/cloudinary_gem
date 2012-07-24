@@ -102,8 +102,11 @@ class Cloudinary::Utils
     end
     type ||= :upload
 
-    source = "#{source}.#{format}" if !format.blank? && type != :fetch
-    source = smart_escape(source) if [:fetch, :asset].include?(type)
+    if source.match(%r(^https?:/)i)
+      source = smart_escape(source)
+    elsif !format.blank? 
+      source = "#{source}.#{format}"
+    end
     
     if cloud_name.start_with?("/")
       prefix = "/res" + cloud_name
