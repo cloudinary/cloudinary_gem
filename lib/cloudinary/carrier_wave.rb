@@ -13,8 +13,12 @@ module Cloudinary::CarrierWave
     base.send(:attr_accessor, :metadata)
     base.send(:attr_reader, :stored_version)
         
-    override_in_versions(base, :blank?, :full_public_id)
+    override_in_versions(base, :blank?, :full_public_id, :all_versions_processors)
   end  
+    
+  def is_main_uploader?
+    self.class.version_names.blank?
+  end
   
   def retrieve_from_store!(identifier)
     if identifier.blank?

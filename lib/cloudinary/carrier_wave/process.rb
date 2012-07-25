@@ -1,5 +1,15 @@
 module Cloudinary::CarrierWave
   module ClassMethods
+    def make_private
+      process :cloudinary_transformation=>{:type => :private}
+      process_all_versions :cloudinary_transformation=>{:type => :private}
+    end
+    
+    def process_all_versions(*args)
+      @all_versions ||= Class.new(self)
+      @all_versions.process *args
+    end
+        
     def eager
       process :eager => true
     end
@@ -49,7 +59,7 @@ module Cloudinary::CarrierWave
   def transformation
     return @transformation if @transformation
     @transformation = {}
-    self.class.processors.each do
+    self.all_processors.each do
       |name, args|
       case name
       when :convert # Do nothing. This is handled by format
@@ -98,18 +108,28 @@ module Cloudinary::CarrierWave
     @transformation     
   end
 
+  def all_versions_processors
+    all_versions = self.class.instance_variable_get('@all_versions')
+    
+    all_versions ? all_versions.processors : []
+  end
+
+  def all_processors    
+    (self.is_main_uploader? ? [] : all_versions_processors) + self.class.processors
+  end
+
   def eager
-    @eager ||= self.class.processors.any?{|processor| processor[0] == :eager}
+    @eager ||= self.all_processors.any?{|processor| processor[0] == :eager}
   end
 
   def tags
-    @tags ||= self.class.processors.select{|processor| processor[0] == :tags}.map(&:second).first
+    @tags ||= self.all_processors.select{|processor| processor[0] == :tags}.map(&:second).first
     raise "tags cannot be used in versions." if @tags.present? && self.version_name.present?
     @tags
   end
   
   def format
-    format_processor = self.class.processors.find{|processor| processor[0] == :convert}
+    format_processor = self.all_processors.find{|processor| processor[0] == :convert}
     if format_processor 
       # Explicit format is given
       return Array(format_processor[1]).first 
