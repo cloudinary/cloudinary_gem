@@ -52,7 +52,7 @@ module Cloudinary::CarrierWave
   end
 
   def set_or_yell(hash, attr, value)
-    raise "conflicting transformation on #{attr} #{value}!=#{hash[attr]}" if hash[attr]
+    raise "conflicting transformation on #{attr} #{value}!=#{hash[attr]}" if hash[attr] && hash[attr] != value
     hash[attr] = value
   end
   
