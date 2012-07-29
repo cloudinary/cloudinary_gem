@@ -7,6 +7,14 @@ class Cloudinary::Utils
   
   # Warning: options are being destructively updated!
   def self.generate_transformation_string(options={})
+    if options.is_a?(Array)
+      return options.map{|base_transformation| generate_transformation_string(base_transformation.clone)}.join("/")
+    end
+    # Symbolize keys
+    options.keys.each do |key|
+      options[key.to_sym] = options.delete(key) if key.is_a?(String)
+    end
+    
     size = options.delete(:size)
     options[:width], options[:height] = size.split("x") if size    
     width = options[:width]
@@ -35,10 +43,12 @@ class Cloudinary::Utils
     
     effect = options.delete(:effect)
     effect = Array(effect).flatten.join(":") if effect.is_a?(Array) || effect.is_a?(Hash)
+    
+    angle = build_array(options.delete(:angle)).join(".")
 
-    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect}
+    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect, :a=>angle}
     { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, 
-      :p=>:prefix, :a=>:angle, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page 
+      :p=>:prefix, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page 
     }.each do
       |param, option|
       params[param] = options.delete(option)

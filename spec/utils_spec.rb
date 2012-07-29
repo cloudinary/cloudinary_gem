@@ -104,6 +104,12 @@ describe Cloudinary::Utils do
     result.should == "http://res.cloudinary.com/test123/image/upload/c_fill,w_200,x_100,y_100/r_10/c_crop,w_100/test" 
   end
 
+  it "should support array of tranformations" do    
+    options = [{:x=>100, :y=>100, :width=>200, :crop=>:fill}, {:radius=>10}]
+    result = Cloudinary::Utils.generate_transformation_string(options)
+    result.should == "c_fill,w_200,x_100,y_100/r_10" 
+  end
+
   it "should not include empty tranformations" do    
     options = {:transformation=>[{}, {:x=>100, :y=>100, :crop=>:fill}, {}]}
     result = Cloudinary::Utils.cloudinary_url("test", options)
@@ -191,6 +197,11 @@ describe Cloudinary::Utils do
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/a_55/test" 
+
+    options = {:angle=>["auto", "55"]}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/a_auto.55/test" 
   end
   
   it "should support format for fetch urls" do
@@ -273,4 +284,12 @@ describe Cloudinary::Utils do
     options.should == {}
     result.should == "http://a2.hello.com/test123/image/upload/test" 
   end
+  
+  it "should support string param" do
+    options = {"effect"=>{"sepia"=>10}}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/e_sepia:10/test" 
+  end
+  
 end
