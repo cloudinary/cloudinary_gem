@@ -16,17 +16,17 @@ describe Cloudinary::Api do
   end
 
   it "should allow listing resources" do
-    resource = @api.resources("image")["resources"].find{|resource| resource["public_id"] == "api_test"}
+    resource = @api.resources()["resources"].find{|resource| resource["public_id"] == "api_test"}
     resource.should_not be_blank
     resource["type"].should == "upload" 
   end
 
   it "should allow listing resources with cursor" do
-    result = @api.resources("image", :max_results=>1)
+    result = @api.resources(:max_results=>1)
     result["resources"].should_not be_blank
     result["resources"].length.should == 1
     result["next_cursor"].should_not be_blank
-    result2 = @api.resources("image", :max_results=>1, :next_cursor=>result["next_cursor"])
+    result2 = @api.resources(:max_results=>1, :next_cursor=>result["next_cursor"])
     result2["resources"].should_not be_blank
     result2["resources"].length.should == 1
     result2["resources"][0]["public_id"].should_not == result["resources"][0]["public_id"] 
@@ -34,22 +34,22 @@ describe Cloudinary::Api do
 
 
   it "should allow listing resources by type" do
-    resource = @api.resources("image", :type=>"upload")["resources"].find{|resource| resource["public_id"] == "api_test"}
+    resource = @api.resources(:type=>"upload")["resources"].find{|resource| resource["public_id"] == "api_test"}
     resource.should_not be_blank
   end
 
   it "should allow listing resources by prefix" do
-    public_ids = @api.resources("image", :type=>"upload", :prefix=>"api_test")["resources"].map{|resource| resource["public_id"]}
+    public_ids = @api.resources(:type=>"upload", :prefix=>"api_test")["resources"].map{|resource| resource["public_id"]}
     public_ids.should include("api_test", "api_test2")
   end
 
   it "should allow listing resources by tag" do
-    resource = @api.resources_by_tag("image", "api_test_tag")["resources"].find{|resource| resource["public_id"] == "api_test"}
+    resource = @api.resources_by_tag("api_test_tag")["resources"].find{|resource| resource["public_id"] == "api_test"}
     resource.should_not be_blank
   end
 
   it "should allow get resource metadata" do
-    resource = @api.resource("image", "upload", "api_test")
+    resource = @api.resource("api_test")
     resource.should_not be_blank
     resource["public_id"].should == "api_test"
     resource["bytes"].should == 3381
@@ -58,33 +58,33 @@ describe Cloudinary::Api do
   
   it "should allow deleting derived resource" do
     Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test3", :eager=>[:width=>101,:crop=>:scale])
-    resource = @api.resource("image", "upload", "api_test3")
+    resource = @api.resource("api_test3")
     resource.should_not be_blank
     resource["derived"].length.should == 1
     derived_resource_id = resource["derived"][0]["id"]
     @api.delete_derived_resources(derived_resource_id)
-    resource = @api.resource("image", "upload", "api_test3")
+    resource = @api.resource("api_test3")
     resource.should_not be_blank
     resource["derived"].length.should == 0
   end
 
   it "should allow deleting resources" do
     Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test3")
-    resource = @api.resource("image", "upload", "api_test3")
+    resource = @api.resource("api_test3")
     resource.should_not be_blank
-    @api.delete_resources("image", "upload", ["apit_test", "api_test2", "api_test3"])
-    lambda{@api.resource("image", "upload", "api_test3")}.should raise_error(Cloudinary::Api::NotFound)
+    @api.delete_resources(["apit_test", "api_test2", "api_test3"])
+    lambda{@api.resource("api_test3")}.should raise_error(Cloudinary::Api::NotFound)
   end
 
   it "should allow listing tags" do
-    tags = @api.tags("image")["tags"]
+    tags = @api.tags()["tags"]
     tags.should include('api_test_tag')
   end
 
   it "should allow listing tag by prefix" do
-    tags = @api.tags("image", :prefix=>"api_test")["tags"]
+    tags = @api.tags(:prefix=>"api_test")["tags"]
     tags.should include('api_test_tag')
-    tags = @api.tags("image", :prefix=>"api_test_no_such_tag")["tags"]
+    tags = @api.tags(:prefix=>"api_test_no_such_tag")["tags"]
     tags.should be_blank
   end
   

@@ -19,65 +19,73 @@ class Cloudinary::Api
   
   
   def self.resource_types(options={})
-    call_api(:get, "/resources", {}, options)
+    call_api(:get, "resources", {}, options)
   end
 
-  def self.resources(resource_type, options={})
+  def self.resources(options={})
+    resource_type = options[:resource_type] || "image"
     type = options[:type]
-    uri = "/resources/#{resource_type}"
+    uri = "resources/#{resource_type}"
     uri += "/#{type}" if !type.blank?
     call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix), options)    
   end
   
-  def self.resources_by_tag(resource_type, tag, options={})
-    uri = "/resources/#{resource_type}/tags/#{tag}"
+  def self.resources_by_tag(tag, options={})
+    resource_type = options[:resource_type] || "image"
+    uri = "resources/#{resource_type}/tags/#{tag}"
     call_api(:get, uri, only(options, :next_cursor, :max_results), options)    
   end
   
-  def self.resource(resource_type, type, public_id, options={})
-    uri = "/resources/#{resource_type}/#{type}/#{public_id}"
+  def self.resource(public_id, options={})
+    resource_type = options[:resource_type] || "image"
+    type = options[:type] || "upload"
+    uri = "resources/#{resource_type}/#{type}/#{public_id}"
     call_api(:get, uri, {}, options)      
   end
   
-  def self.delete_resources(resource_type, type, public_ids, options={})
-    uri = "/resources/#{resource_type}/#{type}"
+  def self.delete_resources(public_ids, options={})
+    resource_type = options[:resource_type] || "image"
+    type = options[:type] || "upload"    
+    uri = "resources/#{resource_type}/#{type}"
     call_api(:delete, uri, {:public_ids=>public_ids}, options)      
   end
 
-  def self.delete_resources_by_prefix(resource_type, type, prefix, options={})
-    uri = "/resources/#{resource_type}/#{type}"
+  def self.delete_resources_by_prefix(type, prefix, options={})
+    resource_type = options[:resource_type] || "image"
+    uri = "resources/#{resource_type}/#{type}"
     call_api(:delete, uri, {:prefix=>prefix}, options)      
   end
   
   def self.delete_derived_resources(derived_resource_ids, options={})
-    uri = "/derived_resources"
+    uri = "derived_resources"
     call_api(:delete, uri, {:derived_resource_ids=>derived_resource_ids}, options)      
   end
 
-  def self.tags(resource_type, options={})
-    uri = "/tags/#{resource_type}"
+  def self.tags(options={})
+    resource_type = options[:resource_type] || "image"
+    uri = "tags/#{resource_type}"
     call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix), options)    
   end
   
   def self.transformations(options={})
-    call_api(:get, "/transformations", only(options, :next_cursor, :max_results), options)    
+    call_api(:get, "transformations", only(options, :next_cursor, :max_results), options)    
   end
 
   def self.transformation(transformation, options={})
-    call_api(:get, "/transformations/#{transformation_string(transformation)}", only(options, :max_results), options)    
+    call_api(:get, "transformations/#{transformation_string(transformation)}", only(options, :max_results), options)    
   end
   
   def self.delete_transformation(transformation, options={})
-    call_api(:delete, "/transformations/#{transformation_string(transformation)}", {}, options)    
+    call_api(:delete, "transformations/#{transformation_string(transformation)}", {}, options)    
   end
   
   # updates - currently only supported update is the "allowed_for_strict" boolean flag
   def self.update_transformation(transformation, updates, options={})
-    call_api(:put, "/transformations/#{transformation_string(transformation)}", only(updates, :allowed_for_strict), options)
+    call_api(:put, "transformations/#{transformation_string(transformation)}", only(updates, :allowed_for_strict), options)
   end
   
   def self.create_transformation(name, definition, options={})
-    call_api(:post, "/transformations/#{name}", {:transformation=>transformation_string(definition)}, options)
+    call_api(:post, "transformations/#{name}", {:transformation=>transformation_string(definition)}, options)
   end
   
   protected
