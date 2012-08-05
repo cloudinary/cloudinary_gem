@@ -19,5 +19,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   
   s.add_dependency "rest-client"
+  s.add_dependency "aws_cf_signer"
   s.add_development_dependency "rspec"
 end

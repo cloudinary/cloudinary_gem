@@ -154,6 +154,10 @@ module CloudinaryHelper
   def cl_zip_download_url(tag, options = {})
     Cloudinary::Utils.zip_download_url(tag, options)
   end
+
+  def cl_signed_download_url(public_id, options = {})
+    Cloudinary::Utils.signed_download_url(public_id, options)
+  end
   
   def self.included(base)
     ActionView::Helpers::FormBuilder.send(:include, Cloudinary::FormBuilder)

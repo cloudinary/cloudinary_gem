@@ -1,6 +1,7 @@
 # Copyright Cloudinary
 require 'digest/sha1'
 require 'zlib'
+require 'aws_cf_signer'
 
 class Cloudinary::Utils
   SHARED_CDN = "d3jpl91pxevbkh.cloudfront.net"
@@ -154,7 +155,7 @@ class Cloudinary::Utils
   def self.private_download_url(public_id, format, options = {})
     api_key = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
     api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
-    cloudinary_params = {:timestamp=>Time.now.to_i, :public_id=>public_id, :format=>format}.reject{|k, v| v.blank?}
+    cloudinary_params = {:timestamp=>Time.now.to_i, :public_id=>public_id, :format=>format, :type=>options[:type]}.reject{|k, v| v.blank?}
     cloudinary_params[:signature] = Cloudinary::Utils.api_sign_request(cloudinary_params, api_secret)
     cloudinary_params[:api_key] = api_key
     return Cloudinary::Utils.cloudinary_api_url("download", options) + "?" + cloudinary_params.to_query 
@@ -169,7 +170,17 @@ class Cloudinary::Utils
     return Cloudinary::Utils.cloudinary_api_url("download_tag.zip", options) + "?" + cloudinary_params.to_query 
   end
 
-
+  def self.signed_download_url(public_id, options = {})
+    aws_private_key_path = options[:aws_private_key_path] || Cloudinary.config.aws_private_key_path || raise("Must supply aws_private_key_path")
+    aws_key_pair_id = options[:aws_key_pair_id] || Cloudinary.config.aws_key_pair_id || raise("Must supply aws_key_pair_id")
+    authenticated_distribution = options[:authenticated_distribution] || Cloudinary.config.authenticated_distribution || raise("Must supply authenticated_distribution")
+    @signers ||= Hash.new{|h,k| path, id = k; h[k] = AwsCfSigner.new(path, id)}
+    signer = @signers[[aws_private_key_path, aws_key_pair_id]]
+    url = Cloudinary::Utils.cloudinary_url(public_id, options.merge(:secure=>true, :secure_distribution=>authenticated_distribution, :private_cdn=>true))
+    expiration = options[:expiration] || (Time.now+3600)
+    signer.sign(url, :ending => expiration)
+  end
+  
   def self.asset_file_name(path)
     data = Rails.root.join(path).read(:mode=>"rb")
     ext = path.extname

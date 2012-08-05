@@ -42,6 +42,11 @@ module Cloudinary
         "private_cdn" => !uri.path.blank?,
         "secure_distribution" => uri.path[1..-1]
       )
+      uri.query.to_s.split("&").each do
+        |param|
+        key, value = param.split("=")
+        set_config(key=>URI.decode(value))
+      end
     end
 
     set_config(new_config) if new_config
