@@ -177,8 +177,8 @@ class Cloudinary::Utils
     @signers ||= Hash.new{|h,k| path, id = k; h[k] = AwsCfSigner.new(path, id)}
     signer = @signers[[aws_private_key_path, aws_key_pair_id]]
     url = Cloudinary::Utils.cloudinary_url(public_id, options.merge(:secure=>true, :secure_distribution=>authenticated_distribution, :private_cdn=>true))
-    expiration = options[:expiration] || (Time.now+3600)
-    signer.sign(url, :ending => expiration)
+    expires_at = options[:expires_at] || (Time.now+3600)
+    signer.sign(url, :ending => expires_at)
   end
   
   def self.asset_file_name(path)
