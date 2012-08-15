@@ -121,6 +121,10 @@ module Cloudinary::CarrierWave
     def delete
       Cloudinary::Uploader.destroy(self.public_id) if @uploader.delete_remote?        
     end
+    
+    def exists?
+      Cloudinary::Uploader.exists?(self.identifier)
+    end
   end
 
   def self.split_format(identifier)

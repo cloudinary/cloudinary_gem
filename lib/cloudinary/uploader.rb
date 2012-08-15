@@ -51,6 +51,28 @@ class Cloudinary::Uploader
     end              
   end
 
+  def self.exists?(public_id, options={})
+
+    RestClient::Request.execute(:method => :head, :url => api_url, :timeout=>60) do
+      |response, request, tmpresult|
+      raise "Server returned unexpected status code - #{response.code} - #{response.body}" if ![200,400,500].include?(response.code)
+      begin
+        result = Cloudinary::Utils.json_decode(response.body)
+      rescue => e
+        # Error is parsing json
+        raise "Error parsing server response (#{response.code}) - #{response.body}. Got - #{e}"
+      end
+      if result["error"]
+        if return_error
+          result["error"]["http_code"] = response.code
+        else
+          raise result["error"]["message"]
+        end
+      end        
+    end
+           
+  end
+  
   def self.explicit(public_id, options={})
     call_api("explicit", options) do    
       {
