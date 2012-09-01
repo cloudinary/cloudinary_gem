@@ -6,13 +6,13 @@ require 'cloudinary/carrier_wave/preloaded'
 require 'cloudinary/carrier_wave/storage'
 
 module Cloudinary::CarrierWave
-  
+
   def self.included(base)
     base.storage Cloudinary::CarrierWave::Storage
     base.extend ClassMethods
+    base.class_attribute :storage_type
     base.send(:attr_accessor, :metadata)
     base.send(:attr_reader, :stored_version)
-        
     override_in_versions(base, :blank?, :full_public_id, :all_versions_processors)
   end  
     
@@ -46,7 +46,11 @@ module Cloudinary::CarrierWave
       end      
       options = args.extract_options!
       options = self.transformation.merge(options) if self.version_name.present?
-      Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format}.merge(options))
+      if self.class.storage_type == :authenticated
+        Cloudinary::Utils.signed_download_url(public_id, {:format=>self.format}.merge(options))        
+      else
+        Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format}.merge(options))
+      end
     end
   end
 
@@ -104,7 +108,7 @@ module Cloudinary::CarrierWave
   end
   
   class CloudinaryFile
-    attr_reader :identifier, :public_id, :filename, :format, :version
+    attr_reader :identifier, :public_id, :filename, :format, :version, :storage_type
     def initialize(identifier, uploader)
       @uploader = uploader
       @identifier = identifier
@@ -115,6 +119,7 @@ module Cloudinary::CarrierWave
         @filename = @identifier
         @version = nil 
       end
+      @storage_type = uploader.class.storage_type
       @public_id, @format = Cloudinary::CarrierWave.split_format(@filename)      
     end
     
@@ -123,7 +128,7 @@ module Cloudinary::CarrierWave
     end
     
     def exists?
-      Cloudinary::Uploader.exists?(self.identifier)
+      Cloudinary::Uploader.exists?(self.identifier, :type=>self.storage_type)
     end
   end
 
