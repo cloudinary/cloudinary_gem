@@ -31,7 +31,7 @@ module Cloudinary::CarrierWave
       self.original_filename = sanitize(@file.filename)
     end
   end  
-           
+
   def url(*args)
     if args.first && !args.first.is_a?(Hash)
       super
@@ -46,10 +46,12 @@ module Cloudinary::CarrierWave
       end      
       options = args.extract_options!
       options = self.transformation.merge(options) if self.version_name.present?
+      
+      resource_type = Cloudinary::Utils.resource_type_for_source(source)
       if self.class.storage_type == :authenticated
-        Cloudinary::Utils.signed_download_url(public_id, {:format=>self.format}.merge(options))        
+        Cloudinary::Utils.signed_download_url(public_id, {:format=>self.format, :resource_type=>resource_type}.merge(options))        
       else
-        Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format}.merge(options))
+        Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :resource_type=>resource_type}.merge(options))
       end
     end
   end
