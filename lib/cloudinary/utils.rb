@@ -112,6 +112,7 @@ class Cloudinary::Utils
         return original_source # requested asset, but no metadata - probably local file. return.
       end
     end
+    
     type ||= :upload
 
     if source.match(%r(^https?:/)i)
@@ -177,7 +178,7 @@ class Cloudinary::Utils
     authenticated_distribution = options[:authenticated_distribution] || Cloudinary.config.authenticated_distribution || raise("Must supply authenticated_distribution")
     @signers ||= Hash.new{|h,k| path, id = k; h[k] = AwsCfSigner.new(path, id)}
     signer = @signers[[aws_private_key_path, aws_key_pair_id]]
-    url = Cloudinary::Utils.cloudinary_url(public_id, options.merge(:secure=>true, :secure_distribution=>authenticated_distribution, :private_cdn=>true))
+    url = Cloudinary::Utils.cloudinary_url(public_id, options.merge(:secure=>true, :secure_distribution=>authenticated_distribution, :private_cdn=>true, :type=>:authenticated))
     expires_at = options[:expires_at] || (Time.now+3600)
     signer.sign(url, :ending => expires_at)
   end
@@ -229,5 +230,14 @@ class Cloudinary::Utils
       when nil then []
       else [array]
     end
+  end
+  
+  def self.supported_image_format?(source)
+    extension = File.extname(source)
+    ['bmp', 'png', /ti?f/, /jpe?g/, 'gif'].detect { |item| extension =~ /(\.?)#{item}/i }
+  end
+  
+  def self.resource_type_for_source(source)
+    self.supported_image_format?(source) ? 'image' : 'raw'
   end
 end
