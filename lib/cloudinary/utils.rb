@@ -232,12 +232,11 @@ class Cloudinary::Utils
     end
   end
   
-  def self.supported_image_format?(source)
-    extension = File.extname(source)
-    ['bmp', 'png', /ti?f/, /jpe?g/, 'gif'].detect { |item| extension =~ /(\.?)#{item}/i }
+  def self.supported_image_format?(format)
+    ['bmp', 'png', /ti?f/, /jpe?g/, 'gif', 'pdf', 'ico'].detect { |item| format =~ /(\.?)#{item}/i }
   end
   
-  def self.resource_type_for_source(source)
-    self.supported_image_format?(source) ? 'image' : 'raw'
+  def self.resource_type_for_format(format)
+    self.supported_image_format?(format) ? 'image' : 'raw'
   end
 end

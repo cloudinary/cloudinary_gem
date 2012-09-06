@@ -10,8 +10,7 @@ module Cloudinary::CarrierWave
   def self.included(base)
     base.storage Cloudinary::CarrierWave::Storage
     base.extend ClassMethods
-    base.class_attribute :storage_type
-    base.send(:attr_accessor, :metadata)
+    base.class_attribute :storage_type, :metadata
     base.send(:attr_reader, :stored_version)
     override_in_versions(base, :blank?, :full_public_id, :all_versions_processors)
   end  
@@ -47,11 +46,11 @@ module Cloudinary::CarrierWave
       options = args.extract_options!
       options = self.transformation.merge(options) if self.version_name.present?
       
-      resource_type = Cloudinary::Utils.resource_type_for_source(source)
+      resource_type = Cloudinary::Utils.resource_type_for_format(self.format)
       if self.class.storage_type == :authenticated
         Cloudinary::Utils.signed_download_url(public_id, {:format=>self.format, :resource_type=>resource_type}.merge(options))        
       else
-        Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :resource_type=>resource_type}.merge(options))
+        Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :resource_type=>resource_type, :type=>self.class.storage_type}.merge(options))
       end
     end
   end

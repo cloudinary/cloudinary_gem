@@ -1,8 +1,7 @@
 module Cloudinary::CarrierWave
   module ClassMethods
     def make_private
-      process :cloudinary_transformation=>{:type => :private}
-      process_all_versions :cloudinary_transformation=>{:type => :private}
+      self.storage_type = :private
     end
     
     def process_all_versions(*args)
