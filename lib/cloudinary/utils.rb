@@ -72,7 +72,7 @@ class Cloudinary::Utils
   end
 
   # Warning: options are being destructively updated!
-  def self.cloudinary_url(source, options = {})
+  def self.unsigned_download_url(source, options = {})
     type = options.delete(:type)
 
     options[:fetch_format] ||= options.delete(:format) if type == :fetch 
@@ -112,6 +112,7 @@ class Cloudinary::Utils
         return original_source # requested asset, but no metadata - probably local file. return.
       end
     end
+    
     type ||= :upload
 
     if source.match(%r(^https?:/)i)
@@ -177,11 +178,19 @@ class Cloudinary::Utils
     authenticated_distribution = options[:authenticated_distribution] || Cloudinary.config.authenticated_distribution || raise("Must supply authenticated_distribution")
     @signers ||= Hash.new{|h,k| path, id = k; h[k] = AwsCfSigner.new(path, id)}
     signer = @signers[[aws_private_key_path, aws_key_pair_id]]
-    url = Cloudinary::Utils.cloudinary_url(public_id, options.merge(:secure=>true, :secure_distribution=>authenticated_distribution, :private_cdn=>true))
+    url = Cloudinary::Utils.unsigned_download_url(public_id, options.merge(:secure=>true, :secure_distribution=>authenticated_distribution, :private_cdn=>true, :type=>:authenticated))
     expires_at = options[:expires_at] || (Time.now+3600)
     signer.sign(url, :ending => expires_at)
   end
   
+  def self.cloudinary_url(public_id, options = {})
+    if options[:type].to_s == 'authenticated'
+      signed_download_url(public_id, options = {})
+    else
+      unsigned_download_url(public_id, options = {})
+    end
+  end
+
   def self.asset_file_name(path)
     data = Rails.root.join(path).read(:mode=>"rb")
     ext = path.extname
@@ -228,5 +237,14 @@ class Cloudinary::Utils
       when nil then []
       else [array]
     end
+  end
+  
+  def self.supported_image_format?(source)
+    extension = File.extname(source)
+    !(extension =~ /(\.?)(bmp)|(png)|(tif?f)|(jpe?g)|(gif)|(pdf)/i).nil?
+  end
+  
+  def self.resource_type_for_source(source)
+    self.supported_image_format?(source) ? 'image' : 'raw'
   end
 end

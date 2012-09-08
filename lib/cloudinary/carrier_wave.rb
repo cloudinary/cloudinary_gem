@@ -6,13 +6,13 @@ require 'cloudinary/carrier_wave/preloaded'
 require 'cloudinary/carrier_wave/storage'
 
 module Cloudinary::CarrierWave
-  
+
   def self.included(base)
     base.storage Cloudinary::CarrierWave::Storage
     base.extend ClassMethods
+    base.class_attribute :storage_type
     base.send(:attr_accessor, :metadata)
     base.send(:attr_reader, :stored_version)
-        
     override_in_versions(base, :blank?, :full_public_id, :all_versions_processors)
   end  
     
@@ -31,7 +31,7 @@ module Cloudinary::CarrierWave
       self.original_filename = sanitize(@file.filename)
     end
   end  
-           
+
   def url(*args)
     if args.first && !args.first.is_a?(Hash)
       super
@@ -46,7 +46,9 @@ module Cloudinary::CarrierWave
       end      
       options = args.extract_options!
       options = self.transformation.merge(options) if self.version_name.present?
-      Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format}.merge(options))
+      
+      resource_type = Cloudinary::Utils.resource_type_for_source(self.file.filename)
+      Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :resource_type=>resource_type}.merge(options))
     end
   end
 
@@ -104,10 +106,11 @@ module Cloudinary::CarrierWave
   end
   
   class CloudinaryFile
-    attr_reader :identifier, :public_id, :filename, :format, :version
+    attr_reader :identifier, :public_id, :filename, :format, :version, :storage_type, :resource_type
     def initialize(identifier, uploader)
       @uploader = uploader
       @identifier = identifier
+
       if @identifier.include?("/")
         version, @filename = @identifier.split("/")
         @version = version[1..-1] # remove 'v' prefix
@@ -115,11 +118,22 @@ module Cloudinary::CarrierWave
         @filename = @identifier
         @version = nil 
       end
+
+      @storage_type = uploader.class.storage_type
+      @resource_type = Cloudinary::Utils.resource_type_for_source(@filename)      
       @public_id, @format = Cloudinary::CarrierWave.split_format(@filename)      
     end
     
     def delete
-      Cloudinary::Uploader.destroy(self.public_id) if @uploader.delete_remote?        
+      Cloudinary::Uploader.destroy(self.public_id, :type=>self.storage_type, :resource_type=>self.resource_type) if @uploader.delete_remote?        
+    end
+    
+    def exists?
+      Cloudinary::Uploader.exists?(self.identifier, :type=>self.storage_type, :resource_type=>self.resource_type)
+    end
+    
+    def read
+      Cloudinary::Downloader.download(self.identifier, :type=>self.storage_type, :resource_type=>self.resource_type)
     end
   end
 

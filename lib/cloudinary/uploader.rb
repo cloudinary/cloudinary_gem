@@ -51,6 +51,16 @@ class Cloudinary::Uploader
     end              
   end
 
+  def self.exists?(public_id, options={})
+    cloudinary_url = Cloudinary::Utils.cloudinary_url(public_id, options)
+    begin
+      RestClient::Request.execute(:method => :head, :url => cloudinary_url, :timeout=>5).code.to_s =~ /2\d{2}/
+    rescue RestClient::ResourceNotFound => e
+      return false
+    end
+    
+  end
+
   def self.explicit(public_id, options={})
     call_api("explicit", options) do    
       {
