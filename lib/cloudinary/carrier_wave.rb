@@ -47,12 +47,8 @@ module Cloudinary::CarrierWave
       options = args.extract_options!
       options = self.transformation.merge(options) if self.version_name.present?
       
-      resource_type = Cloudinary::Utils.resource_type_for_source(source)
-      if self.class.storage_type == :authenticated
-        Cloudinary::Utils.signed_download_url(public_id, {:format=>self.format, :resource_type=>resource_type}.merge(options))        
-      else
-        Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :resource_type=>resource_type}.merge(options))
-      end
+      resource_type = Cloudinary::Utils.resource_type_for_source(self.file.filename)
+      Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :resource_type=>resource_type}.merge(options))
     end
   end
 
@@ -110,10 +106,11 @@ module Cloudinary::CarrierWave
   end
   
   class CloudinaryFile
-    attr_reader :identifier, :public_id, :filename, :format, :version, :storage_type
+    attr_reader :identifier, :public_id, :filename, :format, :version, :storage_type, :resource_type
     def initialize(identifier, uploader)
       @uploader = uploader
       @identifier = identifier
+
       if @identifier.include?("/")
         version, @filename = @identifier.split("/")
         @version = version[1..-1] # remove 'v' prefix
@@ -121,16 +118,22 @@ module Cloudinary::CarrierWave
         @filename = @identifier
         @version = nil 
       end
+
       @storage_type = uploader.class.storage_type
+      @resource_type = Cloudinary::Utils.resource_type_for_source(@filename)      
       @public_id, @format = Cloudinary::CarrierWave.split_format(@filename)      
     end
     
     def delete
-      Cloudinary::Uploader.destroy(self.public_id) if @uploader.delete_remote?        
+      Cloudinary::Uploader.destroy(self.public_id, :type=>self.storage_type, :resource_type=>self.resource_type) if @uploader.delete_remote?        
     end
     
     def exists?
-      Cloudinary::Uploader.exists?(self.identifier, :type=>self.storage_type)
+      Cloudinary::Uploader.exists?(self.identifier, :type=>self.storage_type, :resource_type=>self.resource_type)
+    end
+    
+    def read
+      Cloudinary::Downloader.download(self.identifier, :type=>self.storage_type, :resource_type=>self.resource_type)
     end
   end
 
