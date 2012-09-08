@@ -21,11 +21,14 @@ class Cloudinary::Utils
     width = options[:width]
     height = options[:height]
     has_layer = !options[:overlay].blank? || !options[:underlay].blank?
-    
-    options.delete(:width) if width && (width.to_f < 1 || has_layer) 
-    options.delete(:height) if height && (height.to_f < 1 || has_layer)
-     
+         
     crop = options.delete(:crop)
+    angle = build_array(options.delete(:angle)).join(".")
+
+    no_html_sizes = has_layer || !angle.blank? || crop.to_s == "fit" || crop.to_s == "limit"
+    options.delete(:width) if width && (width.to_f < 1 || no_html_sizes)
+    options.delete(:height) if height && (height.to_f < 1 || no_html_sizes)
+
     width=height=nil if crop.nil? && !has_layer
 
     background = options.delete(:background)
@@ -45,8 +48,6 @@ class Cloudinary::Utils
     effect = options.delete(:effect)
     effect = Array(effect).flatten.join(":") if effect.is_a?(Array) || effect.is_a?(Hash)
     
-    angle = build_array(options.delete(:angle)).join(".")
-
     params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect, :a=>angle}
     { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, 
       :p=>:prefix, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page 

@@ -9,6 +9,7 @@ require "cloudinary/uploader"
 require "cloudinary/api"
 require "cloudinary/downloader"
 require "cloudinary/blob" 
+require "cloudinary/preloaded_file"
 require "cloudinary/static"
 require "cloudinary/missing"
 require "cloudinary/carrier_wave" if defined?(::CarrierWave)

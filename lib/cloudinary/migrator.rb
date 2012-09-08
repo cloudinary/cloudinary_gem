@@ -258,7 +258,11 @@ class Cloudinary::Migrator
               elsif data.respond_to?(:read) && data.respond_to?(:path)
                 # This is an IO style object, pass as is.
                 file = data
-              elsif !data.nil?
+              elsif data.nil?
+                # Skip
+              elsif data.match(/^https?:/)
+                url = data
+              else                
                 file = main.temporary_file(data, row["public_id"] || "cloudinaryfile") 
               end
             end
