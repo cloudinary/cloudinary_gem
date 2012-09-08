@@ -25,7 +25,7 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
       eager_versions = uploader.versions.values.select(&:eager)
       params[:eager] = eager_versions.map{|version| [version.transformation, version.format]} if eager_versions.length > 0
       params[:type]=uploader.class.storage_type
-      params[:resource_type] ||= Cloudinary::Utils.resource_type_for_source(uploader.my_public_id)
+      params[:resource_type] ||= Cloudinary::Utils.resource_type_for_source(file.path)
 
       uploader.metadata = Cloudinary::Uploader.upload(data, params)
       if uploader.metadata["error"]
@@ -58,5 +58,5 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     else
       raise "Only ActiveRecord and Mongoid are supported at the moment!"
     end
-  end  
+  end 
 end
