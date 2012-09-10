@@ -72,6 +72,7 @@ class Cloudinary::Migrator
         public_id
       )
     "
+
     if options[:reset_queue]
       @db.execute("delete from queue")
     end
@@ -257,6 +258,8 @@ class Cloudinary::Migrator
                 result = data.metadata
               elsif data.respond_to?(:read) && data.respond_to?(:path)
                 # This is an IO style object, pass as is.
+                file = data
+              elsif data.is_a?(String) && data =~ /^http(s?)/
                 file = data
               elsif !data.nil?
                 file = main.temporary_file(data, row["public_id"] || "cloudinaryfile") 
