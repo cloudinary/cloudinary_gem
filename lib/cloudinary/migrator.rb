@@ -67,11 +67,11 @@ class Cloudinary::Migrator
         internal_id
       )
     "
-    @db.execute "
-      create unique index if not exists public_id_idx on queue (
-        public_id
-      )
-    "
+    # @db.execute "
+    #   create unique index if not exists public_id_idx on queue (
+    #     public_id
+    #   )
+    # "
 
     if options[:reset_queue]
       @db.execute("delete from queue")
@@ -171,6 +171,9 @@ class Cloudinary::Migrator
   
   def insert_row(values)
     values.merge!("updated_at"=>Time.now.to_i)
+    puts "insert into queue (#{values.keys.join(",")}) values (#{values.keys.map{"?"}.join(",")})"
+    puts *values.values
+    
     @db.execute("insert into queue (#{values.keys.join(",")}) values (#{values.keys.map{"?"}.join(",")})", *values.values)
     values["id"] = @db.last_insert_row_id
   end
