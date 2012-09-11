@@ -72,6 +72,7 @@ class Cloudinary::Utils
 
   # Warning: options are being destructively updated!
   def self.unsigned_download_url(source, options = {})
+
     type = options.delete(:type)
 
     options[:fetch_format] ||= options.delete(:format) if type == :fetch 
@@ -80,7 +81,6 @@ class Cloudinary::Utils
     resource_type = options.delete(:resource_type) || "image"
     version = options.delete(:version)
     format = options.delete(:format)
-    
     cloud_name = options.delete(:cloud_name) || Cloudinary.config.cloud_name || raise("Must supply cloud_name in tag or in configuration")    
     secure = options.delete(:secure)
     ssl_detected = options.delete(:ssl_detected)
@@ -119,7 +119,7 @@ class Cloudinary::Utils
     elsif !format.blank? 
       source = "#{source}.#{format}"
     end
-    
+
     if cloud_name.start_with?("/")
       prefix = "/res" + cloud_name
     else
@@ -184,9 +184,9 @@ class Cloudinary::Utils
   
   def self.cloudinary_url(public_id, options = {})
     if options[:type].to_s == 'authenticated'
-      signed_download_url(public_id, options = {})
+      signed_download_url(public_id, options)
     else
-      unsigned_download_url(public_id, options = {})
+      unsigned_download_url(public_id, options)
     end
   end
 
