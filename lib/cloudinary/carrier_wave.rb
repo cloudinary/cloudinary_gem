@@ -47,8 +47,9 @@ module Cloudinary::CarrierWave
       options = args.extract_options!
       options = self.transformation.merge(options) if self.version_name.present?
       
-      resource_type = Cloudinary::Utils.resource_type_for_source(self.file.filename)
-      Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :resource_type=>resource_type}.merge(options))
+      resource_type = Cloudinary::Utils.resource_type_for_source(filename)
+      
+      Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :resource_type=>resource_type, :type=>self.storage_type}.merge(options))
     end
   end
 
