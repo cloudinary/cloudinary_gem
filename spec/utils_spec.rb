@@ -68,7 +68,25 @@ describe Cloudinary::Utils do
     options.should == {:width=>100, :height=>100}
     result.should == "http://res.cloudinary.com/test123/image/upload/c_crop,h_100,w_100/test" 
   end
-  
+
+  it "should not pass width and height to html in case of fit or limit crop" do
+    options = {:width=>100, :height=>100, :crop=>:limit}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/c_limit,h_100,w_100/test" 
+    options = {:width=>100, :height=>100, :crop=>:fit}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/c_fit,h_100,w_100/test" 
+  end
+
+  it "should not pass width and height to html in case angle was used" do
+    options = {:width=>100, :height=>100, :crop=>:scale, :angle=>:auto}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/a_auto,c_scale,h_100,w_100/test" 
+  end
+    
   it "should use x, y, radius, prefix, gravity and quality from options" do    
     options = {:x=>1, :y=>2, :radius=>3, :gravity=>:center, :quality=>0.4, :prefix=>"a"}
     result = Cloudinary::Utils.cloudinary_url("test", options)
