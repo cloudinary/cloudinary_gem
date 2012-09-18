@@ -185,10 +185,11 @@ class Cloudinary::Utils
   
   def self.cloudinary_url(public_id, options = {})
     if options[:type].to_s == 'authenticated'
-      signed_download_url(public_id, options)
+      result = signed_download_url(public_id, options)
     else
-      unsigned_download_url(public_id, options)
+      result = unsigned_download_url(public_id, options)
     end
+    return result
   end
 
   def self.asset_file_name(path)
