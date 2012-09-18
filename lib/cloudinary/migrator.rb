@@ -171,9 +171,6 @@ class Cloudinary::Migrator
   
   def insert_row(values)
     values.merge!("updated_at"=>Time.now.to_i)
-    puts "insert into queue (#{values.keys.join(",")}) values (#{values.keys.map{"?"}.join(",")})"
-    puts *values.values
-    
     @db.execute("insert into queue (#{values.keys.join(",")}) values (#{values.keys.map{"?"}.join(",")})", *values.values)
     values["id"] = @db.last_insert_row_id
   end
