@@ -67,11 +67,11 @@ class Cloudinary::Migrator
         internal_id
       )
     "
-    # @db.execute "
-    #   create unique index if not exists public_id_idx on queue (
-    #     public_id
-    #   )
-    # "
+    @db.execute "
+      create unique index if not exists public_id_idx on queue (
+        public_id
+      )
+    "
 
     if options[:reset_queue]
       @db.execute("delete from queue")
