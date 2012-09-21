@@ -42,18 +42,6 @@ class Cloudinary::Api
     uri = "resources/#{resource_type}/#{type}/#{public_id}"
     call_api(:get, uri, {}, options)      
   end
-
-  def self.resource_exists?(public_id, options={})
-    resource_type = options[:resource_type] || "image"
-    type = options[:type] || "upload"
-    uri = "resources/#{resource_type}/#{type}/#{public_id}"
-    begin
-      call_api(:head, uri, {}, options)
-      return true
-    rescue NotFound => e
-    end
-    return false    
-  end  
   
   def self.delete_resources(public_ids, options={})
     resource_type = options[:resource_type] || "image"

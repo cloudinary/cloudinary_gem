@@ -49,7 +49,7 @@ class Cloudinary::Utils
     effect = Array(effect).flatten.join(":") if effect.is_a?(Array) || effect.is_a?(Hash)
     
     params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect, :a=>angle}
-    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, 
+    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :cs=>:color_space,
       :p=>:prefix, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page 
     }.each do
       |param, option|
@@ -208,7 +208,8 @@ class Cloudinary::Utils
   end
   
   def self.random_public_id
-    (defined?(ActiveSupport::SecureRandom) ? ActiveSupport::SecureRandom : SecureRandom).base64(16).downcase.gsub(/[^a-z0-9]/, "")    
+    sr = defined?(ActiveSupport::SecureRandom) ? ActiveSupport::SecureRandom : SecureRandom
+    sr.base64(20).downcase.gsub(/[^a-z0-9]/, "").sub(/^[0-9]+/, '')[0,20]
   end
 
   def self.signed_preloaded_image(result)
@@ -240,12 +241,14 @@ class Cloudinary::Utils
     end
   end
   
-  def self.supported_image_format?(source)
-    extension = File.extname(source)
-    !(extension =~ /(\.?)(bmp)|(png)|(tif?f)|(jpe?g)|(gif)|(pdf)/i).nil?
+  IMAGE_FORMATS = %w(bmp png tif tiff jpg jpeg gif pdf ico) 
+  
+  def self.supported_image_format?(format)
+    extension = format =~ /\./ ? format.split('.').last : format
+    IMAGE_FORMATS.include?(extension)
   end
   
-  def self.resource_type_for_source(source)
-    self.supported_image_format?(source) ? 'image' : 'raw'
+  def self.resource_type_for_format(format)
+    self.supported_image_format?(format) ? 'image' : 'raw'
   end
 end

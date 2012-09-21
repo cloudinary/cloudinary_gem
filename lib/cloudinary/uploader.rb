@@ -24,6 +24,7 @@ class Cloudinary::Uploader
               :backup=>options[:backup],
               :invalidate=>options[:invalidate],
               :eager=>build_eager(options[:eager]),
+              :headers=>build_custom_headers(options[:headers]),
               :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}    
     params    
   end
@@ -69,6 +70,8 @@ class Cloudinary::Uploader
         :public_id=> public_id,
         :callback=> options[:callback],
         :eager=>build_eager(options[:eager]),
+        :headers=>build_custom_headers(options[:headers]),
+        :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")    
       }
     end              
   end
@@ -125,7 +128,8 @@ class Cloudinary::Uploader
         :timestamp=>Time.now.to_i,
         :tag=>tag,
         :public_ids => Cloudinary::Utils.build_array(public_ids),
-        :command => command
+        :command => command,
+        :type => options[:type]
       }    
     end    
   end
@@ -165,5 +169,9 @@ class Cloudinary::Uploader
     end
     
     result    
+  end
+  
+  def self.build_custom_headers(headers)
+    Array(headers).map{|*a| a.join(": ")}.join("\n")
   end
 end

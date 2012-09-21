@@ -6,6 +6,8 @@ describe Cloudinary::Api do
 
   before(:all) do
     @api = Cloudinary::Api
+    Cloudinary::Uploader.destroy("api_test")
+    Cloudinary::Uploader.destroy("api_test2")
     Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test", :tags=>"api_test_tag", :eager=>[:width=>100,:crop=>:scale])
     Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test2", :tags=>"api_test_tag", :eager=>[:width=>100,:crop=>:scale])
     @api.delete_transformation("api_test_transformation") rescue nil
