@@ -72,7 +72,8 @@ class Cloudinary::Utils
   end
 
   # Warning: options are being destructively updated!
-  def self.cloudinary_url(source, options = {})
+  def self.unsigned_download_url(source, options = {})
+
     type = options.delete(:type)
 
     options[:fetch_format] ||= options.delete(:format) if type == :fetch 
@@ -81,7 +82,6 @@ class Cloudinary::Utils
     resource_type = options.delete(:resource_type) || "image"
     version = options.delete(:version)
     format = options.delete(:format)
-    
     cloud_name = options.delete(:cloud_name) || Cloudinary.config.cloud_name || raise("Must supply cloud_name in tag or in configuration")    
     secure = options.delete(:secure)
     ssl_detected = options.delete(:ssl_detected)
@@ -120,7 +120,7 @@ class Cloudinary::Utils
     elsif !format.blank? 
       source = "#{source}.#{format}"
     end
-    
+
     if cloud_name.start_with?("/")
       prefix = "/res" + cloud_name
     else
@@ -178,11 +178,20 @@ class Cloudinary::Utils
     authenticated_distribution = options[:authenticated_distribution] || Cloudinary.config.authenticated_distribution || raise("Must supply authenticated_distribution")
     @signers ||= Hash.new{|h,k| path, id = k; h[k] = AwsCfSigner.new(path, id)}
     signer = @signers[[aws_private_key_path, aws_key_pair_id]]
-    url = Cloudinary::Utils.cloudinary_url(public_id, {:type=>:authenticated}.merge(options).merge(:secure=>true, :secure_distribution=>authenticated_distribution, :private_cdn=>true))
+    url = Cloudinary::Utils.unsigned_download_url(public_id, options.merge(:secure=>true, :secure_distribution=>authenticated_distribution, :private_cdn=>true, :type=>:authenticated))
     expires_at = options[:expires_at] || (Time.now+3600)
     signer.sign(url, :ending => expires_at)
   end
   
+  def self.cloudinary_url(public_id, options = {})
+    if options[:type].to_s == 'authenticated'
+      result = signed_download_url(public_id, options)
+    else
+      result = unsigned_download_url(public_id, options)
+    end
+    return result
+  end
+
   def self.asset_file_name(path)
     data = Rails.root.join(path).read(:mode=>"rb")
     ext = path.extname
@@ -235,7 +244,8 @@ class Cloudinary::Utils
   IMAGE_FORMATS = %w(bmp png tif tiff jpg jpeg gif pdf ico) 
   
   def self.supported_image_format?(format)
-    IMAGE_FORMATS.include?(format.to_s.downcase)
+    extension = format =~ /\./ ? format.split('.').last : format
+    IMAGE_FORMATS.include?(extension)
   end
   
   def self.resource_type_for_format(format)

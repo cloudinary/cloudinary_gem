@@ -72,6 +72,7 @@ class Cloudinary::Migrator
         public_id
       )
     "
+
     if options[:reset_queue]
       @db.execute("delete from queue")
     end
@@ -262,7 +263,7 @@ class Cloudinary::Migrator
                 # Skip
               elsif data.match(/^https?:/)
                 url = data
-              else                
+              else
                 file = main.temporary_file(data, row["public_id"] || "cloudinaryfile") 
               end
             end
