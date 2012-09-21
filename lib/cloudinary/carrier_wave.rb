@@ -133,9 +133,11 @@ module Cloudinary::CarrierWave
       Cloudinary::Uploader.exists?(self.identifier, :type=>self.storage_type, :resource_type=>self.resource_type)
     end
     
-    def read
-      Cloudinary::Downloader.download(self.identifier, :type=>self.storage_type, :resource_type=>self.resource_type)
+    def read(options={})
+      parameters={:type=>self.storage_type, :resource_type=>self.resource_type}.merge(options)
+      Cloudinary::Downloader.download(self.identifier, parameters)
     end
+
   end
 
   def self.split_format(identifier)
