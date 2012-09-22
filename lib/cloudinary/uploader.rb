@@ -53,12 +53,13 @@ class Cloudinary::Uploader
   end
 
   def self.exists?(public_id, options={})
-    if options[:type] == :authenticated
-      cloudinary_url = Cloudinary::Utils.signed_download_url(public_id, options)
-    else
-      cloudinary_url = Cloudinary::Utils.cloudinary_url(public_id, options)
+    cloudinary_url = Cloudinary::Utils.cloudinary_url(public_id, options)
+    begin
+      RestClient::Request.execute(:method => :head, :url => cloudinary_url, :timeout=>5).code.to_s =~ /2\d{2}/
+    rescue RestClient::ResourceNotFound => e
+      return false
     end
-    RestClient::Request.execute(:method => :head, :url => cloudinary_url, :timeout=>5).code.to_s =~ /2\d{2}/
+    
   end
 
   def self.explicit(public_id, options={})
