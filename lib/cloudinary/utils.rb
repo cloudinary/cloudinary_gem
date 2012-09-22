@@ -48,9 +48,14 @@ class Cloudinary::Utils
     effect = options.delete(:effect)
     effect = Array(effect).flatten.join(":") if effect.is_a?(Array) || effect.is_a?(Hash)
     
-    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect, :a=>angle}
+    border = options.delete(:border)
+    if border.is_a?(Hash)
+      border = "#{border[:width] || 2}px_solid_#{(border[:color] || "black").sub(/^#/, 'rgb:')}"
+    end
+    
+    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect, :a=>angle, :bo=>border}
     { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :cs=>:color_space,
-      :p=>:prefix, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page 
+      :p=>:prefix, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page, :dl=>:delay
     }.each do
       |param, option|
       params[param] = options.delete(option)

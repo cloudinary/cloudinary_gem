@@ -310,4 +310,18 @@ describe Cloudinary::Utils do
     result.should == "http://res.cloudinary.com/test123/image/upload/e_sepia:10/test" 
   end
   
+  it "should support border" do
+    options = {"border"=>{:width=>5}}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/bo_5px_solid_black/test"     
+    options = {"border"=>{:width=>5, :color=>"#ffaabbdd"}}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/bo_5px_solid_rgb:ffaabbdd/test"     
+    options = {"border"=>"1px_solid_blue"}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/bo_1px_solid_blue/test"     
+  end
 end
