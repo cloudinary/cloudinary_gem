@@ -99,6 +99,7 @@ class Cloudinary::Utils
     
     original_source = source
     return original_source if source.blank?
+    source = source.to_s
     if !force_remote    
       return original_source if (type.nil? || type == :asset) && source.match(%r(^https?:/)i)
       if source.start_with?("/") 
