@@ -35,25 +35,29 @@ module Cloudinary
         "private_cdn" => ENV["CLOUDINARY_PRIVATE_CDN"].to_s == 'true'
       )
     elsif first_time && ENV["CLOUDINARY_URL"]
-      uri = URI.parse(ENV["CLOUDINARY_URL"])
-      set_config(
-        "cloud_name" => uri.host,
-        "api_key" => uri.user,
-        "api_secret" => uri.password,
-        "private_cdn" => !uri.path.blank?,
-        "secure_distribution" => uri.path[1..-1]
-      )
-      uri.query.to_s.split("&").each do
-        |param|
-        key, value = param.split("=")
-        set_config(key=>URI.decode(value))
-      end
+      config_from_url(ENV["CLOUDINARY_URL"])
     end
 
     set_config(new_config) if new_config
     yield(@@config) if block_given?
 
     @@config    
+  end
+  
+  def self.config_from_url(url)
+    uri = URI.parse(url)
+    set_config(
+      "cloud_name" => uri.host,
+      "api_key" => uri.user,
+      "api_secret" => uri.password,
+      "private_cdn" => !uri.path.blank?,
+      "secure_distribution" => uri.path[1..-1]
+    )
+    uri.query.to_s.split("&").each do
+      |param|
+      key, value = param.split("=")
+      set_config(key=>URI.decode(value))
+    end    
   end
   
   private
