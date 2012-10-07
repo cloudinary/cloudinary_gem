@@ -50,8 +50,9 @@ class Cloudinary::Api
     call_api(:delete, uri, {:public_ids=>public_ids}, options)      
   end
 
-  def self.delete_resources_by_prefix(type, prefix, options={})
+  def self.delete_resources_by_prefix(prefix, options={})
     resource_type = options[:resource_type] || "image"
+    type = options[:type] || "upload"    
     uri = "resources/#{resource_type}/#{type}"
     call_api(:delete, uri, {:prefix=>prefix}, options)      
   end
