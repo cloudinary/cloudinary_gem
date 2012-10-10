@@ -141,6 +141,6 @@ module Cloudinary::CarrierWave
       format = Cloudinary::CarrierWave.split_format(original_filename || "").last
       format ||= "png" # TODO Default format? 
     end
-    format.downcase
+    format.to_s.downcase
   end
 end
