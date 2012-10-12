@@ -19,6 +19,14 @@ require "cloudinary/railtie" if defined?(Rails) && defined?(Rails::Railtie)
 require "cloudinary/engine" if defined?(Rails) && defined?(Rails::Engine)
 
 module Cloudinary  
+  FORMAT_ALIASES = {
+    "jpeg" => "jpg",
+    "jpe" => "jpg",
+    "tif" => "tiff",
+    "ps" => "eps",
+    "ept" => "eps"
+  }
+  
   @@config = nil
   
   def self.config(new_config=nil)
