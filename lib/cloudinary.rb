@@ -45,6 +45,7 @@ module Cloudinary
   end
   
   def self.config_from_url(url)
+    @@config ||= OpenStruct.new
     uri = URI.parse(url)
     set_config(
       "cloud_name" => uri.host,
