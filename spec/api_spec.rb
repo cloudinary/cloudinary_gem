@@ -78,6 +78,22 @@ describe Cloudinary::Api do
     lambda{@api.resource("api_test3")}.should raise_error(Cloudinary::Api::NotFound)
   end
 
+  it "should allow deleting resources by prefix" do
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test_by_prefix")
+    resource = @api.resource("api_test_by_prefix")
+    resource.should_not be_blank
+    @api.delete_resources_by_prefix("api_test_by")
+    lambda{@api.resource("api_test_by_prefix")}.should raise_error(Cloudinary::Api::NotFound)
+  end
+
+  it "should allow deleting resources by tags" do
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test4", :tags=>["api_test_tag_for_delete"])
+    resource = @api.resource("api_test4")
+    resource.should_not be_blank
+    @api.delete_resources_by_tag("api_test_tag_for_delete")
+    lambda{@api.resource("api_test4")}.should raise_error(Cloudinary::Api::NotFound)
+  end
+
   it "should allow listing tags" do
     tags = @api.tags()["tags"]
     tags.should include('api_test_tag')
