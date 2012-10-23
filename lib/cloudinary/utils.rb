@@ -52,8 +52,9 @@ class Cloudinary::Utils
     if border.is_a?(Hash)
       border = "#{border[:width] || 2}px_solid_#{(border[:color] || "black").sub(/^#/, 'rgb:')}"
     end
+    flags = build_array(options.delete(:flags)).join(".")
     
-    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect, :a=>angle, :bo=>border}
+    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect, :a=>angle, :bo=>border, :fl=>flags}
     { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :cs=>:color_space,
       :p=>:prefix, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page, :dl=>:delay
     }.each do

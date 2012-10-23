@@ -324,4 +324,15 @@ describe Cloudinary::Utils do
     options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/bo_1px_solid_blue/test"     
   end
+  
+  it "should support flags" do
+    options = {"flags"=>"abc"}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/fl_abc/test"     
+    options = {"flags"=>["abc", "def"]}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/fl_abc.def/test"     
+  end
 end
