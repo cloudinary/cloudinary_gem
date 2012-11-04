@@ -89,6 +89,18 @@ It contains settings for each of your deployment environments. You can always ov
 
 You can [download your customized cloudinary.yml](https://cloudinary.com/console/cloudinary.yml) configuration file using our Management Console.
 
+Passing the parameters manually looks like this:
+
+``` ruby
+auth = {
+  cloud_name: "somename",
+  api_key:    "1234567890",
+  api_secret: "FooBarBaz123"
+}
+
+Cloudinary::Uploader.upload("my_picture.jpg", auth)
+```
+
 
 ### Embedding and transforming images
 
