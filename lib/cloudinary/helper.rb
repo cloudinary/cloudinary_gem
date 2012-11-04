@@ -130,8 +130,8 @@ module CloudinaryHelper
     html_options = options.delete(:html) || {}
     cloudinary_upload_url = Cloudinary::Utils.cloudinary_api_url("upload", {:resource_type=>:auto}.merge(options))
     
-    api_key = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
-    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
+    api_key = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
+    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
 
     cloudinary_params = Cloudinary::Uploader.build_upload_params(options)
     cloudinary_params[:callback] = build_callback_url(options)

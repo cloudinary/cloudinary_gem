@@ -137,8 +137,8 @@ class Cloudinary::Uploader
   def self.call_api(action, options)
     options = options.clone
     return_error = options.delete(:return_error)
-    api_key = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
-    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
+    api_key = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
+    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
 
     params, non_signable = yield
     non_signable ||= []
@@ -152,18 +152,18 @@ class Cloudinary::Uploader
     
     RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=>60) do
       |response, request, tmpresult|
-      raise "Server returned unexpected status code - #{response.code} - #{response.body}" if ![200,400,500].include?(response.code)
+      raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" if ![200,400,500].include?(response.code)
       begin
         result = Cloudinary::Utils.json_decode(response.body)
       rescue => e
         # Error is parsing json
-        raise "Error parsing server response (#{response.code}) - #{response.body}. Got - #{e}"
+        raise CloudinaryException, "Error parsing server response (#{response.code}) - #{response.body}. Got - #{e}"
       end
       if result["error"]
         if return_error
           result["error"]["http_code"] = response.code
         else
-          raise result["error"]["message"]
+          raise CloudinaryException, result["error"]["message"]
         end
       end        
     end

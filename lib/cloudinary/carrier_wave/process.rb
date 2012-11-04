@@ -51,7 +51,7 @@ module Cloudinary::CarrierWave
   end
 
   def set_or_yell(hash, attr, value)
-    raise "conflicting transformation on #{attr} #{value}!=#{hash[attr]}" if hash[attr] && hash[attr] != value
+    raise CloudinaryException, "conflicting transformation on #{attr} #{value}!=#{hash[attr]}" if hash[attr] && hash[attr] != value
     hash[attr] = value
   end
   
@@ -123,7 +123,7 @@ module Cloudinary::CarrierWave
 
   def tags
     @tags ||= self.all_processors.select{|processor| processor[0] == :tags}.map(&:second).first
-    raise "tags cannot be used in versions." if @tags.present? && self.version_name.present?
+    raise CloudinaryException, "tags cannot be used in versions." if @tags.present? && self.version_name.present?
     @tags
   end
   

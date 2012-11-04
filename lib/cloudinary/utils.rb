@@ -88,7 +88,7 @@ class Cloudinary::Utils
     resource_type = options.delete(:resource_type) || "image"
     version = options.delete(:version)
     format = options.delete(:format)
-    cloud_name = options.delete(:cloud_name) || Cloudinary.config.cloud_name || raise("Must supply cloud_name in tag or in configuration")    
+    cloud_name = options.delete(:cloud_name) || Cloudinary.config.cloud_name || raise(CloudinaryException, "Must supply cloud_name in tag or in configuration")    
     secure = options.delete(:secure)
     ssl_detected = options.delete(:ssl_detected)
     secure = ssl_detected || Cloudinary.config.secure if secure.nil?
@@ -133,7 +133,7 @@ class Cloudinary::Utils
     else
       if secure && secure_distribution.nil?
         if private_cdn
-          raise "secure_distribution not defined"
+          raise CloudinaryException, "secure_distribution not defined"
         else
           secure_distribution = SHARED_CDN 
         end
@@ -156,14 +156,14 @@ class Cloudinary::Utils
   
   def self.cloudinary_api_url(action = 'upload', options = {})
     cloudinary = options[:upload_prefix] || Cloudinary.config.upload_prefix || "https://api.cloudinary.com"
-    cloud_name = options[:cloud_name] || Cloudinary.config.cloud_name || raise("Must supply cloud_name")
+    cloud_name = options[:cloud_name] || Cloudinary.config.cloud_name || raise(CloudinaryException, "Must supply cloud_name")
     resource_type = options[:resource_type] || "image"
     return [cloudinary, "v1_1", cloud_name, resource_type, action].join("/")
   end
 
   def self.private_download_url(public_id, format, options = {})
-    api_key = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
-    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
+    api_key = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
+    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
     cloudinary_params = {:timestamp=>Time.now.to_i, :public_id=>public_id, :format=>format, :type=>options[:type]}.reject{|k, v| v.blank?}
     cloudinary_params[:signature] = Cloudinary::Utils.api_sign_request(cloudinary_params, api_secret)
     cloudinary_params[:api_key] = api_key
@@ -171,8 +171,8 @@ class Cloudinary::Utils
   end
 
   def self.zip_download_url(tag, options = {})
-    api_key = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
-    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
+    api_key = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
+    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
     cloudinary_params = {:timestamp=>Time.now.to_i, :tag=>tag, :transformation=>generate_transformation_string(options)}.reject{|k, v| v.blank?}
     cloudinary_params[:signature] = Cloudinary::Utils.api_sign_request(cloudinary_params, api_secret)
     cloudinary_params[:api_key] = api_key
@@ -180,9 +180,9 @@ class Cloudinary::Utils
   end
 
   def self.signed_download_url(public_id, options = {})
-    aws_private_key_path = options[:aws_private_key_path] || Cloudinary.config.aws_private_key_path || raise("Must supply aws_private_key_path")
-    aws_key_pair_id = options[:aws_key_pair_id] || Cloudinary.config.aws_key_pair_id || raise("Must supply aws_key_pair_id")
-    authenticated_distribution = options[:authenticated_distribution] || Cloudinary.config.authenticated_distribution || raise("Must supply authenticated_distribution")
+    aws_private_key_path = options[:aws_private_key_path] || Cloudinary.config.aws_private_key_path || raise(CloudinaryException, "Must supply aws_private_key_path")
+    aws_key_pair_id = options[:aws_key_pair_id] || Cloudinary.config.aws_key_pair_id || raise(CloudinaryException, "Must supply aws_key_pair_id")
+    authenticated_distribution = options[:authenticated_distribution] || Cloudinary.config.authenticated_distribution || raise(CloudinaryException, "Must supply authenticated_distribution")
     @signers ||= Hash.new{|h,k| path, id = k; h[k] = AwsCfSigner.new(path, id)}
     signer = @signers[[aws_private_key_path, aws_key_pair_id]]
     url = Cloudinary::Utils.unsigned_download_url(public_id, {:type=>:authenticated}.merge(options).merge(:secure=>true, :secure_distribution=>authenticated_distribution, :private_cdn=>true))
@@ -233,7 +233,7 @@ class Cloudinary::Utils
         begin
           require 'active_support/json'
         rescue LoadError
-          raise "Please add the json gem or active_support to your Gemfile"            
+          raise LoadError, "Please add the json gem or active_support to your Gemfile"            
         end
       end
     end

@@ -1,5 +1,5 @@
 class Cloudinary::Api
-  class Error < StandardError; end
+  class Error < CloudinaryException; end
   class NotFound < Error; end
   class NotAllowed < Error; end
   class AlreadyExists < Error; end

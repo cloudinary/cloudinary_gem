@@ -87,8 +87,8 @@ class Cloudinary::Migrator
   end
   
   def process(options={})    
-    raise "url not given and no retieve callback given" if options[:url].nil? && self.retrieve.nil?
-    raise "id not given and retieve or complete callback given" if options[:id].nil? && (!self.retrieve.nil? || !self.complete.nil?)
+    raise CloudinaryException, "url not given and no retieve callback given" if options[:url].nil? && self.retrieve.nil?
+    raise CloudinaryException, "id not given and retieve or complete callback given" if options[:id].nil? && (!self.retrieve.nil? || !self.complete.nil?)
 
     debug("Process: #{options.inspect}")
     start
