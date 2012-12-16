@@ -48,17 +48,33 @@ module CloudinaryHelper
   def facebook_profile_image_tag(profile, options = {})    
     cl_image_tag(profile, {:type=>:facebook}.merge(options))
   end
+  
+  def facebook_profile_image_path(profile, options = {})    
+    cl_image_path(profile, {:type=>:facebook}.merge(options))
+  end
 
   def gravatar_profile_image_tag(email, options = {})    
     cl_image_tag(Digest::MD5.hexdigest(email.strip.downcase), {:type=>:gravatar, :format=>:jpg}.merge(options))
+  end
+  
+  def gravatar_profile_image_path(email, options = {})    
+    cl_image_path(Digest::MD5.hexdigest(email.strip.downcase), {:type=>:gravatar, :format=>:jpg}.merge(options))
   end
 
   def twitter_profile_image_tag(profile, options = {})    
     cl_image_tag(profile, {:type=>:twitter}.merge(options))
   end
+  
+  def twitter_profile_image_path(profile, options = {})    
+    cl_image_path(profile, {:type=>:twitter}.merge(options))
+  end
 
   def twitter_name_profile_image_tag(profile, options = {})    
     cl_image_tag(profile, {:type=>:twitter_name}.merge(options))
+  end
+  
+  def twitter_name_profile_image_path(profile, options = {})    
+    cl_image_path(profile, {:type=>:twitter_name}.merge(options))
   end
 
   def cl_sprite_url(source, options = {})
