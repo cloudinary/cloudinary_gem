@@ -76,6 +76,14 @@ module CloudinaryHelper
   def twitter_name_profile_image_path(profile, options = {})    
     cl_image_path(profile, {:type=>:twitter_name}.merge(options))
   end
+  
+  def gplus_profile_image_tag(profile, options = {})    
+    cl_image_tag(profile, {:type=>:gplus}.merge(options))
+  end
+  
+  def gplus_profile_image_path(profile, options = {})    
+    cl_image_path(profile, {:type=>:gplus}.merge(options))
+  end
 
   def cl_sprite_url(source, options = {})
     options = options.clone
