@@ -13,6 +13,7 @@ module CloudinaryHelper
     options[:width] = options.delete(:html_width) if options.include?(:html_width)
     options[:height] = options.delete(:html_height) if options.include?(:html_height)
     options[:size] = options.delete(:html_size) if options.include?(:html_size)
+    options[:border] = options.delete(:html_border) if options.include?(:html_border)
 
     original_image_tag(source, options)
   end

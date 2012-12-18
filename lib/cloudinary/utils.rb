@@ -51,6 +51,9 @@ class Cloudinary::Utils
     border = options.delete(:border)
     if border.is_a?(Hash)
       border = "#{border[:width] || 2}px_solid_#{(border[:color] || "black").sub(/^#/, 'rgb:')}"
+    elsif border.to_s =~ /^\d+$/ # fallback to html border attribute 
+      options[:border] = border
+      border = nil
     end
     flags = build_array(options.delete(:flags)).join(".")
     

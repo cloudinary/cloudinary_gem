@@ -323,6 +323,10 @@ describe Cloudinary::Utils do
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/bo_1px_solid_blue/test"     
+    options = {"border"=>"2"}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {:border=>"2"}
+    result.should == "http://res.cloudinary.com/test123/image/upload/test"     
   end
   
   it "should support flags" do
