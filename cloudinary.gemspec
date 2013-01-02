@@ -8,6 +8,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Nadav Soferman","Itai Lahan","Tal Lev-Ami"]
   s.email       = ["nadav.soferman@cloudinary.com","itai.lahan@cloudinary.com","tal.levami@cloudinary.com"]
   s.homepage    = "http://cloudinary.com"
+  s.license     = "MIT"
+
   s.summary     = %q{Client library for easily using the Cloudinary service}
   s.description = %q{Client library for easily using the Cloudinary service}
 
@@ -17,7 +19,7 @@ Gem::Specification.new do |s|
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
-  
+
   s.add_dependency "rest-client"
   s.add_dependency "aws_cf_signer"
   s.add_development_dependency "rspec"
