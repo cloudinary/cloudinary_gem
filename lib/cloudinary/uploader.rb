@@ -28,6 +28,7 @@ class Cloudinary::Uploader
               :invalidate=>options[:invalidate],
               :eager=>build_eager(options[:eager]),
               :headers=>build_custom_headers(options[:headers]),
+              :use_filename=>options[:use_filename],
               :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}    
     params    
   end
