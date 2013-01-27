@@ -16,6 +16,12 @@ task :fetch_assets do
     f.puts "//= require ./jquery.fileupload.js"
     f.puts "//= require ./jquery.cloudinary.js"
   end
+  File.open("vendor/assets/javascripts/cloudinary/processing.js", "w") do 
+    |f|
+    f.puts "//= require ./canvas-to-blob.min.js"
+    f.puts "//= require ./load-image.min.js"
+    f.puts "//= require ./jquery.fileupload-fp.js"
+  end
 end
 
 task :build=>:fetch_assets
