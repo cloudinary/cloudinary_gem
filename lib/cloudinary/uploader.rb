@@ -25,6 +25,7 @@ class Cloudinary::Uploader
               :faces=>options[:faces],
               :exif=>options[:exif],
               :colors=>options[:colors],
+              :image_metadata=>options[:image_metadata],
               :invalidate=>options[:invalidate],
               :eager=>build_eager(options[:eager]),
               :headers=>build_custom_headers(options[:headers]),

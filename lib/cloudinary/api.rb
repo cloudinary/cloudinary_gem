@@ -17,6 +17,9 @@ class Cloudinary::Api
     end
   end
   
+  def self.usage(options={})
+    call_api(:get, "usage", {}, options)
+  end
   
   def self.resource_types(options={})
     call_api(:get, "resources", {}, options)
@@ -40,7 +43,7 @@ class Cloudinary::Api
     resource_type = options[:resource_type] || "image"
     type = options[:type] || "upload"
     uri = "resources/#{resource_type}/#{type}/#{public_id}"
-    call_api(:get, uri, only(options, :colors, :exif, :faces, :pages, :max_results), options)      
+    call_api(:get, uri, only(options, :colors, :exif, :faces, :image_metadata, :pages, :max_results), options)      
   end
   
   def self.delete_resources(public_ids, options={})
