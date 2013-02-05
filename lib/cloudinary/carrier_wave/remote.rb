@@ -5,6 +5,7 @@ module Cloudinary::CarrierWave
     else # Backward compatibility with old CarrierWave
       uri = URI.parse(URI.escape(URI.unescape(uri)))
     end
+    return if uri.to_s.blank?
     self.original_filename = @cache_id = @filename = File.basename(uri.path).gsub(/[^a-zA-Z0-9\.\-\+_]/, '')
     @file = RemoteFile.new(uri, @filename)
   end
