@@ -124,7 +124,8 @@ module Cloudinary::CarrierWave
     end
     
     def delete
-      Cloudinary::Uploader.destroy(self.public_id, :type=>self.storage_type, :resource_type=>self.resource_type) if @uploader.delete_remote?        
+      public_id = @resource_type == "raw" ? self.filename : self.public_id
+      Cloudinary::Uploader.destroy(public_id, :type=>self.storage_type, :resource_type=>self.resource_type) if @uploader.delete_remote?        
     end
     
     def exists?
