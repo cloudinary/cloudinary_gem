@@ -103,6 +103,9 @@ class Cloudinary::Utils
     
     original_source = source
     return original_source if source.blank?
+    if defined?(CarrierWave::Uploader::Base) && source.is_a?(CarrierWave::Uploader::Base)
+      source = format.blank? ? source.filename : source.full_public_id 
+    end
     source = source.to_s
     if !force_remote    
       return original_source if (type.nil? || type == :asset) && source.match(%r(^https?:/)i)
