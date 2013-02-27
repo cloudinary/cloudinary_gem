@@ -30,6 +30,9 @@ class Cloudinary::Uploader
               :eager=>build_eager(options[:eager]),
               :headers=>build_custom_headers(options[:headers]),
               :use_filename=>options[:use_filename],
+              :notification_url=>options[:notification_url],
+              :eager_notification_url=>options[:eager_notification_url],
+              :eager_async=>options[:eager_async],
               :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}    
     params    
   end
@@ -97,6 +100,8 @@ class Cloudinary::Uploader
       {
         :timestamp=>Time.now.to_i,
         :tag=>tag,
+        :async=>options[:async],
+        :notification_url=>options[:notification_url],
         :transformation => Cloudinary::Utils.generate_transformation_string(options.merge(:fetch_format=>options[:format]))        
       }    
     end
@@ -109,7 +114,33 @@ class Cloudinary::Uploader
     end      
     return result
   end
+
+  def self.multi(tag, options={})
+    call_api("multi", options) do
+      {
+        :timestamp=>Time.now.to_i,
+        :tag=>tag,
+        :format=>options[:format],
+        :async=>options[:async],
+        :notification_url=>options[:notification_url],
+        :transformation => Cloudinary::Utils.generate_transformation_string(options)        
+      }    
+    end
+  end
   
+  def self.explode(public_id, options={})    
+    call_api("explode", options) do
+      {
+        :timestamp=>Time.now.to_i,
+        :public_id=>public_id,
+        :type=>options[:type],
+        :format=>options[:format],
+        :notification_url=>options[:notification_url],
+        :transformation => Cloudinary::Utils.generate_transformation_string(options)        
+      }    
+    end
+  end
+    
   # options may include 'exclusive' (boolean) which causes clearing this tag from all other resources 
   def self.add_tag(tag, public_ids = [], options = {})
     exclusive = options.delete(:exclusive)
