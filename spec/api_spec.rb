@@ -36,8 +36,9 @@ describe Cloudinary::Api do
 
 
   it "should allow listing resources by type" do
-    resource = @api.resources(:type=>"upload")["resources"].find{|resource| resource["public_id"] == "api_test"}
+    resource = @api.resources(:type=>"upload", :tags=>true)["resources"].find{|resource| resource["public_id"] == "api_test"}
     resource.should_not be_blank
+    resource["tags"].should == ["api_test_tag"]
   end
 
   it "should allow listing resources by prefix" do
