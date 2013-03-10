@@ -48,7 +48,11 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     column = uploader.model.send(:_mounter, uploader.mounted_as).send(:serialization_column)
     if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)
       primary_key = model_class.primary_key.to_sym
-      model_class.update_all({column=>name}, {primary_key=>uploader.model.send(primary_key)})
+      if Rails.version >= "3.0"
+        model_class.where(primary_key=>uploader.model.send(primary_key)).update_all(column=>name)
+      else
+        model_class.update_all({column=>name}, {primary_key=>uploader.model.send(primary_key)})
+      end
       uploader.model.send :write_attribute, column, name
     elsif defined?(Mongoid::Document) && uploader.model.is_a?(Mongoid::Document)
       # Mongoid support

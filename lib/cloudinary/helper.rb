@@ -214,15 +214,17 @@ ActionView::Base.send :include, CloudinaryHelper
 
 begin
   require 'sass-rails'
-  class Sass::Rails::Resolver
-    alias :original_image_path :image_path
-    def image_path(img)
-      if Cloudinary.config.enhance_image_tag
-        original_image_path(Cloudinary::Utils.cloudinary_url(img, :type=>:asset))
-      else
-        original_image_path(img)
+  if defined?(Sass::Rails::Resolver)
+    class Sass::Rails::Resolver
+      alias :original_image_path :image_path
+      def image_path(img)
+        if Cloudinary.config.enhance_image_tag
+          original_image_path(Cloudinary::Utils.cloudinary_url(img, :type=>:asset))
+        else
+          original_image_path(img)
+        end      
       end      
-    end      
+    end
   end  
 rescue LoadError
   # no sass rails support. Ignore.

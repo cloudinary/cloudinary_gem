@@ -30,7 +30,7 @@ class Cloudinary::Api
     type = options[:type]
     uri = "resources/#{resource_type}"
     uri += "/#{type}" if !type.blank?
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix), options)    
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags), options)    
   end
   
   def self.resources_by_tag(tag, options={})
