@@ -92,15 +92,16 @@ class Cloudinary::Utils
     resource_type = options.delete(:resource_type) || "image"
     version = options.delete(:version)
     format = options.delete(:format)
-    cloud_name = options.delete(:cloud_name) || Cloudinary.config.cloud_name || raise(CloudinaryException, "Must supply cloud_name in tag or in configuration")    
+    cloud_name = config_option_consume(options, :cloud_name) || raise(CloudinaryException, "Must supply cloud_name in tag or in configuration")
+            
     secure = options.delete(:secure)
     ssl_detected = options.delete(:ssl_detected)
     secure = ssl_detected || Cloudinary.config.secure if secure.nil?
-    private_cdn = options.delete(:private_cdn) || Cloudinary.config.private_cdn    
-    secure_distribution = options.delete(:secure_distribution) || Cloudinary.config.secure_distribution
-    cname = options.delete(:cname) || Cloudinary.config.cname
-    force_remote = options.delete(:force_remote)  
-    cdn_subdomain = options.include?(:cdn_subdomain) ? options.delete(:cdn_subdomain) : Cloudinary.config.cdn_subdomain
+    private_cdn = config_option_consume(options, :private_cdn) 
+    secure_distribution = config_option_consume(options, :secure_distribution) 
+    cname = config_option_consume(options, :cname) 
+    force_remote = options.delete(:force_remote)
+    cdn_subdomain = config_option_consume(options, :cdn_subdomain) 
     
     original_source = source
     return original_source if source.blank?
@@ -265,5 +266,10 @@ class Cloudinary::Utils
   
   def self.resource_type_for_format(format)
     self.supported_image_format?(format) ? 'image' : 'raw'
+  end
+  
+  def self.config_option_consume(options, option_name, default_value = nil)    
+    return options.delete(option_name) if options.include?(option_name)
+    return Cloudinary.config.send(option_name) || default_value    
   end
 end
