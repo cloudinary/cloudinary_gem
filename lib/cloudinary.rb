@@ -5,21 +5,26 @@ require "yaml"
 require "uri"
 require "cloudinary/version"
 require "cloudinary/exceptions"
-require "cloudinary/utils"
-require "cloudinary/uploader"
-require "cloudinary/api"
-require "cloudinary/downloader"
-require "cloudinary/blob" 
-require "cloudinary/preloaded_file"
-require "cloudinary/static"
 require "cloudinary/missing"
-require "cloudinary/carrier_wave" if defined?(::CarrierWave)
 require "cloudinary/helper" if defined?(::ActionView::Base)
 require "cloudinary/controller" if defined?(::ActionController::Base)
 require "cloudinary/railtie" if defined?(Rails) && defined?(Rails::Railtie)
 require "cloudinary/engine" if defined?(Rails) && defined?(Rails::Engine)
 
-module Cloudinary  
+module Cloudinary
+  autoload :Utils, 'cloudinary/utils'
+  autoload :Uploader, 'cloudinary/uploader'
+  autoload :Api, "cloudinary/api"
+  autoload :Downloader, "cloudinary/downloader"
+  autoload :Blob, "cloudinary/blob"
+  autoload :PreloadedFile, "cloudinary/preloaded_file"
+  autoload :Static, "cloudinary/static"  
+  autoload :CarrierWave, "cloudinary/carrier_wave"  
+  
+  CF_SHARED_CDN = "d3jpl91pxevbkh.cloudfront.net"
+  AKAMAI_SHARED_CDN = "cloudinary-a.akamaihd.net"
+  SHARED_CDN = AKAMAI_SHARED_CDN  
+    
   FORMAT_ALIASES = {
     "jpeg" => "jpg",
     "jpe" => "jpg",

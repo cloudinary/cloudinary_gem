@@ -4,7 +4,8 @@ require 'zlib'
 require 'aws_cf_signer'
 
 class Cloudinary::Utils
-  SHARED_CDN = "d3jpl91pxevbkh.cloudfront.net"
+  # @deprecated Use Cloudinary::SHARED_CDN
+  SHARED_CDN = Cloudinary::SHARED_CDN  
   
   # Warning: options are being destructively updated!
   def self.generate_transformation_string(options={})
@@ -137,14 +138,8 @@ class Cloudinary::Utils
     if cloud_name.start_with?("/")
       prefix = "/res" + cloud_name
     else
-      if secure && secure_distribution.nil?
-        if private_cdn
-          raise CloudinaryException, "secure_distribution not defined"
-        else
-          secure_distribution = SHARED_CDN 
-        end
-      end
-      
+      secure_distribution ||= Cloudinary::SHARED_CDN
+            
       if secure
         prefix = "https://#{secure_distribution}"
       else
@@ -152,7 +147,7 @@ class Cloudinary::Utils
         host = cname.blank? ? "#{private_cdn ? "#{cloud_name}-" : ""}res.cloudinary.com" : cname
         prefix = "http://#{subdomain}#{host}"
       end    
-      prefix += "/#{cloud_name}" if !private_cdn
+      prefix += "/#{cloud_name}" if !private_cdn || (secure && secure_distribution == Cloudinary::AKAMAI_SHARED_CDN)
     end
     
     source = prefix + "/" + [resource_type, 

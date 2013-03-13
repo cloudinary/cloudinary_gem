@@ -28,7 +28,7 @@ describe Cloudinary::Utils do
     options = {:secure=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
-    result.should == "https://d3jpl91pxevbkh.cloudfront.net/test123/image/upload/test" 
+    result.should == "https://cloudinary-a.akamaihd.net/test123/image/upload/test" 
   end
 
   it "should allow overriding secure distribution if secure=true" do    
@@ -46,9 +46,18 @@ describe Cloudinary::Utils do
     result.should == "https://config.secure.distribution.com/test123/image/upload/test" 
   end
 
-  it "should raise exception if secure is given with private_cdn and no secure_distribution" do
-    Cloudinary.config.private_cdn = true    
-    lambda {Cloudinary::Utils.cloudinary_url("test", :secure=>true)}.should raise_error
+  it "should default to akamai if secure is given with private_cdn and no secure_distribution" do
+    options = {:secure=>true, :private_cdn=>true}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "https://cloudinary-a.akamaihd.net/test123/image/upload/test" 
+  end
+
+  it "should not add cloud_name if secure private_cdn and secure non akamai secure_distribution" do
+    options = {:secure=>true, :private_cdn=>true, :secure_distribution=>"something.cloudfront.net"}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "https://something.cloudfront.net/image/upload/test" 
   end
 
   it "should use format from options" do    
@@ -270,7 +279,7 @@ describe Cloudinary::Utils do
     options = {:ssl_detected=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
-    result.should == "https://d3jpl91pxevbkh.cloudfront.net/test123/image/upload/test" 
+    result.should == "https://cloudinary-a.akamaihd.net/test123/image/upload/test" 
   end 
 
   it "should use secure if given over ssl_detected and configuration" do    
@@ -286,7 +295,7 @@ describe Cloudinary::Utils do
     Cloudinary.config.secure = true
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
-    result.should == "https://d3jpl91pxevbkh.cloudfront.net/test123/image/upload/test" 
+    result.should == "https://cloudinary-a.akamaihd.net/test123/image/upload/test" 
   end 
 
   it "should support extenal cname" do
