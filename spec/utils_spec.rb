@@ -22,21 +22,18 @@ describe Cloudinary::Utils do
   it "should allow overriding cloud_name in options" do
     options = {:cloud_name=>"test321"}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "http://res.cloudinary.com/test321/image/upload/test" 
   end
   
   it "should use default secure distribution if secure=true" do    
     options = {:secure=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "https://d3jpl91pxevbkh.cloudfront.net/test123/image/upload/test" 
   end
 
   it "should allow overriding secure distribution if secure=true" do    
     options = {:secure=>true, :secure_distribution=>"something.else.com"}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "https://something.else.com/test123/image/upload/test" 
   end
 
@@ -44,7 +41,6 @@ describe Cloudinary::Utils do
     Cloudinary.config.secure_distribution = "config.secure.distribution.com"    
     options = {:secure=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "https://config.secure.distribution.com/test123/image/upload/test" 
   end
 
@@ -78,7 +74,6 @@ describe Cloudinary::Utils do
   it "should use format from options" do    
     options = {:format=>:jpg}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/test.jpg" 
   end
 
@@ -176,7 +171,6 @@ describe Cloudinary::Utils do
   it "should use resource_type from options" do
     options = {:resource_type=>:raw}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "http://res.cloudinary.com/test123/raw/upload/test" 
   end
 
@@ -293,7 +287,6 @@ describe Cloudinary::Utils do
   it "should use ssl_detected if secure is not given as parameter and not set to true in configuration" do    
     options = {:ssl_detected=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "https://d3jpl91pxevbkh.cloudfront.net/test123/image/upload/test" 
   end 
 
@@ -301,7 +294,6 @@ describe Cloudinary::Utils do
     options = {:ssl_detected=>true, :secure=>false}
     Cloudinary.config.secure = true
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/test" 
   end 
 
@@ -309,7 +301,6 @@ describe Cloudinary::Utils do
     options = {:ssl_detected=>false}
     Cloudinary.config.secure = true
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "https://d3jpl91pxevbkh.cloudfront.net/test123/image/upload/test" 
   end 
 
