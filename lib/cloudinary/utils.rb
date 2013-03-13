@@ -95,9 +95,9 @@ class Cloudinary::Utils
     secure = options.delete(:secure)
     ssl_detected = options.delete(:ssl_detected)
     secure = ssl_detected || Cloudinary.config.secure if secure.nil?
-    private_cdn = options.delete(:private_cdn) || Cloudinary.config.private_cdn    
+    private_cdn = options.fetch(:private_cdn, Cloudinary.config.private_cdn)
     secure_distribution = options.delete(:secure_distribution) || Cloudinary.config.secure_distribution
-    cname = options.delete(:cname) || Cloudinary.config.cname
+    cname = options.fetch(:cname, Cloudinary.config.cname)
     force_remote = options.delete(:force_remote)  
     cdn_subdomain = options.include?(:cdn_subdomain) ? options.delete(:cdn_subdomain) : Cloudinary.config.cdn_subdomain
     

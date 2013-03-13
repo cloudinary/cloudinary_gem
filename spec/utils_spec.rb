@@ -9,6 +9,8 @@ describe Cloudinary::Utils do
       config.secure_distribution = nil
       config.private_cdn = false
       config.secure = false
+      config.cname = nil
+      config.cdn_subdomain = false
     end
   end
   
@@ -49,6 +51,28 @@ describe Cloudinary::Utils do
   it "should raise exception if secure is given with private_cdn and no secure_distribution" do
     Cloudinary.config.private_cdn = true    
     lambda {Cloudinary::Utils.cloudinary_url("test", :secure=>true)}.should raise_error
+  end
+
+  it "should allow overriding private_cdn if private_cdn=true" do
+    result = Cloudinary::Utils.cloudinary_url("test", :private_cdn => true)
+    result.should eq "http://test123-res.cloudinary.com/image/upload/test"
+  end
+
+  it "should allow overriding private_cdn if private_cdn=false" do
+    Cloudinary.config.private_cdn = true
+    result = Cloudinary::Utils.cloudinary_url("test", :private_cdn => false)
+    result.should == "http://res.cloudinary.com/test123/image/upload/test"
+  end
+
+  it "should allow overriding cname if cname=example.com" do
+    result = Cloudinary::Utils.cloudinary_url("test", :cname => "example.com")
+    result.should == "http://example.com/test123/image/upload/test"
+  end
+
+  it "should allow overriding cname if cname=false" do
+    Cloudinary.config.cname = "example.com"
+    result = Cloudinary::Utils.cloudinary_url("test", :cname => nil)
+    result.should == "http://res.cloudinary.com/test123/image/upload/test"
   end
 
   it "should use format from options" do    
@@ -292,14 +316,12 @@ describe Cloudinary::Utils do
   it "should support extenal cname" do
     options = {:cname=>"hello.com"}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "http://hello.com/test123/image/upload/test" 
   end
 
   it "should support extenal cname with cdn_subdomain on" do
     options = {:cname=>"hello.com", :cdn_subdomain=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "http://a2.hello.com/test123/image/upload/test" 
   end
   
