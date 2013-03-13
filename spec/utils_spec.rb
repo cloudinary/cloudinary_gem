@@ -9,6 +9,8 @@ describe Cloudinary::Utils do
       config.secure_distribution = nil
       config.private_cdn = false
       config.secure = false
+      config.cname = nil
+      config.cdn_subdomain = false
     end
   end
   
@@ -20,21 +22,18 @@ describe Cloudinary::Utils do
   it "should allow overriding cloud_name in options" do
     options = {:cloud_name=>"test321"}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "http://res.cloudinary.com/test321/image/upload/test" 
   end
   
   it "should use default secure distribution if secure=true" do    
     options = {:secure=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "https://d3jpl91pxevbkh.cloudfront.net/test123/image/upload/test" 
   end
 
   it "should allow overriding secure distribution if secure=true" do    
     options = {:secure=>true, :secure_distribution=>"something.else.com"}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "https://something.else.com/test123/image/upload/test" 
   end
 
@@ -42,7 +41,6 @@ describe Cloudinary::Utils do
     Cloudinary.config.secure_distribution = "config.secure.distribution.com"    
     options = {:secure=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "https://config.secure.distribution.com/test123/image/upload/test" 
   end
 
@@ -51,10 +49,31 @@ describe Cloudinary::Utils do
     lambda {Cloudinary::Utils.cloudinary_url("test", :secure=>true)}.should raise_error
   end
 
+  it "should allow overriding private_cdn if private_cdn=true" do
+    result = Cloudinary::Utils.cloudinary_url("test", :private_cdn => true)
+    result.should eq "http://test123-res.cloudinary.com/image/upload/test"
+  end
+
+  it "should allow overriding private_cdn if private_cdn=false" do
+    Cloudinary.config.private_cdn = true
+    result = Cloudinary::Utils.cloudinary_url("test", :private_cdn => false)
+    result.should == "http://res.cloudinary.com/test123/image/upload/test"
+  end
+
+  it "should allow overriding cname if cname=example.com" do
+    result = Cloudinary::Utils.cloudinary_url("test", :cname => "example.com")
+    result.should == "http://example.com/test123/image/upload/test"
+  end
+
+  it "should allow overriding cname if cname=false" do
+    Cloudinary.config.cname = "example.com"
+    result = Cloudinary::Utils.cloudinary_url("test", :cname => nil)
+    result.should == "http://res.cloudinary.com/test123/image/upload/test"
+  end
+
   it "should use format from options" do    
     options = {:format=>:jpg}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/test.jpg" 
   end
 
@@ -152,7 +171,6 @@ describe Cloudinary::Utils do
   it "should use resource_type from options" do
     options = {:resource_type=>:raw}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "http://res.cloudinary.com/test123/raw/upload/test" 
   end
 
@@ -269,7 +287,6 @@ describe Cloudinary::Utils do
   it "should use ssl_detected if secure is not given as parameter and not set to true in configuration" do    
     options = {:ssl_detected=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "https://d3jpl91pxevbkh.cloudfront.net/test123/image/upload/test" 
   end 
 
@@ -277,7 +294,6 @@ describe Cloudinary::Utils do
     options = {:ssl_detected=>true, :secure=>false}
     Cloudinary.config.secure = true
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/test" 
   end 
 
@@ -285,21 +301,18 @@ describe Cloudinary::Utils do
     options = {:ssl_detected=>false}
     Cloudinary.config.secure = true
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "https://d3jpl91pxevbkh.cloudfront.net/test123/image/upload/test" 
   end 
 
   it "should support extenal cname" do
     options = {:cname=>"hello.com"}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "http://hello.com/test123/image/upload/test" 
   end
 
   it "should support extenal cname with cdn_subdomain on" do
     options = {:cname=>"hello.com", :cdn_subdomain=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
-    options.should == {}
     result.should == "http://a2.hello.com/test123/image/upload/test" 
   end
   

@@ -88,18 +88,17 @@ class Cloudinary::Utils
     options[:fetch_format] ||= options.delete(:format) if type == :fetch 
     transformation = self.generate_transformation_string(options)
 
-    resource_type = options.delete(:resource_type) || "image"
-    version = options.delete(:version)
-    format = options.delete(:format)
-    cloud_name = options.delete(:cloud_name) || Cloudinary.config.cloud_name || raise(CloudinaryException, "Must supply cloud_name in tag or in configuration")    
-    secure = options.delete(:secure)
-    ssl_detected = options.delete(:ssl_detected)
-    secure = ssl_detected || Cloudinary.config.secure if secure.nil?
-    private_cdn = options.delete(:private_cdn) || Cloudinary.config.private_cdn    
-    secure_distribution = options.delete(:secure_distribution) || Cloudinary.config.secure_distribution
-    cname = options.delete(:cname) || Cloudinary.config.cname
-    force_remote = options.delete(:force_remote)  
-    cdn_subdomain = options.include?(:cdn_subdomain) ? options.delete(:cdn_subdomain) : Cloudinary.config.cdn_subdomain
+    resource_type = options.fetch(:resource_type, "image")
+    version = options.fetch(:version, nil)
+    format = options.fetch(:format, nil)
+    cloud_name = options.fetch(:cloud_name) { Cloudinary.config.cloud_name || raise(CloudinaryException, "Must supply cloud_name in tag or in configuration") }
+    ssl_detected = options.fetch(:ssl_detected, false)
+    secure = options.fetch(:secure) { ssl_detected || Cloudinary.config.secure}
+    private_cdn = options.fetch(:private_cdn, Cloudinary.config.private_cdn)
+    secure_distribution = options.fetch(:secure_distribution, Cloudinary.config.secure_distribution)
+    cname = options.fetch(:cname, Cloudinary.config.cname)
+    force_remote = options.fetch(:force_remote, false)
+    cdn_subdomain = options.fetch(:cdn_subdomain, Cloudinary.config.cdn_subdomain)
     
     original_source = source
     return original_source if source.blank?
