@@ -1,3 +1,5 @@
+require 'rest_client'
+
 class Cloudinary::Api
   class Error < CloudinaryException; end
   class NotFound < Error; end
