@@ -103,6 +103,11 @@ module Cloudinary::CarrierWave
   def delete_remote?
     true
   end
+
+  # Let Cloudinary download remote URLs directly
+  def cloudinary_should_handle_remote?
+    true
+  end
   
   class CloudinaryFile
     attr_reader :identifier, :public_id, :filename, :format, :version, :storage_type, :resource_type
