@@ -372,4 +372,10 @@ describe Cloudinary::Utils do
     options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/fl_abc.def/test"     
   end
+
+  it "build_upload_params should not destroy options" do
+    options = {:width=>100, :crop=>:scale}
+    Cloudinary::Uploader.build_upload_params(options)[:transformation].should == "c_scale,w_100"
+    options.length.should == 2
+  end
 end

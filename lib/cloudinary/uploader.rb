@@ -16,7 +16,7 @@ class Cloudinary::Uploader
   
   def self.build_upload_params(options)
     params = {:timestamp=>Time.now.to_i,
-              :transformation => Cloudinary::Utils.generate_transformation_string(options),
+              :transformation => Cloudinary::Utils.generate_transformation_string(options.clone),
               :public_id=> options[:public_id],
               :callback=> options[:callback],
               :format=>options[:format],
@@ -123,7 +123,7 @@ class Cloudinary::Uploader
         :format=>options[:format],
         :async=>options[:async],
         :notification_url=>options[:notification_url],
-        :transformation => Cloudinary::Utils.generate_transformation_string(options)        
+        :transformation => Cloudinary::Utils.generate_transformation_string(options.clone)        
       }    
     end
   end
@@ -136,7 +136,7 @@ class Cloudinary::Uploader
         :type=>options[:type],
         :format=>options[:format],
         :notification_url=>options[:notification_url],
-        :transformation => Cloudinary::Utils.generate_transformation_string(options)        
+        :transformation => Cloudinary::Utils.generate_transformation_string(options.clone)        
       }    
     end
   end
