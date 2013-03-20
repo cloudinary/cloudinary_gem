@@ -60,6 +60,17 @@ class Cloudinary::Uploader
     end              
   end
 
+  def self.rename(from_public_id, to_public_id, options={})
+    call_api("rename", options) do    
+      {
+        :timestamp=>Time.now.to_i,
+        :type=>options[:type],
+        :from_public_id=>from_public_id,
+        :to_public_id=>to_public_id,
+      }
+    end              
+  end
+
   def self.exists?(public_id, options={})
     cloudinary_url = Cloudinary::Utils.cloudinary_url(public_id, options)
     begin

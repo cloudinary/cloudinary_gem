@@ -79,6 +79,19 @@ module Cloudinary::CarrierWave
     @public_id ||= self.public_id 
     @public_id ||= @stored_public_id
     @public_id ||= Cloudinary::Utils.random_public_id
+  end
+  
+  def rename(to_public_id)
+    raise "rename cannot be used if the public_id method is overridden" if self.public_id
+    resource_type = Cloudinary::Utils.resource_type_for_format(self.filename || self.format)
+    from_public_id = self.my_public_id
+    @public_id = @stored_public_id = to_public_id
+    if resource_type == 'raw'
+      from_public_id = [from_public_id, self.format].join(".") 
+      to_public_id = [to_public_id, self.format].join(".")
+    end
+    Cloudinary::Uploader.rename(from_public_id, to_public_id, :type=>self.storage_type, :resource_type=>resource_type)
+    storage.store_cloudinary_version(@stored_version)
   end  
 
   def recreate_versions!
