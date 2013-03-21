@@ -378,4 +378,16 @@ describe Cloudinary::Utils do
     Cloudinary::Uploader.build_upload_params(options)[:transformation].should == "c_scale,w_100"
     options.length.should == 2
   end
+
+  it "build_upload_params canonize booleans" do
+    options = {:backup=>true, :use_filename=>false, :colors=>"true", :exif=>"false", :colors=>:true, 
+               :image_metadata=>:false, :invalidate=>1, :eager_async=>"1"}
+    params = Cloudinary::Uploader.build_upload_params(options)
+    Cloudinary::Api.only(params, *options.keys).should == {
+      :backup=>1, :use_filename=>0, :colors=>1, :exif=>0, :colors=>1, 
+               :image_metadata=>0, :invalidate=>1, :eager_async=>1
+    }
+    Cloudinary::Uploader.build_upload_params(:backup=>nil)[:backup].should be_nil
+    Cloudinary::Uploader.build_upload_params({})[:backup].should be_nil
+  end
 end

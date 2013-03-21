@@ -272,4 +272,25 @@ class Cloudinary::Utils
     return options.delete(option_name) if options.include?(option_name)
     return Cloudinary.config.send(option_name) || default_value    
   end
+  
+  def self.as_bool(value)
+    case value
+    when nil then nil
+    when String then value.downcase == "true" || value == "1"
+    when TrueClass then true
+    when FalseClass then false
+    when Fixnum then value != 0
+    when Symbol then value == :true
+    else
+      raise "Invalid boolean value #{value} of type #{value.class}"
+    end
+  end
+  
+  def self.as_safe_bool(value)
+    case as_bool(value)
+    when nil then nil
+    when TrueClass then 1
+    when FalseClass then 0
+    end
+  end
 end
