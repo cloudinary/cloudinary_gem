@@ -4,8 +4,14 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     return if !uploader.enable_processing
     if uploader.is_main_uploader?
       case file
-      when Cloudinary::CarrierWave::PreloadedCloudinaryFile 
-        return store_cloudinary_version(file.version)
+      when Cloudinary::CarrierWave::PreloadedCloudinaryFile
+        if uploader.public_id
+          @stored_version = file.version
+          uploader.rename
+        else
+          store_cloudinary_version(file.version)
+        end 
+        return 
       when Cloudinary::CarrierWave::CloudinaryFile
         return nil # Nothing to do
       when Cloudinary::CarrierWave::RemoteFile
@@ -43,7 +49,7 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
   end
   
   def store_cloudinary_version(version)
-    name = "v#{version}/#{identifier.split("/").last}"
+    name = "v#{version}/#{identifier.split("/", 2).last}"
     model_class = uploader.model.class
     column = uploader.model.send(:_mounter, uploader.mounted_as).send(:serialization_column)
     if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)

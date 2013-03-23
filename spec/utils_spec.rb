@@ -390,4 +390,21 @@ describe Cloudinary::Utils do
     Cloudinary::Uploader.build_upload_params(:backup=>nil)[:backup].should be_nil
     Cloudinary::Uploader.build_upload_params({})[:backup].should be_nil
   end
+  
+  it "should add version if public_id contains /" do
+    result = Cloudinary::Utils.cloudinary_url("folder/test")
+    result.should == "http://res.cloudinary.com/test123/image/upload/v1/folder/test"         
+    result = Cloudinary::Utils.cloudinary_url("folder/test", :version=>123)
+    result.should == "http://res.cloudinary.com/test123/image/upload/v123/folder/test"         
+  end
+
+  it "should not add version if public_id contains version already" do
+    result = Cloudinary::Utils.cloudinary_url("v1234/test")
+    result.should == "http://res.cloudinary.com/test123/image/upload/v1234/test"         
+  end
+
+  it "should allow to shorted image/upload urls" do
+    result = Cloudinary::Utils.cloudinary_url("test", :shorten=>true)
+    result.should == "http://res.cloudinary.com/test123/iu/test"         
+  end
 end

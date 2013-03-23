@@ -81,11 +81,19 @@ module Cloudinary::CarrierWave
     @public_id ||= Cloudinary::Utils.random_public_id
   end
   
-  def rename(to_public_id)
-    raise "rename cannot be used if the public_id method is overridden" if self.public_id
-    resource_type = Cloudinary::Utils.resource_type_for_format(self.filename || self.format)
-    from_public_id = self.my_public_id
+  def rename(to_public_id = nil)
+    to_public_id ||= self.public_id
+    if self.public_id && to_public_id != self.public_id 
+      raise CloudinaryException, "The public_id method was overridden and returns #{self.public_id} - can't rename to #{to_public_id}"
+    elsif to_public_id.nil?
+      raise CloudinaryException, "No to_public_id given"
+    end
+     
+    from_public_id = @stored_public_id || self.my_public_id
+    return if from_public_id == to_public_id
+    
     @public_id = @stored_public_id = to_public_id
+    resource_type = Cloudinary::Utils.resource_type_for_format(self.format)
     if resource_type == 'raw'
       from_public_id = [from_public_id, self.format].join(".") 
       to_public_id = [to_public_id, self.format].join(".")
@@ -129,7 +137,7 @@ module Cloudinary::CarrierWave
       @identifier = identifier
 
       if @identifier.include?("/")
-        version, @filename = @identifier.split("/")
+        version, @filename = @identifier.split("/", 2)
         @version = version[1..-1] # remove 'v' prefix
       else
         @filename = @identifier

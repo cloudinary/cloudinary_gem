@@ -100,6 +100,7 @@ class Cloudinary::Utils
     private_cdn = config_option_consume(options, :private_cdn) 
     secure_distribution = config_option_consume(options, :secure_distribution) 
     cname = config_option_consume(options, :cname) 
+    shorten = config_option_consume(options, :shorten) 
     force_remote = options.delete(:force_remote)
     cdn_subdomain = config_option_consume(options, :cdn_subdomain) 
     
@@ -151,6 +152,11 @@ class Cloudinary::Utils
       prefix += "/#{cloud_name}" if !private_cdn || (secure && secure_distribution == Cloudinary::AKAMAI_SHARED_CDN)
     end
     
+    if shorten && resource_type.to_s == "image" && type.to_s == "upload"
+      resource_type = "iu"
+      type = nil
+    end
+    version ||= 1 if source.include?("/") and type != :fetch && !source.match(/^v[0-9]+/)
     source = prefix + "/" + [resource_type, 
      type, transformation, version ? "v#{version}" : nil,
      source].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
