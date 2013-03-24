@@ -130,6 +130,11 @@ module Cloudinary::CarrierWave
     true
   end
   
+  # Rename preloaded uploads if public_id was overridden
+  def auto_rename_preloaded?
+    true
+  end
+  
   class CloudinaryFile
     attr_reader :identifier, :public_id, :filename, :format, :version, :storage_type, :resource_type
     def initialize(identifier, uploader)

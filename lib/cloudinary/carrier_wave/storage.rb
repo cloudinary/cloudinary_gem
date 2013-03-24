@@ -5,7 +5,7 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     if uploader.is_main_uploader?
       case file
       when Cloudinary::CarrierWave::PreloadedCloudinaryFile
-        if uploader.public_id
+        if uploader.public_id && uploader.auto_rename_preloaded?
           @stored_version = file.version
           uploader.rename
         else
