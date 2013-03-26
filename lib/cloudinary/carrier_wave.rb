@@ -99,7 +99,7 @@ module Cloudinary::CarrierWave
       to_public_id = [to_public_id, self.format].join(".")
     end
     Cloudinary::Uploader.rename(from_public_id, to_public_id, :type=>self.storage_type, :resource_type=>resource_type)
-    storage.store_cloudinary_version(@stored_version)
+    storage.store_cloudinary_identifier(@stored_version, [@public_id, self.format].join("."))
   end  
 
   def recreate_versions!

@@ -9,7 +9,7 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
           @stored_version = file.version
           uploader.rename
         else
-          store_cloudinary_version(file.version)
+          store_cloudinary_identifier(file.version, file.filename)
         end 
         return 
       when Cloudinary::CarrierWave::CloudinaryFile
@@ -39,7 +39,10 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
         raise Cloudinary::CarrierWave::UploadError.new(uploader.metadata["error"]["message"], uploader.metadata["error"]["http_code"])
       end
       
-      store_cloudinary_version(uploader.metadata["version"]) if uploader.metadata["version"]
+      if uploader.metadata["version"]
+        filename = [uploader.metadata["public_id"], uploader.metadata["format"]].reject(&:blank?).join(".") 
+        store_cloudinary_identifier(uploader.metadata["version"], filename)
+      end 
       # Will throw an exception on error
     else
       raise CloudinaryException, "nested versions are not allowed." if (uploader.class.version_names.length > 1)
@@ -48,8 +51,19 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     nil
   end
   
+  # @deprecated For backward compatibility
   def store_cloudinary_version(version)
-    name = "v#{version}/#{identifier.split("/", 2).last}"
+    if identifier.match(%r(^(v[0-9]+)/(.*)))
+      filename = $2
+    else 
+      filename = identifier
+    end
+    
+    store_cloudinary_identifier(version, filename)
+  end
+
+  def store_cloudinary_identifier(version, filename)
+    name = "v#{version}/#{filename}"
     model_class = uploader.model.class
     column = uploader.model.send(:_mounter, uploader.mounted_as).send(:serialization_column)
     if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)
