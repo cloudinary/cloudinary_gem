@@ -65,6 +65,7 @@ class Cloudinary::Uploader
       {
         :timestamp=>Time.now.to_i,
         :type=>options[:type],
+        :overwrite=>options[:overwrite],
         :from_public_id=>from_public_id,
         :to_public_id=>to_public_id,
       }
