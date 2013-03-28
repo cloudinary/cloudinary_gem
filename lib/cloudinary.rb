@@ -3,6 +3,7 @@ require "ostruct"
 require "pathname"
 require "yaml"
 require "uri"
+require "erb"
 require "cloudinary/version"
 require "cloudinary/exceptions"
 require "cloudinary/missing"
@@ -37,7 +38,7 @@ module Cloudinary
   
   def self.config(new_config=nil)
     first_time = @@config.nil?
-    @@config ||= OpenStruct.new((YAML.load_file(config_dir.join("cloudinary.yml"))[config_env] rescue {}))
+    @@config ||= OpenStruct.new((YAML.load(ERB.new(IO.read(config_dir.join("cloudinary.yml"))).result)[config_env] rescue {}))
         
     # Heroku support
     if first_time && ENV["CLOUDINARY_CLOUD_NAME"]
