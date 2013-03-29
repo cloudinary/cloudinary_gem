@@ -91,9 +91,13 @@ class Cloudinary::Api
     call_api(:delete, "transformations/#{transformation_string(transformation)}", {}, options)    
   end
   
-  # updates - currently only supported update is the "allowed_for_strict" boolean flag
+  # updates - supports:
+  #   "allowed_for_strict" boolean
+  #   "unsafe_update" transformation params - updates a named transformation parameters without regenerating existing images
   def self.update_transformation(transformation, updates, options={})
-    call_api(:put, "transformations/#{transformation_string(transformation)}", only(updates, :allowed_for_strict), options)
+    params = only(updates, :allowed_for_strict)
+    params[:unsafe_update] = transformation_string(updates[:unsafe_update]) if updates[:unsafe_update]
+    call_api(:put, "transformations/#{transformation_string(transformation)}", params, options)
   end
   
   def self.create_transformation(name, definition, options={})

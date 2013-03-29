@@ -11,6 +11,8 @@ describe Cloudinary::Api do
     Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test", :tags=>"api_test_tag", :eager=>[:width=>100,:crop=>:scale])
     Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test2", :tags=>"api_test_tag", :eager=>[:width=>100,:crop=>:scale])
     @api.delete_transformation("api_test_transformation") rescue nil
+    @api.delete_transformation("api_test_transformation2") rescue nil
+    @api.delete_transformation("api_test_transformation3") rescue nil
   end
   
   it "should allow listing resource_types" do
@@ -148,6 +150,15 @@ describe Cloudinary::Api do
     @api.delete_transformation("api_test_transformation2")
     lambda{@api.transformation("api_test_transformation2")}.should raise_error(Cloudinary::Api::NotFound)
   end  
+
+  it "should allow unsafe update of named transformation" do
+    @api.create_transformation("api_test_transformation3", "crop"=>"scale", "width"=>102)
+    @api.update_transformation("api_test_transformation3", :unsafe_update=>{"crop"=>"scale", "width"=>103})
+    transformation = @api.transformation("api_test_transformation3")
+    transformation.should_not be_blank  
+    transformation["info"].should == ["crop"=>"scale", "width"=>103]
+    transformation["used"].should == false
+  end
 
   it "should allow deleting implicit transformation" do
     @api.transformation("c_scale,w_100")
