@@ -225,6 +225,13 @@ describe Cloudinary::Utils do
     result.should == "http://res.cloudinary.com/test123/image/fetch/http://blah.com/hello%3Fa%3Db" 
   end 
 
+  it "should should escape http urls" do
+    options = {:type=>:youtube}
+    result = Cloudinary::Utils.cloudinary_url("http://www.youtube.com/watch?v=d9NF2edxy-M", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/youtube/http://www.youtube.com/watch%3Fv%3Dd9NF2edxy%2DM" 
+  end 
+
   it "should support background" do
     options = {:background=>"red"}
     result = Cloudinary::Utils.cloudinary_url("test", options)

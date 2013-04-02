@@ -156,7 +156,7 @@ class Cloudinary::Utils
       resource_type = "iu"
       type = nil
     end
-    version ||= 1 if source.include?("/") and type != :fetch && !source.match(/^v[0-9]+/)
+    version ||= 1 if source.include?("/") and !source.match(/^v[0-9]+/) and !source.match(/^https?:\//)
     source = prefix + "/" + [resource_type, 
      type, transformation, version ? "v#{version}" : nil,
      source].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
