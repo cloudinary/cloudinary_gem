@@ -176,7 +176,8 @@ class Cloudinary::Utils
       :timestamp=>Time.now.to_i, 
       :public_id=>public_id, 
       :format=>format, 
-      :type=>options[:type], 
+      :type=>options[:type],
+      :attachment=>options[:attachment], 
       :expires_at=>options[:expires_at] && options[:expires_at].to_i
     }.reject{|k, v| v.blank?}
     cloudinary_params[:signature] = Cloudinary::Utils.api_sign_request(cloudinary_params, api_secret)
