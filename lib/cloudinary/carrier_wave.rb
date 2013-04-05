@@ -82,9 +82,10 @@ module Cloudinary::CarrierWave
   end
   
   def rename(to_public_id = nil, overwrite=false)
-    to_public_id ||= self.public_id
-    if self.public_id && to_public_id != self.public_id 
-      raise CloudinaryException, "The public_id method was overridden and returns #{self.public_id} - can't rename to #{to_public_id}"
+    public_id_overwrite = self.public_id 
+    to_public_id ||= public_id_overwrite
+    if public_id_overwrite && to_public_id != public_id_overwrite 
+      raise CloudinaryException, "The public_id method was overridden and returns #{public_id_overwrite} - can't rename to #{to_public_id}"
     elsif to_public_id.nil?
       raise CloudinaryException, "No to_public_id given"
     end
