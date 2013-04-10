@@ -1,0 +1,33 @@
+body {
+  font-family: Helvetica, Arial, sans-serif;
+  color: #333;
+}
+.item {
+  margin: 20px;
+  width: 600px;
+  padding-bottom: 20px;
+  border-bottom: 3px solid #ccc
+}
+.caption {
+  margin: 10px 0;
+  font-weight: bold;
+  color: #0b63b6;
+}
+.public_id {
+  margin: 5px 0;
+  font-size: 12px;
+  color: #666;
+}
+h1 {
+  color: #0e2953;
+}
+h2, h3 {
+  color: #0e5e01;
+}
+.link {
+  margin-top: 5px;
+}
+.link a {
+  font-size: 12px;
+  color: #666;
+}
