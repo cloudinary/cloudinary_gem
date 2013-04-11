@@ -1,5 +1,5 @@
 class Cloudinary::PreloadedFile
-  PRELOADED_CLOUDINARY_PATH = /^([^\/]+)\/([^\/]+)\/v(\d+)\/([^\/]+)#([^\/]+)$/
+  PRELOADED_CLOUDINARY_PATH = /^([^\/]+)\/([^\/]+)\/v(\d+)\/([^#]+)#([^\/]+)$/
 
   attr_reader :filename, :version, :public_id, :signature, :resource_type, :type
   def initialize(file_info)

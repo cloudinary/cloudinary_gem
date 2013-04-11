@@ -11,6 +11,8 @@ describe Cloudinary::Utils do
       config.secure = false
       config.cname = nil
       config.cdn_subdomains = false
+      config.api_key = "1234"
+      config.api_secret = "1234"
     end
   end
   
@@ -413,5 +415,11 @@ describe Cloudinary::Utils do
   it "should allow to shorted image/upload urls" do
     result = Cloudinary::Utils.cloudinary_url("test", :shorten=>true)
     result.should == "http://res.cloudinary.com/test123/iu/test"         
+  end
+  
+  it "should allow to use folders in PreloadedFile" do
+    signature = Cloudinary::Utils.api_sign_request({:public_id=>"folder/file", :version=>"1234"}, Cloudinary.config.api_secret)
+    preloaded = Cloudinary::PreloadedFile.new("image/upload/v1234/folder/file.jpg#" + signature)
+    preloaded.should be_valid
   end
 end
