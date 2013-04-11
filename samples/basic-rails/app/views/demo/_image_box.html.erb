@@ -1,0 +1,28 @@
+<div class="item">
+
+  <div class="caption">
+    Uploaded image
+  </div>
+
+  <div class="public_id">
+    Image Public ID:
+    <%= upload["public_id"] %>
+  </div>
+  
+  <%= image_tag(upload["url"]) %>
+  <div class="link">
+    <%= link_to(upload["url"], upload["url"], :target => '_blank') %>
+  </div>
+
+  <div class="caption">
+    <%= description %>
+  </div>
+
+  <% options_with_format = options.merge(:format => 'jpg') %>
+  <%= cl_image_tag(upload["public_id"], options_with_format) %>
+  <div class="link">
+    <% link_url = cloudinary_url(upload["public_id"], options_with_format) %>
+    <%= link_to(link_url, link_url, :target => '_blank') %>
+  </div>
+
+</div>
