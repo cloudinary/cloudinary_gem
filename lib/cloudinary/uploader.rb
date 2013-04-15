@@ -200,7 +200,7 @@ class Cloudinary::Uploader
     
     RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=>60) do
       |response, request, tmpresult|
-      raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" if ![200,400,500].include?(response.code)
+      raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" if ![200,400,401,403,404,500].include?(response.code)
       begin
         result = Cloudinary::Utils.json_decode(response.body)
       rescue => e
