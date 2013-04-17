@@ -76,7 +76,7 @@ module Cloudinary::CarrierWave
   # Otherwise, try to use public_id from the database.
   # Otherwise, generate a new random public_id
   def my_public_id
-    @public_id ||= self.public_id 
+    @public_id = self.public_id 
     @public_id ||= @stored_public_id
     @public_id ||= Cloudinary::Utils.random_public_id
   end
