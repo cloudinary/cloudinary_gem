@@ -132,6 +132,8 @@ module Cloudinary::CarrierWave
     if format_processor 
       # Explicit format is given
       format = Array(format_processor[1]).first 
+    elsif self.transformation.include?(:format)
+      format = self.transformation[:format]
     elsif self.version_name.present? 
       # No local format. The reset should be handled by main uploader
       uploader = self.model.send(self.mounted_as)
