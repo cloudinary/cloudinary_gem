@@ -46,8 +46,7 @@ module Cloudinary::CarrierWave
       options = args.extract_options!
       options = self.transformation.merge(options) if self.version_name.present?
       
-      resource_type = Cloudinary::Utils.resource_type_for_format(self.filename || self.format)
-      Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :resource_type=>resource_type, :type=>self.storage_type}.merge(options))
+      Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :resource_type=>self.resource_type, :type=>self.storage_type}.merge(options))
     end
   end
 
@@ -94,12 +93,11 @@ module Cloudinary::CarrierWave
     return if from_public_id == to_public_id
     
     @public_id = @stored_public_id = to_public_id
-    resource_type = Cloudinary::Utils.resource_type_for_format(self.format)
-    if resource_type == 'raw'
+    if self.resource_type == 'raw'
       from_public_id = [from_public_id, self.format].join(".") 
       to_public_id = [to_public_id, self.format].join(".")
     end
-    Cloudinary::Uploader.rename(from_public_id, to_public_id, :type=>self.storage_type, :resource_type=>resource_type, :overwrite=>overwrite)
+    Cloudinary::Uploader.rename(from_public_id, to_public_id, :type=>self.storage_type, :resource_type=>self.resource_type, :overwrite=>overwrite)
     storage.store_cloudinary_identifier(@stored_version, [@public_id, self.format].join("."))
   end  
 
@@ -142,9 +140,9 @@ module Cloudinary::CarrierWave
       @uploader = uploader
       @identifier = identifier
 
-      if @identifier.include?("/")
-        version, @filename = @identifier.split("/", 2)
-        @version = version[1..-1] # remove 'v' prefix
+      if @identifier.match(%r(^v([0-9]+)/(.*)))
+        @version = $1
+        @filename = $2
       else
         @filename = @identifier
         @version = nil 
@@ -152,7 +150,7 @@ module Cloudinary::CarrierWave
 
       @storage_type = uploader.class.storage_type
       @resource_type = Cloudinary::Utils.resource_type_for_format(@filename)      
-      @public_id, @format = Cloudinary::CarrierWave.split_format(@filename)      
+      @public_id, @format = Cloudinary::PreloadedFile.split_format(@filename)      
     end
     
     def delete
@@ -170,15 +168,16 @@ module Cloudinary::CarrierWave
     end
 
   end
-
+  
+  # @deprecated 
   def self.split_format(identifier)
-    last_dot = identifier.rindex(".")
-    return [identifier, nil] if last_dot.nil?
-    public_id = identifier[0, last_dot]
-    format = identifier[last_dot+1..-1]
-    return [public_id, format]    
+    return Cloudinary::PreloadedFile.split_format(identifier)
   end
 
+  def resource_type
+    Cloudinary::Utils.resource_type_for_format(self.filename || self.format)
+  end
+  
   # For the given methods - versions should call the main uploader method
   def self.override_in_versions(base, *methods)
     methods.each do

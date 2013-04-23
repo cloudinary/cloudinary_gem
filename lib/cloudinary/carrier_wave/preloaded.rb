@@ -38,7 +38,6 @@ module Cloudinary::CarrierWave
   class PreloadedCloudinaryFile < Cloudinary::PreloadedFile
     def initialize(file_info)
       super
-      raise CloudinaryException, "Cloudinary CarrierWave integration only supports uploaded images" if resource_type != "image" || type != "upload"
       if !valid?
         raise CarrierWave::IntegrityError, I18n.translate(:"errors.messages.cloudinary_signature_error", :public_id=>public_id, :default=>"Invalid signature for #{public_id}")
       end

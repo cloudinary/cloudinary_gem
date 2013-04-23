@@ -140,7 +140,7 @@ module Cloudinary::CarrierWave
       format = uploader.format
     else
       # Try to auto-detect format
-      format = Cloudinary::CarrierWave.split_format(original_filename || "").last
+      format = Cloudinary::PreloadedFile.split_format(original_filename || "").last
       format ||= "png" # TODO Default format? 
     end
     format = format.to_s.downcase
