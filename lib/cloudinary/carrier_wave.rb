@@ -35,15 +35,15 @@ module Cloudinary::CarrierWave
     if args.first && !args.first.is_a?(Hash)
       super
     else
+      options = args.extract_options!
       if self.blank?
         url = self.default_url
         return url if !url.blank?
         public_id = self.default_public_id
         return nil if public_id.nil?
       else
-        public_id = self.full_public_id
+        public_id = options.include?(:version) ? self.my_public_id : self.full_public_id
       end      
-      options = args.extract_options!
       options = self.transformation.merge(options) if self.version_name.present?
       
       Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :resource_type=>self.resource_type, :type=>self.storage_type}.merge(options))
