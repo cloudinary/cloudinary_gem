@@ -12,7 +12,7 @@ module Cloudinary::CarrierWave
     base.extend ClassMethods
     base.class_attribute :storage_type, :metadata
     base.send(:attr_reader, :stored_version)
-    override_in_versions(base, :blank?, :full_public_id, :all_versions_processors)
+    override_in_versions(base, :blank?, :full_public_id, :my_public_id, :all_versions_processors)
   end  
     
   def is_main_uploader?
