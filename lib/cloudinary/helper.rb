@@ -9,7 +9,7 @@ module CloudinaryHelper
   # cl_image_tag "israel.png", :width=>100, :height=>100, :alt=>"hello", :crop=>:fit # W/H are sent to cloudinary
   def cl_image_tag(source, options = {})
     options = options.clone
-    source = cloudinary_url(source, options)
+    source = cloudinary_url_internal(source, options)
     options[:width] = options.delete(:html_width) if options.include?(:html_width)
     options[:height] = options.delete(:html_height) if options.include?(:html_height)
     options[:size] = options.delete(:html_size) if options.include?(:html_size)
@@ -20,7 +20,7 @@ module CloudinaryHelper
 
   def cl_image_path(source, options = {})
     options = options.clone
-    url = cloudinary_url(source, options)
+    url = cloudinary_url_internal(source, options)
     original_image_path(url)    
   end
     
@@ -98,7 +98,7 @@ module CloudinaryHelper
     end  
     
     options[:format] = "css" unless source.ends_with?(".css")
-    cloudinary_url(source, options.merge(:type=>:sprite))
+    cloudinary_url_internal(source, options.merge(:type=>:sprite))
   end
 
   def cl_sprite_tag(source, options = {})
@@ -143,20 +143,9 @@ module CloudinaryHelper
   end
 
   def cloudinary_url(source, options = {})
-    options[:ssl_detected] = request.ssl? if defined?(request) && request && request.respond_to?(:ssl?)
-    if defined?(CarrierWave::Uploader::Base) && source.is_a?(CarrierWave::Uploader::Base)      
-      if source.version_name.present?
-        options[:transformation] = Cloudinary::Utils.build_array(source.transformation) + Cloudinary::Utils.build_array(options[:transformation]) 
-      end         
-      options.reverse_merge!(      
-        :resource_type => Cloudinary::Utils.resource_type_for_format(source.filename || source.format),
-        :type => source.storage_type,
-        :format => source.format)
-      source = source.full_public_id      
-    end
-    Cloudinary::Utils.cloudinary_url(source, options)
-  end  
-
+    cloudinary_url_internal(source, options.clone)
+  end
+  
   def cl_image_upload(object_name, method, options={})
     cl_image_upload_tag("#{object_name}[#{method}]", options)
   end
@@ -199,6 +188,21 @@ module CloudinaryHelper
   end
   
   private
+  def cloudinary_url_internal(source, options = {})
+    options[:ssl_detected] = request.ssl? if defined?(request) && request && request.respond_to?(:ssl?)
+    if defined?(CarrierWave::Uploader::Base) && source.is_a?(CarrierWave::Uploader::Base)      
+      if source.version_name.present?
+        options[:transformation] = Cloudinary::Utils.build_array(source.transformation) + Cloudinary::Utils.build_array(options[:transformation]) 
+      end         
+      options.reverse_merge!(      
+        :resource_type => Cloudinary::Utils.resource_type_for_format(source.filename || source.format),
+        :type => source.storage_type,
+        :format => source.format)
+      source = source.full_public_id      
+    end
+    Cloudinary::Utils.cloudinary_url(source, options)
+  end  
+
   def build_callback_url(options)
     callback_path = options.delete(:callback_cors) || Cloudinary.config.callback_cors || "/cloudinary_cors.html"
     if !callback_path.match(/^https?:\/\//)
