@@ -16,7 +16,7 @@ Similar to the basic sample described above, implemented as a Rails project. In 
 
 ### Setting up
 
-1. Download `cloudinary.yml` for you account from Cloudinary's [Management Console](https://cloudinary.com/console) or by using this [direct link](https://cloudinary.com/console/cloudinary.yml).
+1. Download `cloudinary.yml` for your account from Cloudinary's [Management Console](https://cloudinary.com/console) or by using this [direct link](https://cloudinary.com/console/cloudinary.yml).
 1. Place the downloaded `cloudinary.yml` file into the `config` directory of the project.
 1. In the project directory, run `bundle install` to install all the required dependencies.
 1. Run `rails server` to start the development server.
@@ -28,7 +28,7 @@ Simple application for uploading images and displaying them in a list. Implement
 
 ### Setting up
 
-1. Download `cloudinary.yml` for you account from Cloudinary's [Management Console](https://cloudinary.com/console) or by using this [direct link](https://cloudinary.com/console/cloudinary.yml).
+1. Download `cloudinary.yml` for your account from Cloudinary's [Management Console](https://cloudinary.com/console) or by using this [direct link](https://cloudinary.com/console/cloudinary.yml).
 1. Place the downloaded `cloudinary.yml` file into the `config` directory of the project.
 1. In the project directory, run `bundle install` to install all the required dependencies.
 1. Run `rake db:create` and `rake db:migrate` to create the database for the project.

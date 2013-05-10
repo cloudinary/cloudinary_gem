@@ -155,6 +155,11 @@ For more details on CarrierWave integration see [our documentation](http://cloud
 
 We also published an interesting blog post about [Ruby on Rails image uploads with CarrierWave and Cloudinary](http://cloudinary.com/blog/ruby_on_rails_image_uploads_with_carrierwave_and_cloudinary).
 
+### Samples
+
+You can find our simple and ready-to-use samples projects, along with documentation in the [samples folder](https://github.com/cloudinary/cloudinary_gem/tree/master/samples). 
+Please consult with the [README file](https://github.com/cloudinary/cloudinary_gem/blob/master/samples/README.md), for usage and explanations.
+
 
 ## Additional resources ##########################################################
 
