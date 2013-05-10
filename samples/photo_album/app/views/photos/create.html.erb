@@ -1,0 +1,21 @@
+<h1>Your photo was uploaded sucessfully!</h1>
+
+<div class="photo">
+  <h2><%= @photo.title %></h2>
+  <a href="<%= @photo.image.url %>" target="_blank">
+    <%= image_tag(@photo.image.thumbnail.url, :class => "thumbnail inline") %>
+  </a>
+</div>
+
+<a href="<%= photos_path %>" class="back_link">Back to list</a>
+
+<% if @upload %>
+  <div class="upload_details">
+    <h2>Upload metadata:</h2>
+    <table>
+      <% @upload.each_pair do |k, v| %>
+        <tr><td><%= k %></td><td><%= v.to_json %></td></tr>
+      <% end %>
+    </table>
+  </div>
+<% end %>    

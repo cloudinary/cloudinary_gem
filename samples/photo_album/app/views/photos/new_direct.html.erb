@@ -1,0 +1,92 @@
+<div id="direct_upload">
+  <h1>New Photo</h1>
+  <h2>Direct upload from the browser</h2>
+  <p>You can also drag and drop an image file into the dashed area.</p>
+  <%= form_for(@photo, :url => photos_path) do |f| %>
+    <div class="form_line">
+      <%= f.label :title, "Title:" %>
+      <div class="form_controls">
+        <%= f.text_field :title %>
+      </div>
+    </div>
+    <div class="form_line">
+      <%= f.label :image, "Image:" %>
+      <div class="form_controls">
+        <div class="upload_button_holder">
+          <%= link_to("Upload", "#", :class => "upload_button") %>
+          <%= f.cl_image_upload(:image) %>
+        </div>
+        <span class="status"></span>
+      </div>
+    </div>
+    <div class="form_line">
+      <div class="form_controls">
+        <div class="preview"></div>
+      </div>
+    </div>
+    <div class="form_line">
+      <div class="form_controls">
+        <%= f.submit "Submit Photo" %>
+        <% if @error %><span class="error"><%= @error %></span><% end %>
+      </div>
+    </div>
+    <%= f.hidden_field :bytes %>
+    <%= hidden_field_tag :direct, params[:direct] %>
+  <% end %>
+</div>
+
+<a href="<%= photos_path %>" class="back_link">Back to list</a>
+
+<div id="info"></div>
+
+<!-- Configure Cloudinary jQuery plugin -->
+<%= cloudinary_js_config %>
+
+<script>
+  $(document).ready(function() {
+    // Cloudinary jQuery integration library uses jQuery File Upload widget
+    // (see http://blueimp.github.io/jQuery-File-Upload/).
+    // Any file input field with cloudinary-fileupload class is automatically
+    // wrapped using the File Upload widget and configured for Cloudinary uploads.
+    // You can further customize the configuration using .fileupload method
+    // as we do below.
+    $(".cloudinary-fileupload")
+      .fileupload({ 
+        dropZone: "#direct_upload",
+        start: function (e) {
+          $(".status").text("Starting upload...");
+        },
+        progress: function (e, data) {
+          $(".status").text("Uploading... " + Math.round((data.loaded * 100.0) / data.total) + "%");
+        },
+        fail: function (e, data) {
+          $(".status").text("Upload failed");
+        }
+      })
+      .on("cloudinarydone", function (e, data) {
+        $("#photo_bytes").val(data.result.bytes);
+        $(".status").text("");
+        $(".preview").html(
+          $.cloudinary.image(data.result.public_id, {
+            format: data.result.format, width: 50, height: 50, crop: "fit"
+          })
+        );
+        view_upload_details(data.result);
+      });
+    });
+    
+    function view_upload_details(upload) {
+      // Build an html table out of the upload object
+      var rows = [];
+      $.each(upload, function(k,v){
+        rows.push(
+          $("<tr>")
+            .append($("<td>").text(k))
+            .append($("<td>").text(JSON.stringify(v))));
+      });
+      $("#info").html(
+        $("<div class=\"upload_details\">")
+          .append("<h2>Upload metadata:</h2>")
+          .append($("<table>").append(rows)));
+    }
+</script>

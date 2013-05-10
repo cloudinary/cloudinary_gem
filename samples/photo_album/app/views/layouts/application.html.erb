@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PhotoAlbum</title>
+  <%= stylesheet_link_tag    "application", :media => "all" %>
+  <%= javascript_include_tag "application" %>
+  <%= csrf_meta_tags %>
+  <link rel="shortcut icon"
+    href="<%= cloudinary_url("http://cloudinary.com/favicon.png", :type => "fetch") %>" />
+</head>
+<body>
+
+<div id="logo">
+  <!-- This will render the image fetched from a remote HTTP URL using Cloudinary -->
+  <%= fetch_image_tag("http://cloudinary.com/images/logo.png") %>
+</div>
+
+<div class="content">
+  <%= yield %>
+</div>
+
+</body>
+</html>
