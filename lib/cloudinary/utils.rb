@@ -263,7 +263,7 @@ class Cloudinary::Utils
     end
   end
   
-  IMAGE_FORMATS = %w(bmp png tif tiff jpg jpeg gif pdf ico eps) 
+  IMAGE_FORMATS = %w(bmp png tif tiff jpg jpeg gif pdf ico eps jpc jp2 psd) 
   
   def self.supported_image_format?(format)
     format = format.to_s.downcase
