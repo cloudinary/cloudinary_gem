@@ -26,7 +26,7 @@ class Cloudinary::Utils
     crop = options.delete(:crop)
     angle = build_array(options.delete(:angle)).join(".")
 
-    no_html_sizes = has_layer || !angle.blank? || crop.to_s == "fit" || crop.to_s == "limit"
+    no_html_sizes = has_layer || !angle.blank? || crop.to_s == "fit" || crop.to_s == "limit" || crop.to_s == "lfill"
     options.delete(:width) if width && (width.to_f < 1 || no_html_sizes)
     options.delete(:height) if height && (height.to_f < 1 || no_html_sizes)
 

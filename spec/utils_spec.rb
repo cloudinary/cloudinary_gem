@@ -104,11 +104,15 @@ describe Cloudinary::Utils do
     result.should == "http://res.cloudinary.com/test123/image/upload/c_crop,h_100,w_100/test" 
   end
 
-  it "should not pass width and height to html in case of fit or limit crop" do
+  it "should not pass width and height to html in case of fit, lfill or limit crop" do
     options = {:width=>100, :height=>100, :crop=>:limit}
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
     result.should == "http://res.cloudinary.com/test123/image/upload/c_limit,h_100,w_100/test" 
+    options = {:width=>100, :height=>100, :crop=>:lfill}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "http://res.cloudinary.com/test123/image/upload/c_lfill,h_100,w_100/test" 
     options = {:width=>100, :height=>100, :crop=>:fit}
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
