@@ -34,6 +34,7 @@ class Cloudinary::Uploader
               :notification_url=>options[:notification_url],
               :eager_notification_url=>options[:eager_notification_url],
               :eager_async=>Cloudinary::Utils.as_safe_bool(options[:eager_async]),
+              :proxy=>options[:proxy],
               :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}    
     params    
   end
