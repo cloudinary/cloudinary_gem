@@ -20,7 +20,9 @@ task :fetch_assets do
     |f|
     f.puts "//= require ./canvas-to-blob.min.js"
     f.puts "//= require ./load-image.min.js"
-    f.puts "//= require ./jquery.fileupload-fp.js"
+    f.puts "//= require ./jquery.fileupload-process.js"
+    f.puts "//= require ./jquery.fileupload-image.js"
+    f.puts "//= require ./jquery.fileupload-validate.js"
   end
 end
 
