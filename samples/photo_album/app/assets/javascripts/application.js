@@ -11,6 +11,8 @@
 // GO AFTER THE REQUIRES BELOW.
 //
 //= require jquery
+//  //= require jquery.turbolinks // Optional - turbolinks support
 //= require jquery_ujs
 //= require cloudinary
 //= require_tree .
+//  //= require turbolinks // Optional - turbolinks support

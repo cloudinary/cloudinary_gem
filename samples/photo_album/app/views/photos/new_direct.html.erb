@@ -63,7 +63,7 @@
           $(".status").text("Upload failed");
         }
       })
-      .on("cloudinarydone", function (e, data) {
+      .off("cloudinarydone").on("cloudinarydone", function (e, data) {
         $("#photo_bytes").val(data.result.bytes);
         $(".status").text("");
         $(".preview").html(
