@@ -20,7 +20,9 @@ module Cloudinary::CarrierWave
   end
   
   def retrieve_from_store!(identifier)
-    if identifier.blank?
+    # Workaround cloudinary-mongoid hack of setting column to _old_ before saving it.
+    mongoid_blank = defined?(Mongoid::Extensions::Object) && self.is_a?(Mongoid::Extensions::Object) && identifier == "_old_"
+    if identifier.blank? || mongoid_blank
       @file = @stored_version = @stored_public_id = nil
       self.original_filename = nil
     else
