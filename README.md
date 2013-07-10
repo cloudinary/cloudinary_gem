@@ -11,6 +11,9 @@ Cloudinary provides URL and HTTP based APIs that can be easily integrated with a
 
 For Ruby on Rails, Cloudinary provides a GEM for simplifying the integration even further.
 
+## Getting started guide
+![](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png)  **Take a look at our [Getting started guide of Ruby on Rails](http://cloudinary.com/documentation/rails_integration#getting_started_guide)**.
+
 ## Setup ######################################################################
 
 To install the Cloudinary Ruby GEM, run:
@@ -114,7 +117,8 @@ Same goes for Twitter:
 
     twitter_name_profile_image_tag("billclinton.jpg")
 
-See [our documentation](http://cloudinary.com/documentation/rails_integration#display_and_transform) for more information about displaying and transforming images in Rails.                                         
+![](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](http://cloudinary.com/documentation/rails_image_manipulation) for more information about displaying and transforming images in Rails**.                                         
+
 
 
 ### Upload
@@ -138,8 +142,9 @@ You can also specify your own public ID:
     cl_image_tag("sample_remote.jpg")
 
     http://res.cloudinary.com/demo/image/upload/sample_remote.jpg
-        
-See [our documentation](http://cloudinary.com/documentation/rails_integration#direct_upload) for plenty more options of direct uploading to the cloud from your Ruby code. 
+
+
+![](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](http://cloudinary.com/documentation/rails_image_upload) for plenty more options of uploading to the cloud from your Ruby code or directly from the browser**.
 
 
 ### CarrierWave Integration
@@ -151,7 +156,7 @@ Cloudinary's Ruby GEM includes an optional plugin for [CarrierWave](https://gith
         ...  
     end
 
-For more details on CarrierWave integration see [our documentation](http://cloudinary.com/documentation/rails_integration#carrierwave_upload).
+![](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **For more details on CarrierWave integration see [our documentation](http://cloudinary.com/documentation/rails_carrierwave)**.
 
 We also published an interesting blog post about [Ruby on Rails image uploads with CarrierWave and Cloudinary](http://cloudinary.com/blog/ruby_on_rails_image_uploads_with_carrierwave_and_cloudinary).
 
@@ -167,17 +172,20 @@ Additional resources are available at:
 
 * [Website](http://cloudinary.com)
 * [Documentation](http://cloudinary.com/documentation)
+* [Knowledge Base](http://support.cloudinary.com/forums)
 * [Documentation for Ruby on Rails integration](http://cloudinary.com/documentation/rails_integration)
+* [Ruby on Rails image upload documentation](http://cloudinary.com/documentation/rails_image_upload)
+* [Ruby on Rails image manipulation documentation](http://cloudinary.com/documentation/rails_image_manipulation)
 * [Image transformations documentation](http://cloudinary.com/documentation/image_transformations)
-* [Upload API documentation](http://cloudinary.com/documentation/upload_images)
 
 ## Support
 
 You can [open an issue through GitHub](https://github.com/cloudinary/cloudinary_gem/issues).
 
-Contact us at [info@cloudinary.com](mailto:info@cloudinary.com)
+Contact us [http://cloudinary.com/contact](http://cloudinary.com/contact)
 
-Or via Twitter: [@cloudinary](https://twitter.com/#!/cloudinary)
+Stay tuned for updates, tips and tutorials: [Blog](http://cloudinary.com/blog), [Twitter](https://twitter.com/cloudinary), [Facebook](http://www.facebook.com/Cloudinary).
+
 
 ## License #######################################################################
 
