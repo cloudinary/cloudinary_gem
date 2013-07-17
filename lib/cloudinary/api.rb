@@ -18,6 +18,10 @@ class Cloudinary::Api
       @rate_limit_remaining = response.headers[:x_featureratelimit_remaining].to_i     
     end
   end
+
+  def self.ping(options={})
+    call_api(:get, "ping", {}, options)
+  end
   
   def self.usage(options={})
     call_api(:get, "usage", {}, options)
