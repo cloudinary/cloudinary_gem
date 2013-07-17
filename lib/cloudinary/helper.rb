@@ -228,7 +228,7 @@ if defined? ActionView::Helpers::AssetUrlHelper
   module ActionView::Helpers::AssetUrlHelper
     alias :original_path_to_asset :path_to_asset
   
-    def path_to_asset(source, options)
+    def path_to_asset(source, options={})
       options ||= {}
       if Cloudinary.config.enhance_image_tag && options[:type] == :image
         source = Cloudinary::Utils.cloudinary_url(source, options.merge(:type=>:asset))
