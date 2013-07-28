@@ -137,19 +137,22 @@ class Cloudinary::Utils
       source = "#{source}.#{format}"
     end
 
-    if cloud_name.start_with?("/")
+    if cloud_name.start_with?("/") # For development
       prefix = "/res" + cloud_name
-    else
-      secure_distribution ||= Cloudinary::SHARED_CDN
-            
-      if secure
+    else 
+      shared_domain = !private_cdn
+      if secure        
+        if secure_distribution.nil? || secure_distribution == Cloudinary::OLD_AKAMAI_SHARED_CDN
+          secure_distribution = private_cdn ? "#{cloud_name}-res.cloudinary.com" : Cloudinary::SHARED_CDN
+        end
+        shared_domain ||= secure_distribution == Cloudinary::SHARED_CDN
         prefix = "https://#{secure_distribution}"
       else
         subdomain = cdn_subdomain ? "a#{(Zlib::crc32(source) % 5) + 1}." : ""
         host = cname.blank? ? "#{private_cdn ? "#{cloud_name}-" : ""}res.cloudinary.com" : cname
         prefix = "http://#{subdomain}#{host}"
-      end    
-      prefix += "/#{cloud_name}" if !private_cdn || (secure && secure_distribution == Cloudinary::AKAMAI_SHARED_CDN)
+      end
+      prefix += "/#{cloud_name}" if shared_domain
     end
     
     if shorten && resource_type.to_s == "image" && type.to_s == "upload"

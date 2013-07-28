@@ -32,7 +32,7 @@ describe Cloudinary::Utils do
     options = {:secure=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
-    result.should == "https://cloudinary-a.akamaihd.net/test123/image/upload/test" 
+    result.should == "https://res.cloudinary.com/test123/image/upload/test" 
   end
 
   it "should allow overriding secure distribution if secure=true" do    
@@ -54,7 +54,7 @@ describe Cloudinary::Utils do
     options = {:secure=>true, :private_cdn=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
-    result.should == "https://cloudinary-a.akamaihd.net/test123/image/upload/test" 
+    result.should == "https://test123-res.cloudinary.com/image/upload/test" 
   end
 
   it "should not add cloud_name if secure private_cdn and secure non akamai secure_distribution" do
@@ -316,7 +316,7 @@ describe Cloudinary::Utils do
     options = {:ssl_detected=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
-    result.should == "https://cloudinary-a.akamaihd.net/test123/image/upload/test" 
+    result.should == "https://res.cloudinary.com/test123/image/upload/test" 
   end 
 
   it "should use secure if given over ssl_detected and configuration" do    
@@ -332,7 +332,7 @@ describe Cloudinary::Utils do
     Cloudinary.config.secure = true
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {}
-    result.should == "https://cloudinary-a.akamaihd.net/test123/image/upload/test" 
+    result.should == "https://res.cloudinary.com/test123/image/upload/test" 
   end 
 
   it "should support extenal cname" do

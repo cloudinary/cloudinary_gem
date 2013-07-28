@@ -23,7 +23,8 @@ module Cloudinary
   autoload :CarrierWave, "cloudinary/carrier_wave"  
   
   CF_SHARED_CDN = "d3jpl91pxevbkh.cloudfront.net"
-  AKAMAI_SHARED_CDN = "cloudinary-a.akamaihd.net"
+  AKAMAI_SHARED_CDN = "res.cloudinary.com"
+  OLD_AKAMAI_SHARED_CDN = "cloudinary-a.akamaihd.net"
   SHARED_CDN = AKAMAI_SHARED_CDN  
     
   FORMAT_ALIASES = {
