@@ -1,6 +1,7 @@
 # Copyright Cloudinary
 require 'digest/sha1'
 require 'zlib'
+require 'uri'
 require 'aws_cf_signer'
 
 class Cloudinary::Utils
@@ -133,8 +134,9 @@ class Cloudinary::Utils
 
     if source.match(%r(^https?:/)i)
       source = smart_escape(source)
-    elsif !format.blank? 
-      source = "#{source}.#{format}"
+    else
+      source = smart_escape(URI.decode(source)) 
+      source = "#{source}.#{format}" if !format.blank?
     end
 
     if cloud_name.start_with?("/") # For development
@@ -227,9 +229,9 @@ class Cloudinary::Utils
   
   # Based on CGI::unescape. In addition does not escape / : 
   def self.smart_escape(string)
-    string.gsub(/([^ a-zA-Z0-9_.-\/:]+)/) do
+    string.gsub(/([^a-zA-Z0-9_.\-\/:]+)/) do
       '%' + $1.unpack('H2' * $1.bytesize).join('%').upcase
-    end.tr(' ', '+')
+    end
   end
   
   def self.random_public_id

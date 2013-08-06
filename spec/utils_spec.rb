@@ -235,7 +235,7 @@ describe Cloudinary::Utils do
     options = {:type=>:youtube}
     result = Cloudinary::Utils.cloudinary_url("http://www.youtube.com/watch?v=d9NF2edxy-M", options)
     options.should == {}
-    result.should == "http://res.cloudinary.com/test123/image/youtube/http://www.youtube.com/watch%3Fv%3Dd9NF2edxy%2DM" 
+    result.should == "http://res.cloudinary.com/test123/image/youtube/http://www.youtube.com/watch%3Fv%3Dd9NF2edxy-M" 
   end 
 
   it "should support background" do
@@ -425,5 +425,18 @@ describe Cloudinary::Utils do
     signature = Cloudinary::Utils.api_sign_request({:public_id=>"folder/file", :version=>"1234"}, Cloudinary.config.api_secret)
     preloaded = Cloudinary::PreloadedFile.new("image/upload/v1234/folder/file.jpg#" + signature)
     preloaded.should be_valid
+  end
+  
+  it "should escape public_ids" do
+    [
+      ["a b", "a%20b"],
+      ["a+b", "a%2Bb"],
+      ["a%20b", "a%20b"],
+      ["a-b", "a-b"],
+      ["a??b", "a%3F%3Fb"]
+    ].each do
+      |source, target|
+      Cloudinary::Utils.cloudinary_url(source).should == "http://res.cloudinary.com/test123/image/upload/#{target}"   
+    end      
   end
 end
