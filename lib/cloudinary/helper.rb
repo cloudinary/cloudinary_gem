@@ -150,21 +150,22 @@ module CloudinaryHelper
     cl_image_upload_tag("#{object_name}[#{method}]", options)
   end
   
-  def cl_image_upload_tag(field, options={})
-    html_options = options.delete(:html) || {}
-    cloudinary_upload_url = Cloudinary::Utils.cloudinary_api_url("upload", {:resource_type=>:auto}.merge(options))
-    
-    api_key = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
-    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
-
+  def cl_upload_url(options={})
+    Cloudinary::Utils.cloudinary_api_url("upload", {:resource_type=>:auto}.merge(options))
+  end
+  
+  def cl_upload_tag_params(options={})
     cloudinary_params = Cloudinary::Uploader.build_upload_params(options)
     cloudinary_params[:callback] = build_callback_url(options)
-    cloudinary_params[:signature] = Cloudinary::Utils.api_sign_request(cloudinary_params, api_secret)
-    cloudinary_params[:api_key] = api_key
+    return Cloudinary::Utils.sign_request(cloudinary_params, options).to_json
+  end
+  
+  def cl_image_upload_tag(field, options={})
+    html_options = options.delete(:html) || {}         
 
     tag_options = html_options.merge(:type=>"file", :name=>"file", 
-      :"data-url"=>cloudinary_upload_url,
-      :"data-form-data"=>cloudinary_params.reject{|k, v| v.blank?}.to_json,
+      :"data-url"=>cl_upload_url(options),
+      :"data-form-data"=>cl_upload_tag_params(options),
       :"data-cloudinary-field"=>field,
       :"class" => [html_options[:class], "cloudinary-fileupload"].flatten.compact 
     ).reject{|k,v| v.blank?}
