@@ -1,7 +1,7 @@
 = Version 1.0.63 - 2013-08-07
   * Support folder parameter.
   * Escape non-http public_ids. 
-  * Correct escaping of space and.
+  * Correct escaping of space and '-'.
 
 = Version 1.0.62 - 2013-07-30 
   * Change secure urls to use *res.cloudinary.com.
