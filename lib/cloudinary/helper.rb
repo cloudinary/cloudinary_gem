@@ -4,9 +4,26 @@ module CloudinaryHelper
   alias :original_image_tag :image_tag
   alias :original_image_path :image_path
       
+  # Stand-in for Rails image_tag helper that accepts various options for transformations.
+  #
+  # source:: the public ID, possibly with a file type extension.  If there is no extension, the 
+  #          :format option is expected to indicate what the extension is.  This value can contain
+  #          the version, or not.
+  # options:: Options you would normally pass to image_tag as well as Cloudinary-specific options
+  #           to control the transformation.  Depending on what options are provided, the
+  #           generated URL may or may not have Cloudinary-specific details in it.  For example, if
+  #           you only specify :width and :height, these values will not be sent to Cloudinary, however
+  #           if you also specify :crop, they will be.
+  #
   # Examples
-  # cl_image_tag "israel.png", :width=>100, :height=>100, :alt=>"hello" # W/H are not sent to cloudinary
-  # cl_image_tag "israel.png", :width=>100, :height=>100, :alt=>"hello", :crop=>:fit # W/H are sent to cloudinary
+  #     # Image tag sized by the browser, not Cloudinary
+  #     cl_image_tag "israel.png", :width=>100, :height=>100, :alt=>"hello" # W/H are not sent to cloudinary
+  #
+  #     # Image tag sized by Cloudinary using the :fit crop strategy
+  #     cl_image_tag "israel.png", :width=>100, :height=>100, :alt=>"hello", :crop=>:fit # W/H are sent to cloudinary
+  #
+  #     Get a url for the image with the public id "israel", in :png format.
+  #     cl_image_tag "israel", format: :png
   def cl_image_tag(source, options = {})
     options = options.clone
     source = cloudinary_url_internal(source, options)
@@ -18,6 +35,7 @@ module CloudinaryHelper
     original_image_tag(source, options)
   end
 
+  # Works similarly to cl_image_tag, however just generates the URL of the image
   def cl_image_path(source, options = {})
     options = options.clone
     url = cloudinary_url_internal(source, options)
