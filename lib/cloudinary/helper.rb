@@ -17,13 +17,15 @@ module CloudinaryHelper
   #
   # Examples
   #     # Image tag sized by the browser, not Cloudinary
-  #     cl_image_tag "israel.png", :width=>100, :height=>100, :alt=>"hello" # W/H are not sent to cloudinary
+  #     cl_image_tag "sample.png", :width=>100, :height=>100, :alt=>"hello" # W/H are not sent to Cloudinary
   #
   #     # Image tag sized by Cloudinary using the :fit crop strategy
-  #     cl_image_tag "israel.png", :width=>100, :height=>100, :alt=>"hello", :crop=>:fit # W/H are sent to cloudinary
+  #     cl_image_tag "sample.png", :width=>100, :height=>100, :alt=>"hello", :crop=>:fit # W/H are sent to Cloudinary
   #
-  #     Get a url for the image with the public id "israel", in :png format.
-  #     cl_image_tag "israel", format: :png
+  #     Get a url for the image with the public id "sample", in :png format.
+  #     cl_image_tag "sample", format: :png
+  #
+  # See documentation for more details and options: http://cloudinary.com/documentation/rails_image_manipulation
   def cl_image_tag(source, options = {})
     options = options.clone
     source = cloudinary_url_internal(source, options)
