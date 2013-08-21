@@ -99,7 +99,7 @@ class Cloudinary::Uploader
     end              
   end
     
-  TEXT_PARAMS = [:public_id, :font_family, :font_size, :font_color, :text_align, :font_weight, :font_style, :background, :opacity, :text_decoration]  
+  TEXT_PARAMS = [:public_id, :font_family, :font_size, :font_color, :text_align, :font_weight, :font_style, :background, :opacity, :text_decoration, :line_spacing]  
   def self.text(text, options={})
     call_api("text", options) do
       params = {:timestamp => Time.now.to_i, :text=>text}
