@@ -10,7 +10,7 @@ describe Cloudinary::Utils do
       config.private_cdn = false
       config.secure = false
       config.cname = nil
-      config.cdn_subdomains = false
+      config.cdn_subdomain = false
       config.api_key = "1234"
       config.api_secret = "1234"
     end
