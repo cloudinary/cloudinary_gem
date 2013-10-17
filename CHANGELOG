@@ -1,3 +1,9 @@
+= Version 1.0.64 - 2013-10-17
+  * Extracted upload_tag_params and upload_url from image_upload_tag. Extracted common code to sign_request.
+  * Updated Cloudinary's jQuery plugin to v1.0.10: Binding jQuery file upload events.
+  * Support line_spacing text parameter.
+  * Added code documentation for cl_image_tag.
+
 = Version 1.0.63 - 2013-08-07
   * Support folder parameter.
   * Escape non-http public_ids. 
