@@ -439,4 +439,11 @@ describe Cloudinary::Utils do
       Cloudinary::Utils.cloudinary_url(source).should == "http://res.cloudinary.com/test123/image/upload/#{target}"   
     end      
   end
+
+  it "should use res prefix when subdomain is used with secure connection" do
+    options = {:cdn_subdomain=>true, :secure => true}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "https://res-2.cloudinary.com/test123/image/upload/test" 
+  end
 end

@@ -146,13 +146,21 @@ class Cloudinary::Utils
       if secure        
         if secure_distribution.nil? || secure_distribution == Cloudinary::OLD_AKAMAI_SHARED_CDN
           secure_distribution = private_cdn ? "#{cloud_name}-res.cloudinary.com" : Cloudinary::SHARED_CDN
+          subdomain = cdn_subdomain ? "res-#{(Zlib::crc32(source) % 5) + 1}." : ""
+          domain_prefix = private_cdn ? "#{cloud_name}-" : ""
+          domain = cdn_subdomain ? "cloudinary.com" : "res.cloudinary.com"
+          host = cname.blank? ? "#{domain_prefix}#{domain}" : cname
+          secure_distribution = "#{subdomain}#{host}"
         end
         shared_domain ||= secure_distribution == Cloudinary::SHARED_CDN
         prefix = "https://#{secure_distribution}"
       else
         subdomain = cdn_subdomain ? "a#{(Zlib::crc32(source) % 5) + 1}." : ""
-        host = cname.blank? ? "#{private_cdn ? "#{cloud_name}-" : ""}res.cloudinary.com" : cname
-        prefix = "http://#{subdomain}#{host}"
+        domain_prefix = private_cdn ? "#{cloud_name}-" : ""
+        domain = "res.cloudinary.com"
+        host = cname.blank? ? "#{domain_prefix}#{domain}" : cname
+        distribution = "#{subdomain}#{host}"
+        prefix = "http://#{distribution}"
       end
       prefix += "/#{cloud_name}" if shared_domain
     end
