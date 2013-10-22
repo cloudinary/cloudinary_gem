@@ -35,6 +35,9 @@ class Cloudinary::Utils
 
     background = options.delete(:background)
     background = background.sub(/^#/, 'rgb:') if background
+
+    color = options.delete(:color)
+    color = color.sub(/^#/, 'rgb:') if color
         
     base_transformations = build_array(options.delete(:transformation))
     if base_transformations.any?{|base_transformation| base_transformation.is_a?(Hash)}
@@ -59,7 +62,7 @@ class Cloudinary::Utils
     end
     flags = build_array(options.delete(:flags)).join(".")
     
-    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect, :a=>angle, :bo=>border, :fl=>flags}
+    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect, :a=>angle, :bo=>border, :fl=>flags, :co=>color}
     { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :cs=>:color_space, :o=>:opacity,
       :p=>:prefix, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page, :dl=>:delay
     }.each do
