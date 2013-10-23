@@ -1,3 +1,6 @@
+= Version 1.0.65 - 2013-10-17
+  * Support unique_filename.
+
 = Version 1.0.63 - 2013-08-07
   * Support folder parameter.
   * Escape non-http public_ids. 
