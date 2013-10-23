@@ -14,7 +14,7 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
           store_cloudinary_identifier(file.version, file.filename)
         end
         return
-      when Cloudinary::CarrierWave::CloudinaryFile
+      when Cloudinary::CarrierWave::CloudinaryFile, Cloudinary::CarrierWave::RawCloudinaryFile
         return nil # Nothing to do
       when Cloudinary::CarrierWave::RemoteFile
         data = file.uri.to_s
