@@ -43,7 +43,9 @@ class Cloudinary::Uploader
   def self.upload(file, options={})
     call_api("upload", options) do    
       params = build_upload_params(options)
-      if file.respond_to?(:read) || file =~ /^https?:|^s3:|^data:[^;]*;base64,([a-zA-Z0-9\/+\n=]+)$/
+      if file.is_a?(Pathname)
+        params[:file] = File.open(file, "rb")
+      elsif file.respond_to?(:read) || file =~ /^https?:|^s3:|^data:[^;]*;base64,([a-zA-Z0-9\/+\n=]+)$/
         params[:file] = file
       else 
         params[:file] = File.open(file, "rb")

@@ -11,6 +11,11 @@ describe Cloudinary::Uploader do
     expected_signature = Cloudinary::Utils.api_sign_request({:public_id=>result["public_id"], :version=>result["version"]}, Cloudinary.config.api_secret)
     result["signature"].should == expected_signature
   end
+  
+  it "should successfully upload a file from pathname", :pathname => true do
+    result = Cloudinary::Uploader.upload(Pathname.new("spec/logo.png"))
+    result["width"].should == 241
+  end
 
   it "should successfully upload file by url" do
     result = Cloudinary::Uploader.upload("http://cloudinary.com/images/logo.png")
