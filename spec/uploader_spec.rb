@@ -67,5 +67,12 @@ describe Cloudinary::Uploader do
     Cloudinary::Api.resource(result["public_id"])["tags"].should == ["tag2"]
     Cloudinary::Uploader.replace_tag("tag3", result["public_id"])
     Cloudinary::Api.resource(result["public_id"])["tags"].should == ["tag3"]
-  end  
+  end
+  
+  it "should correctly handle unique_filename" do
+    result = Cloudinary::Uploader.upload("spec/logo.png", use_filename: true)
+    result["public_id"].should match(/logo_[a-zA-Z0-9]{6}/)
+    result = Cloudinary::Uploader.upload("spec/logo.png", use_filename: true, unique_filename: false)
+    result["public_id"].should  == "logo"
+  end
 end
