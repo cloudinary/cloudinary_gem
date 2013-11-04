@@ -1,3 +1,10 @@
+= Version 1.0.65 - 2013-11-04
+  * Support for unique_filename upload parameter
+  * Support the color parameter
+  * Support for uploading Pathname
+  * Support for stored files
+  * Updated Cloudinary's jQuery plugin to v1.0.11: Support color parameter
+
 = Version 1.0.64 - 2013-10-17
   * Extracted upload_tag_params and upload_url from image_upload_tag. Extracted common code to sign_request.
   * Updated Cloudinary's jQuery plugin to v1.0.10: Binding jQuery file upload events.
