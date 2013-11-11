@@ -31,6 +31,7 @@ class Cloudinary::Uploader
               :headers=>build_custom_headers(options[:headers]),
               :use_filename=>Cloudinary::Utils.as_safe_bool(options[:use_filename]),
               :unique_filename=>Cloudinary::Utils.as_safe_bool(options[:unique_filename]),
+              :overwrite=>Cloudinary::Utils.as_safe_bool(options[:overwrite]),
               :discard_original_filename=>Cloudinary::Utils.as_safe_bool(options[:discard_original_filename]),
               :notification_url=>options[:notification_url],
               :eager_notification_url=>options[:eager_notification_url],
