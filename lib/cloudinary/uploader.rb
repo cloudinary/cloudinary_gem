@@ -38,7 +38,6 @@ class Cloudinary::Uploader
               :eager_async=>Cloudinary::Utils.as_safe_bool(options[:eager_async]),
               :proxy=>options[:proxy],
               :folder=>options[:folder],
-              :overwrite=>Cloudinary::Utils.as_safe_bool(options[:overwrite]),
               :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")}    
     params    
   end
