@@ -63,13 +63,20 @@ class Cloudinary::Api
     resource_type = options[:resource_type] || "image"
     type = options[:type] || "upload"    
     uri = "resources/#{resource_type}/#{type}"
-    call_api(:delete, uri, {:prefix=>prefix}.merge(only(options, :keep_original)), options)      
+    call_api(:delete, uri, {:prefix=>prefix}.merge(only(options, :keep_original, :next_cursor)), options)      
+  end
+  
+  def self.delete_all_resources(options={})
+    resource_type = options[:resource_type] || "image"
+    type = options[:type] || "upload"    
+    uri = "resources/#{resource_type}/#{type}"
+    call_api(:delete, uri, {:all=>true}.merge(only(options, :keep_original, :next_cursor)), options)      
   end
   
   def self.delete_resources_by_tag(tag, options={})
     resource_type = options[:resource_type] || "image"
     uri = "resources/#{resource_type}/tags/#{tag}"
-    call_api(:delete, uri, only(options, :keep_original), options)    
+    call_api(:delete, uri, only(options, :keep_original, :next_cursor), options)    
   end
   
   def self.delete_derived_resources(derived_resource_ids, options={})

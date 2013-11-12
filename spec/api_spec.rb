@@ -165,5 +165,17 @@ describe Cloudinary::Api do
     @api.delete_transformation("c_scale,w_100")
     lambda{@api.transformation("c_scale,w_100")}.should raise_error(Cloudinary::Api::NotFound)
   end
+  
+  #this test is here because it deletes (potentially) all dependent transformations which some tests rely on
+  it "should allow deleting all resources", :delete_all=>true do
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test5", :eager=>[:width=>101,:crop=>:scale])
+    resource = @api.resource("api_test5")
+    resource.should_not be_blank
+    resource["derived"].length.should == 1
+    @api.delete_all_resources(:keep_original => true)
+    resource = @api.resource("api_test5")
+    resource.should_not be_blank
+    resource["derived"].length.should == 0
+  end
 
 end
