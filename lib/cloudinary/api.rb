@@ -42,7 +42,7 @@ class Cloudinary::Api
   def self.resources_by_tag(tag, options={})
     resource_type = options[:resource_type] || "image"
     uri = "resources/#{resource_type}/tags/#{tag}"
-    call_api(:get, uri, only(options, :next_cursor, :max_results), options)    
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags), options)    
   end
   
   def self.resource(public_id, options={})
