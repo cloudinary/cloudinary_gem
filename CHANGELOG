@@ -1,3 +1,8 @@
+= Version 1.0.66 - 2013-11-14
+  * Support overwrite flag in upload
+  * Support tags flag in resources_by_tag
+  * Support for deletion cursor and delete all
+
 = Version 1.0.65 - 2013-11-04
   * Support for unique_filename upload parameter
   * Support the color parameter
