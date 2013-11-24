@@ -75,4 +75,18 @@ describe Cloudinary::Uploader do
     result = Cloudinary::Uploader.upload("spec/logo.png", use_filename: true, unique_filename: false)
     result["public_id"].should  == "logo"
   end
+  
+  it "should allow whitelisted formats if allowed_formats", :allowed=>true do
+    result = Cloudinary::Uploader.upload("spec/logo.png", allowed_formats: ["png"])
+    result["format"].should == "png"
+  end
+  
+  it "should prevent non whitelisted formats from being uploaded if allowed_formats is specified", :allowed=>true do
+    lambda{Cloudinary::Uploader.upload("spec/logo.png", allowed_formats: ["jpg"])}.should raise_error
+  end
+  
+  it "should allow non whitelisted formats if type is specified and convert to that type", :allowed=>true do
+    result = Cloudinary::Uploader.upload("spec/logo.png", allowed_formats: ["jpg"], format: "jpg")
+    result["format"].should == "jpg"
+  end
 end
