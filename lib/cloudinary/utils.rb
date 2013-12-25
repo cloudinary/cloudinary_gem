@@ -107,6 +107,8 @@ class Cloudinary::Utils
     shorten = config_option_consume(options, :shorten) 
     force_remote = options.delete(:force_remote)
     cdn_subdomain = config_option_consume(options, :cdn_subdomain) 
+    sign_url = config_option_consume(options, :sign_url)
+    secret = config_option_consume(options, :api_secret)
     
     original_source = source
     return original_source if source.blank?
@@ -165,9 +167,13 @@ class Cloudinary::Utils
       type = nil
     end
     version ||= 1 if source.include?("/") and !source.match(/^v[0-9]+/) and !source.match(/^https?:\//)
-    source = prefix + "/" + [resource_type, 
-     type, transformation, version ? "v#{version}" : nil,
-     source].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
+    
+    rest = [transformation, version ? "v#{version}" : nil, source].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
+    if sign_url
+      rest = 's--' + Base64.urlsafe_encode64(Digest::SHA1.hexdigest(rest + secret))[0,8] + '--/' + rest
+    end
+    
+    source = prefix + "/" + [resource_type, type, rest].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
   end
   
   def self.cloudinary_api_url(action = 'upload', options = {})
