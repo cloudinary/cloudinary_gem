@@ -170,7 +170,7 @@ class Cloudinary::Utils
     
     rest = [transformation, version ? "v#{version}" : nil, source].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
     if sign_url
-      rest = 's--' + Base64.urlsafe_encode64(Digest::SHA1.hexdigest(rest + secret))[0,8] + '--/' + rest
+      rest = 's--' + Base64.urlsafe_encode64(Digest::SHA1.digest(rest + secret))[0,8] + '--/' + rest
     end
     
     source = prefix + "/" + [resource_type, type, rest].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
