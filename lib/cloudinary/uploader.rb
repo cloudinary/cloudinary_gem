@@ -39,7 +39,9 @@ class Cloudinary::Uploader
               :proxy=>options[:proxy],
               :folder=>options[:folder],
               :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
-              :allowed_formats =>options[:allowed_formats]}    
+              :allowed_formats =>  Cloudinary::Utils.build_array(options[:allowed_formats]).join(","),
+              :context => Cloudinary::Utils.encode_hash(options[:context]),
+              :face_coordinates => Cloudinary::Utils.encode_double_array(options[:face_coordinates])}    
     params    
   end
    
@@ -99,7 +101,8 @@ class Cloudinary::Uploader
         :callback=> options[:callback],
         :eager=>build_eager(options[:eager]),
         :headers=>build_custom_headers(options[:headers]),
-        :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")    
+        :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")  ,
+        :face_coordinates => options[:face_coordinates] && Cloudinary::Utils.encode_double_array(options[:face_coordinates])  
       }
     end              
   end

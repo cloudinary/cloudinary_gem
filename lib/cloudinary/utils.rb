@@ -272,6 +272,18 @@ class Cloudinary::Utils
       else [array]
     end
   end
+    
+  def self.encode_hash(hash)
+    case hash
+      when Hash then hash.map{|k,v| "#{k}=#{v}"}.join("|")
+      when nil then ""
+      else hash
+    end
+  end
+  
+  def self.encode_double_array(array)
+    build_array(array).map{|a| build_array(a).join(",")}.join("|")
+  end
   
   IMAGE_FORMATS = %w(bmp png tif tiff jpg jpeg gif pdf ico eps jpc jp2 psd) 
   

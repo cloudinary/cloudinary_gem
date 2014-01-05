@@ -8,8 +8,8 @@ describe Cloudinary::Api do
     @api = Cloudinary::Api
     Cloudinary::Uploader.destroy("api_test")
     Cloudinary::Uploader.destroy("api_test2")
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test", :tags=>"api_test_tag", :eager=>[:width=>100,:crop=>:scale])
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test2", :tags=>"api_test_tag", :eager=>[:width=>100,:crop=>:scale])
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test", :tags=>"api_test_tag", :context => "key=value", :eager=>[:width=>100,:crop=>:scale])
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test2", :tags=>"api_test_tag", :context => "key=value", :eager=>[:width=>100,:crop=>:scale])
     @api.delete_transformation("api_test_transformation") rescue nil
     @api.delete_transformation("api_test_transformation2") rescue nil
     @api.delete_transformation("api_test_transformation3") rescue nil
@@ -44,13 +44,25 @@ describe Cloudinary::Api do
   end
 
   it "should allow listing resources by prefix" do
-    public_ids = @api.resources(:type=>"upload", :prefix=>"api_test")["resources"].map{|resource| resource["public_id"]}
-    public_ids.should include("api_test", "api_test2")
+    resources = @api.resources(:type=>"upload", :prefix=>"api_test", :tags => true, :context => true)["resources"]
+    resources.map{|resource| resource["public_id"]}.should include("api_test", "api_test2")
+    resources.map{|resource| resource["tags"]}.should include(["api_test_tag"])
+    resources.map{|resource| resource["context"]}.should include({"custom" => {"key" => "value"}})
   end
 
   it "should allow listing resources by tag" do
-    resource = @api.resources_by_tag("api_test_tag")["resources"].find{|resource| resource["public_id"] == "api_test"}
-    resource.should_not be_blank
+    resources = @api.resources_by_tag("api_test_tag", :tags => true, :context => true)["resources"]
+    resources.find{|resource| resource["public_id"] == "api_test"}.should_not be_blank
+    resources.map{|resource| resource["tags"]}.should include(["api_test_tag"])
+    resources.map{|resource| resource["context"]}.should include({"custom" => {"key" => "value"}})
+  end
+  
+  it "should allow listing resources by public ids" do
+    resources = @api.resources_by_ids(["api_test", "api_test2"], :tags => true, :context => true)["resources"]
+    resources.length.should == 2
+    resources.find{|resource| resource["public_id"] == "api_test"}.should_not be_blank
+    resources.map{|resource| resource["tags"]}.should include(["api_test_tag"])
+    resources.map{|resource| resource["context"]}.should include({"custom" => {"key" => "value"}})
   end
 
   it "should allow get resource metadata" do

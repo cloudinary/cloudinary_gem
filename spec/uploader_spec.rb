@@ -89,4 +89,22 @@ describe Cloudinary::Uploader do
     result = Cloudinary::Uploader.upload("spec/logo.png", allowed_formats: ["jpg"], format: "jpg")
     result["format"].should == "jpg"
   end
+  
+  it "should allow sending face coordinates" do
+    coordinates = [[120, 30, 109, 150], [121, 31, 110, 151]]
+    result = Cloudinary::Uploader.upload("spec/logo.png", {face_coordinates: coordinates, faces: true})
+    result["faces"].should == coordinates
+
+    different_coordinates = [[122, 32, 111, 152]]
+    Cloudinary::Uploader.explicit(result["public_id"], {face_coordinates: different_coordinates, faces: true, type: "upload"})
+    info = Cloudinary::Api.resource(result["public_id"], {faces: true})
+    info["faces"].should == different_coordinates
+  end
+  
+  it "should allow sending context" do
+    context = {"caption" => "some caption", "alt" => "alternative"}
+    result = Cloudinary::Uploader.upload("spec/logo.png", {:context => context})
+    info = Cloudinary::Api.resource(result["public_id"], {:context => true})
+    info["context"].should == {"custom" => context}
+  end
 end
