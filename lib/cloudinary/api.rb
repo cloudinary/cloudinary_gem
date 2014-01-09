@@ -133,7 +133,7 @@ class Cloudinary::Api
     # Add authentication
     api_url.sub!(%r(^(https?://)), "\\1#{api_key}:#{api_secret}@")
     
-    RestClient::Request.execute(:method => method, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=>60) do
+    RestClient::Request.execute(:method => method, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=>60, :headers => {"User-Agent" => Cloudinary::USER_AGENT}) do
       |response, request, tmpresult|
       return Response.new(response) if response.code == 200
       exception_class = case response.code

@@ -209,7 +209,7 @@ class Cloudinary::Uploader
     
     api_url = Cloudinary::Utils.cloudinary_api_url(action, options)
     
-    RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=>60) do
+    RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=>60, :headers => {"User-Agent" => Cloudinary::USER_AGENT}) do
       |response, request, tmpresult|
       raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" if ![200,400,401,403,404,500].include?(response.code)
       begin

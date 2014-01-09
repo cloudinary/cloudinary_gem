@@ -439,4 +439,15 @@ describe Cloudinary::Utils do
       Cloudinary::Utils.cloudinary_url(source).should == "http://res.cloudinary.com/test123/image/upload/#{target}"   
     end      
   end
+  
+  it "should correctly sign URLs", :signed => true do
+    Cloudinary.class_variable_set(:@@config, nil)
+    Cloudinary::Uploader.destroy("signed_url_test")
+    Cloudinary::Uploader.destroy("signed_url_test_tag", type: "multi")
+    Cloudinary::Uploader.upload("spec/logo.png", public_id: "signed_url_test", tags: "signed_url_test_tag")
+    url = Cloudinary::Utils.cloudinary_url("signed_url_test_tag", type: "multi")
+    signed_url = Cloudinary::Utils.cloudinary_url("signed_url_test_tag", type: "multi", sign_url: true)
+    lambda{RestClient.get(url)}.should raise_exception{|e| e.response.code.should == 401}
+    RestClient.get(signed_url){|response, request, result| response.code.should == 200}
+  end
 end
