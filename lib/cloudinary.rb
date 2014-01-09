@@ -25,7 +25,9 @@ module Cloudinary
   CF_SHARED_CDN = "d3jpl91pxevbkh.cloudfront.net"
   AKAMAI_SHARED_CDN = "res.cloudinary.com"
   OLD_AKAMAI_SHARED_CDN = "cloudinary-a.akamaihd.net"
-  SHARED_CDN = AKAMAI_SHARED_CDN  
+  SHARED_CDN = AKAMAI_SHARED_CDN
+  
+  USER_AGENT = "cld-ruby-" + VERSION
     
   FORMAT_ALIASES = {
     "jpeg" => "jpg",
