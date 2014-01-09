@@ -59,6 +59,44 @@ class Cloudinary::Uploader
     end              
   end
 
+  # Upload large raw files. Note that public_id should include an extension for best results.
+  def self.upload_large(file, public_id, options={})
+    if file.is_a?(Pathname) || !file.respond_to?(:read)
+      file = File.open(file, "rb")
+    end
+    upload = upload_id = nil
+    index = 1
+    while !file.eof?
+      buffer = file.read(20_000_000)
+      upload = upload_large_part(Cloudinary::Blob.new(buffer), public_id, options.merge(:upload_id=>upload_id, :part_number=>index, :final=>file.eof?))
+      upload_id = upload["upload_id"]      
+      index += 1
+    end
+    upload
+  end
+    
+
+  # Upload large raw files. Note that public_id should include an extension for best results.
+  def self.upload_large_part(file, public_id, options={})
+    call_api("upload_large", options.merge(:resource_type=>:raw)) do    
+      params = {
+        :timestamp=>Time.now.to_i,
+        :type=>options[:type],
+        :public_id=> public_id,
+        :backup=>options[:backup],
+        :final=>options[:final],
+        :part_number=>options[:part_number],
+        :upload_id=>options[:upload_id]
+      }
+      if file.is_a?(Pathname) || !file.respond_to?(:read)
+        params[:file] = File.open(file, "rb")
+      else
+        params[:file] = file
+      end
+      [params, [:file]]
+    end              
+  end
+
   def self.destroy(public_id, options={})
     call_api("destroy", options) do    
       {
