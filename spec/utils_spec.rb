@@ -12,7 +12,7 @@ describe Cloudinary::Utils do
       config.cname = nil
       config.cdn_subdomain = false
       config.api_key = "1234"
-      config.api_secret = "1234"
+      config.api_secret = "b"
     end
   end
   
@@ -441,13 +441,23 @@ describe Cloudinary::Utils do
   end
   
   it "should correctly sign URLs", :signed => true do
-    Cloudinary.class_variable_set(:@@config, nil)
-    Cloudinary::Uploader.destroy("signed_url_test")
-    Cloudinary::Uploader.destroy("signed_url_test_tag", type: "multi")
-    Cloudinary::Uploader.upload("spec/logo.png", public_id: "signed_url_test", tags: "signed_url_test_tag")
-    url = Cloudinary::Utils.cloudinary_url("signed_url_test_tag", type: "multi")
-    signed_url = Cloudinary::Utils.cloudinary_url("signed_url_test_tag", type: "multi", sign_url: true)
-    lambda{RestClient.get(url)}.should raise_exception{|e| e.response.code.should == 401}
-    RestClient.get(signed_url){|response, request, result| response.code.should == 200}
+    options = {version: 1234, transformation: {crop: "crop", width: 10, height: 20}, sign_url: true}
+    expected = "http://res.cloudinary.com/test123/image/upload/s--MaRXzoEC--/c_crop,h_20,w_10/v1234/image.jpg"
+    actual = Cloudinary::Utils.cloudinary_url("image.jpg", options)
+    actual.should == expected
+    
+    options = {version: 1234, sign_url: true}
+    expected = "http://res.cloudinary.com/test123/image/upload/s--ZlgFLQcO--/v1234/image.jpg"
+    actual = Cloudinary::Utils.cloudinary_url("image.jpg", options)
+    actual.should == expected
+    
+    options = {transformation: {crop: "crop", width: 10, height: 20}, sign_url: true}
+    expected = "http://res.cloudinary.com/test123/image/upload/s--Ai4Znfl3--/c_crop,h_20,w_10/image.jpg"
+    actual = Cloudinary::Utils.cloudinary_url("image.jpg", options)
+    actual.should == expected
+    
+    expected = "http://res.cloudinary.com/test123/image/fetch/s--_GAUclyB--/v1234/http://google.com/path/to/image.png"
+    actual = Cloudinary::Utils.cloudinary_url("http://google.com/path/to/image.png", type: "fetch", version: 1234, sign_url: true)
+    actual.should == expected    
   end
 end

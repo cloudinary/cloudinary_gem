@@ -1,3 +1,11 @@
+= Version 1.0.67 - 2014-01-09
+  * Support specifying face coordinates in upload API.
+  * Support specifying context (currently alt and caption) in upload API and returning context in API.  
+  * Support specifying allowed image formats in upload API.
+  * Support listing resources in admin API by multiple public IDs.
+  * Send User-Agent header with client library version in API request.  
+  * Support for signed-URLs to override restricted dynamic URLs.    
+
 = Version 1.0.66 - 2013-11-14
   * Support overwrite flag in upload
   * Support tags flag in resources_by_tag

@@ -101,7 +101,7 @@ class Cloudinary::Uploader
         :callback=> options[:callback],
         :eager=>build_eager(options[:eager]),
         :headers=>build_custom_headers(options[:headers]),
-        :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")  ,
+        :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
         :face_coordinates => options[:face_coordinates] && Cloudinary::Utils.encode_double_array(options[:face_coordinates])  
       }
     end              
