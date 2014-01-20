@@ -36,13 +36,13 @@ class Cloudinary::Api
     type = options[:type]
     uri = "resources/#{resource_type}"
     uri += "/#{type}" if !type.blank?
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context), options)    
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context, :direction), options)    
   end
   
   def self.resources_by_tag(tag, options={})
     resource_type = options[:resource_type] || "image"
     uri = "resources/#{resource_type}/tags/#{tag}"
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context), options)    
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :direction), options)    
   end
   
   def self.resources_by_ids(public_ids, options={})

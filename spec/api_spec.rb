@@ -64,6 +64,19 @@ describe Cloudinary::Api do
     resources.map{|resource| resource["tags"]}.should include(["api_test_tag"])
     resources.map{|resource| resource["context"]}.should include({"custom" => {"key" => "value"}})
   end
+  
+  it "should allow listing resources in both directions" do
+    asc_resources = @api.resources(:type=>"upload", :prefix=>"api_test", :direction => "asc")["resources"]
+    desc_resources = @api.resources(:type=>"upload", :prefix=>"api_test", :direction => "desc")["resources"]
+    # NOTE: this assumes the full list fits in a page which is the case unless resources with 'api_test' prefix were
+    # uploaded to the account against which this test runs
+    asc_resources.reverse.should == desc_resources
+    asc_resources_alt = @api.resources(:type=>"upload", :prefix=>"api_test", :direction => 1)["resources"]
+    desc_resources_alt = @api.resources(:type=>"upload", :prefix=>"api_test", :direction => -1)["resources"]
+    asc_resources_alt.reverse.should == desc_resources_alt
+    asc_resources.should == asc_resources_alt
+    lambda{@api.resources(:type=>"upload", :prefix=>"api_test", :direction => "anythingelse")["resources"]}.should raise_error(Cloudinary::Api::BadRequest)
+  end
 
   it "should allow get resource metadata" do
     resource = @api.resource("api_test")
