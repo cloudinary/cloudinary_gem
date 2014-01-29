@@ -1,6 +1,10 @@
 require 'digest/md5'
 module CloudinaryHelper
-  include ActionView::Helpers::AssetTagHelper  
+  if asset_pipeline?
+    include Sprockets::Helpers::RailsHelper
+  else
+    include ActionView::Helpers::AssetTagHelper
+  end
   alias :original_image_tag :image_tag
   alias :original_image_path :image_path
       
