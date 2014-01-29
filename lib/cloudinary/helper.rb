@@ -1,6 +1,6 @@
 require 'digest/md5'
 module CloudinaryHelper
-  if Rails.application.config.assets.enabled
+  if asset_pipeline?
     include Sprockets::Helpers::RailsHelper
   else
     include ActionView::Helpers::AssetTagHelper
