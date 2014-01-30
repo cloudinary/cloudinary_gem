@@ -1,9 +1,5 @@
 require 'digest/md5'
 module CloudinaryHelper
-  include ActionView::Helpers::AssetTagHelper  
-  alias :original_image_tag :image_tag
-  alias :original_image_path :image_path
-      
   # Stand-in for Rails image_tag helper that accepts various options for transformations.
   #
   # source:: the public ID, possibly with a file type extension.  If there is no extension, the 
@@ -34,32 +30,24 @@ module CloudinaryHelper
     options[:size] = options.delete(:html_size) if options.include?(:html_size)
     options[:border] = options.delete(:html_border) if options.include?(:html_border)
 
-    original_image_tag(source, options)
+    image_tag_without_cloudinary(source, options)
   end
 
   # Works similarly to cl_image_tag, however just generates the URL of the image
   def cl_image_path(source, options = {})
     options = options.clone
     url = cloudinary_url_internal(source, options)
-    original_image_path(url)    
+    image_path_without_cloudinary(url)    
   end
     
-  def image_tag(*args)
-    if Cloudinary.config.enhance_image_tag
-      source, options = args
-      cl_image_tag(source, {:type=>:asset}.merge(options || {}))
-    else
-      original_image_tag(*args)
-    end
+  def image_tag_with_cloudinary(*args)
+    source, options = args
+    cl_image_tag(source, {:type=>:asset}.merge(options || {}))
   end
 
-  def image_path(*args)
-    if Cloudinary.config.enhance_image_tag
-      source, options = args
-      cl_image_path(source, {:type=>:asset}.merge(options || {}))
-    else
-      original_image_path(*args)
-    end
+  def image_path_with_cloudinary(*args)
+    source, options = args
+    cl_image_path(source, {:type=>:asset}.merge(options || {}))
   end
 
   def fetch_image_tag(profile, options = {})    
@@ -206,6 +194,15 @@ module CloudinaryHelper
   
   def self.included(base)
     ActionView::Helpers::FormBuilder.send(:include, Cloudinary::FormBuilder)
+    base.class_eval do
+      if Cloudinary.config.enhance_image_tag
+        alias_method_chain :image_tag, :cloudinary
+        alias_method_chain :image_path, :cloudinary
+      else
+        alias_method :image_tag_without_cloudinary, :image_tag
+        alias_method :image_path_without_cloudinary, :image_path
+      end
+    end
   end
   
   private
@@ -259,7 +256,10 @@ if defined? ActionView::Helpers::AssetUrlHelper
   end
 end
 
-ActionView::Base.send :include, CloudinaryHelper
+if defined?(Rails) && Rails.version.start_with?("2")
+  ActionView::Base.send :include, ActionView::Helpers::AssetTagHelper
+  ActionView::Base.send :include, CloudinaryHelper
+end
 
 begin
   require 'sass-rails'

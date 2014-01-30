@@ -1,2 +1,2 @@
-class Cloudinary::Engine < Rails::Engine 
+class Cloudinary::Engine < Rails::Engine
 end
