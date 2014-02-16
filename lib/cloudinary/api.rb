@@ -49,7 +49,7 @@ class Cloudinary::Api
     resource_type = options[:resource_type] || "image"
     type = options[:type] || "upload"
     uri = "resources/#{resource_type}/#{type}"
-    call_api(:get, uri, only(options, :tags, :context).merge(public_ids: public_ids), options)
+    call_api(:get, uri, only(options, :tags, :context).merge(:public_ids => public_ids), options)
   end
   
   def self.resource(public_id, options={})
