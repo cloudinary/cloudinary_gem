@@ -1,3 +1,8 @@
+= Version 1.0.68 - 2014-02-16
+  * Support for uploading large raw files.
+  * Correct support for image_tag and image_path override.
+  * Add direction support to Admin API listings.
+
 = Version 1.0.67 - 2014-01-09
   * Support specifying face coordinates in upload API.
   * Support specifying context (currently alt and caption) in upload API and returning context in API.  
