@@ -83,11 +83,14 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
       else
         uploader.model.set(column, name)
       end
+    elsif defined?(Sequel::Model) && uploader.model.is_a?(Sequel::Model)
+      # Sequel support
+      uploader.model.this.update(column => name)
     elsif model_class.respond_to?(:update_all) && uploader.model.respond_to?(:_id)
       model_class.where(:_id=>uploader.model._id).update_all(column=>name)
       uploader.model.send :write_attribute, column, name
     else
-      raise CloudinaryException, "Only ActiveRecord and Mongoid are supported at the moment!"
+      raise CloudinaryException, "Only ActiveRecord, Mongoid and Sequel are supported at the moment!"
     end
   end
 end
