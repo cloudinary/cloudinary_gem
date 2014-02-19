@@ -64,6 +64,11 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     store_cloudinary_identifier(version, filename)
   end
 
+  # Updates the model mounter identifier with version information.
+  #
+  # Carrierwave uses hooks when integrating with ORMs so it's important to
+  # update the identifier in a way that does not trigger hooks again or else
+  # you'll get stuck in a loop.
   def store_cloudinary_identifier(version, filename)
     name = "v#{version}/#{filename}"
     model_class = uploader.model.class
