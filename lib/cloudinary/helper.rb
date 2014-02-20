@@ -195,6 +195,9 @@ module CloudinaryHelper
   def self.included(base)
     ActionView::Helpers::FormBuilder.send(:include, Cloudinary::FormBuilder)
     base.class_eval do
+      if !method_defined?(:image_tag)
+        include ActionView::Helpers::AssetTagHelper
+      end
       if defined?(Rails) && !Rails.version.start_with?("2") && Cloudinary.config.enhance_image_tag
         alias_method_chain :image_tag, :cloudinary
         alias_method_chain :image_path, :cloudinary
