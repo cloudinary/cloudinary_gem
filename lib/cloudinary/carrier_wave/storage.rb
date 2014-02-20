@@ -64,6 +64,11 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     store_cloudinary_identifier(version, filename)
   end
 
+  # Updates the model mounter identifier with version information.
+  #
+  # Carrierwave uses hooks when integrating with ORMs so it's important to
+  # update the identifier in a way that does not trigger hooks again or else
+  # you'll get stuck in a loop.
   def store_cloudinary_identifier(version, filename)
     name = "v#{version}/#{filename}"
     model_class = uploader.model.class
@@ -83,11 +88,14 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
       else
         uploader.model.set(column, name)
       end
+    elsif defined?(Sequel::Model) && uploader.model.is_a?(Sequel::Model)
+      # Sequel support
+      uploader.model.this.update(column => name)
     elsif model_class.respond_to?(:update_all) && uploader.model.respond_to?(:_id)
       model_class.where(:_id=>uploader.model._id).update_all(column=>name)
       uploader.model.send :write_attribute, column, name
     else
-      raise CloudinaryException, "Only ActiveRecord and Mongoid are supported at the moment!"
+      raise CloudinaryException, "Only ActiveRecord, Mongoid and Sequel are supported at the moment!"
     end
   end
 end
