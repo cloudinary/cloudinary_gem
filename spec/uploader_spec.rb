@@ -133,4 +133,9 @@ describe Cloudinary::Uploader do
   it "should support requesting auto_tagging" do
     lambda{Cloudinary::Uploader.upload("spec/logo.png", {:auto_tagging => 0.5})}.should raise_error(CloudinaryException, /Must use/)
   end
+
+  it "should support upload_large" do
+    result = Cloudinary::Uploader.upload_large("spec/logo.png")
+    result["public_id"].should match(/^[a-z0-9]+.png$/)
+  end
 end

@@ -67,16 +67,21 @@ class Cloudinary::Uploader
   end
 
   # Upload large raw files. Note that public_id should include an extension for best results.
-  def self.upload_large(file, public_id, options={})
+  def self.upload_large(file, options={})
     if file.is_a?(Pathname) || !file.respond_to?(:read)
+      filename = file
       file = File.open(file, "rb")
+    else
+      filename = "cloudinaryfile"
     end
     upload = upload_id = nil
     index = 1
+    public_id = options[:public_id]
     while !file.eof?
       buffer = file.read(20_000_000)
-      upload = upload_large_part(Cloudinary::Blob.new(buffer), public_id, options.merge(:upload_id=>upload_id, :part_number=>index, :final=>file.eof?))
-      upload_id = upload["upload_id"]      
+      upload = upload_large_part(Cloudinary::Blob.new(buffer, :original_filename=>filename), options.merge(:public_id=>public_id, :upload_id=>upload_id, :part_number=>index, :final=>file.eof?))
+      upload_id = upload["upload_id"]
+      public_id = upload["public_id"]      
       index += 1
     end
     upload
@@ -84,12 +89,12 @@ class Cloudinary::Uploader
     
 
   # Upload large raw files. Note that public_id should include an extension for best results.
-  def self.upload_large_part(file, public_id, options={})
+  def self.upload_large_part(file, options={})
     call_api("upload_large", options.merge(:resource_type=>:raw)) do    
       params = {
         :timestamp=>Time.now.to_i,
         :type=>options[:type],
-        :public_id=> public_id,
+        :public_id=>options[:public_id],
         :backup=>options[:backup],
         :final=>options[:final],
         :part_number=>options[:part_number],
@@ -103,7 +108,7 @@ class Cloudinary::Uploader
       [params, [:file]]
     end              
   end
-  
+
   def self.destroy(public_id, options={})
     call_api("destroy", options) do    
       {
