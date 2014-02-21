@@ -64,6 +64,7 @@ class Cloudinary::Migrator
     rescue SQLite3::BusyException
       if retries < 3
         retries +=1
+        puts "SQLite ERROR: database busy/locked -- retrying"
         sleep 1
         retry
       end
@@ -79,6 +80,7 @@ class Cloudinary::Migrator
     rescue SQLite3::BusyException
       if retries < 3
         retries +=1
+        puts "SQLite ERROR: database busy/locked -- retrying"
         sleep 1
         retry
       end
@@ -94,6 +96,7 @@ class Cloudinary::Migrator
     rescue SQLite3::BusyException
       if retries < 3
         retries +=1
+        puts "SQLite ERROR: database busy/locked -- retrying"
         sleep 1
         retry
       end
@@ -109,6 +112,7 @@ class Cloudinary::Migrator
     rescue SQLite3::BusyException
       if retries < 3
         retries +=1
+        puts "SQLite ERROR: database busy/locked -- retrying"
         sleep 1
         retry
       end
@@ -205,6 +209,7 @@ class Cloudinary::Migrator
     rescue SQLite3::BusyException
       if retries < 3
         retries +=1
+        puts "SQLite ERROR: database busy/locked -- retrying"
         sleep 1
         retry
       end
@@ -220,6 +225,7 @@ class Cloudinary::Migrator
     rescue SQLite3::BusyException
       if retries < 3
         retries +=1
+        puts "SQLite ERROR: database busy/locked -- retrying"
         sleep 1
         retry
       end
@@ -236,6 +242,7 @@ class Cloudinary::Migrator
     rescue SQLite3::BusyException
       if retries < 3
         retries +=1
+        puts "SQLite ERROR: database busy/locked -- retrying"
         sleep 1
         retry
       end
@@ -255,6 +262,7 @@ class Cloudinary::Migrator
     rescue SQLite3::BusyException
       if retries < 3
         retries +=1
+        puts "SQLite ERROR: database busy/locked -- retrying"
         sleep 1
         retry
       end
@@ -362,6 +370,7 @@ class Cloudinary::Migrator
           rescue => e
             $stderr.print "Thread #{i} - Error in processing row #{row.inspect} - #{e}\n"
             debug(e.backtrace.join("\n"))
+            puts "SQLite ERROR: database busy/locked -- retrying"
             sleep 1
           ensure
             main.mutex.synchronize{main.in_process -= 1}
