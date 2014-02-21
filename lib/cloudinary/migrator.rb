@@ -6,32 +6,33 @@ class Cloudinary::Migrator
   attr_reader :db
   attr_reader :work, :results, :mutex
   attr_reader :extra_options
-  
-  
+
+
   @@init = false
   def self.init
     return if @@init
     @@init = true
 
-    begin 
+    begin
       require 'sqlite3'
     rescue LoadError
-      raise "Please add sqlite3 to your Gemfile"    
+      raise "Please add sqlite3 to your Gemfile"
     end
     require 'tempfile'
   end
-  
+
   def json_decode(str)
     Cloudinary::Utils.json_decode(str)
   end
-    
+
   def initialize(options={})
     self.class.init
-    
-    options[:db_file] = "tmp/migration#{$$}.db" if options[:private_database] && !options[:db_file] 
+
+    options[:db_file] = "tmp/migration#{$$}.db" if options[:private_database] && !options[:db_file]
     @dbfile = options[:db_file] || "tmp/migration.db"
     FileUtils.mkdir_p(File.dirname(@dbfile))
     @db = SQLite3::Database.new @dbfile, :results_as_hash=>true
+    @db.busy_timeout(250)
     @retrieve = options[:retrieve]
     @complete = options[:complete]
     @debug = options[:debug] || false
@@ -45,39 +46,79 @@ class Cloudinary::Migrator
     @work = Queue.new
     @results = Queue.new
     @mutex = Mutex.new
-    @db.execute "
-      create table if not exists queue (
-        id integer primary key,
-        internal_id integer,
-        public_id text,
-        url text,
-        metadata text,
-        result string,
-        status text,
-        updated_at integer
-      )
-    "
-    @db.execute "
-      create index if not exists status_idx on queue (
-        status
-      )
-    "
-    @db.execute "
-      create unique index if not exists internal_id_idx on queue (
-        internal_id
-      )
-    "
-    @db.execute "
-      create unique index if not exists public_id_idx on queue (
-        public_id
-      )
-    "
+
+    retries = 0
+    begin
+      @db.execute "
+        create table if not exists queue (
+          id integer primary key,
+          internal_id integer,
+          public_id text,
+          url text,
+          metadata text,
+          result string,
+          status text,
+          updated_at integer
+        )
+      "
+    rescue SQLite3::BusyException
+      if retries < 3
+        retries +=1
+        sleep 1
+        retry
+      end
+    end
+
+    retries = 0
+    begin
+      @db.execute "
+        create index if not exists status_idx on queue (
+          status
+        )
+      "
+    rescue SQLite3::BusyException
+      if retries < 3
+        retries +=1
+        sleep 1
+        retry
+      end
+    end
+
+    retries = 0
+    begin
+      @db.execute "
+        create unique index if not exists internal_id_idx on queue (
+          internal_id
+        )
+      "
+    rescue SQLite3::BusyException
+      if retries < 3
+        retries +=1
+        sleep 1
+        retry
+      end
+    end
+
+    retries = 0
+    begin
+      @db.execute "
+        create unique index if not exists public_id_idx on queue (
+          public_id
+        )
+      "
+    rescue SQLite3::BusyException
+      if retries < 3
+        retries +=1
+        sleep 1
+        retry
+      end
+    end
 
     if options[:reset_queue]
       @db.execute("delete from queue")
     end
   end
-    
+
   def register_retrieve(&block)
     @retrieve = block
   end
@@ -85,26 +126,26 @@ class Cloudinary::Migrator
   def register_complete(&block)
     @complete = block
   end
-  
-  def process(options={})    
+
+  def process(options={})
     raise CloudinaryException, "url not given and no retieve callback given" if options[:url].nil? && self.retrieve.nil?
     raise CloudinaryException, "id not given and retieve or complete callback given" if options[:id].nil? && (!self.retrieve.nil? || !self.complete.nil?)
 
     debug("Process: #{options.inspect}")
     start
-    process_results    
+    process_results
     wait_for_queue
     options = options.dup
     id = options.delete(:id)
     url = options.delete(:url)
     public_id = options.delete(:public_id)
     row = {
-      "internal_id"=>id, 
-      "url"=>url, 
-      "public_id"=>public_id, 
+      "internal_id"=>id,
+      "url"=>url,
+      "public_id"=>public_id,
       "metadata"=>options.to_json,
-      "status"=>"processing"      
-    }    
+      "status"=>"processing"
+    }
     begin
       insert_row(row)
       add_to_work_queue(row)
@@ -112,7 +153,7 @@ class Cloudinary::Migrator
       raise if !@ignore_duplicates
     end
   end
-      
+
   def done
     start
     process_all_pending
@@ -122,86 +163,122 @@ class Cloudinary::Migrator
     @db.close
     File.delete(@dbfile) if @delete_after_done
   end
-  
+
   def max_given_id
     db.get_first_value("select max(internal_id) from queue").to_i
   end
-  
+
   def close_if_needed(file)
     if file.nil?
       # Do nothing.
-    elsif file.respond_to?(:close!) 
-      file.close! 
+    elsif file.respond_to?(:close!)
+      file.close!
     elsif file.respond_to?(:close)
       file.close
     end
   rescue
     # Ignore errors in closing files
-  end  
+  end
 
-  def temporary_file(data, filename)  
+  def temporary_file(data, filename)
     file = RUBY_VERSION == "1.8.7" ? Tempfile.new('cloudinary') : Tempfile.new('cloudinary', :encoding => 'ascii-8bit')
     file.unlink
     file.write(data)
     file.rewind
-    # Tempfile return path == nil after unlink, which break rest-client              
+    # Tempfile return path == nil after unlink, which break rest-client
     class << file
       attr_accessor :original_filename
       def content_type
-        "application/octet-stream"                  
+        "application/octet-stream"
       end
     end
     file.original_filename = filename
-    file                  
+    file
   end
 
   private
 
   def update_all(values)
-    @db.execute("update queue set #{values.keys.map{|key| "#{key}=?"}.join(",")}", *values.values)
+    retries = 0
+    begin
+      @db.execute("update queue set #{values.keys.map{|key| "#{key}=?"}.join(",")}", *values.values)
+    rescue SQLite3::BusyException
+      if retries < 3
+        retries +=1
+        sleep 1
+        retry
+      end
+    end
   end
-  
-  def update_row(row, values)    
+
+  def update_row(row, values)
     values.merge!("updated_at"=>Time.now.to_i)
     query = ["update queue set #{values.keys.map{|key| "#{key}=?"}.join(",")} where id=?"] + values.values + [row["id"]]
-    result = @db.execute(*query)
+    retries = 0
+    begin
+      result = @db.execute(*query)
+    rescue SQLite3::BusyException
+      if retries < 3
+        retries +=1
+        sleep 1
+        retry
+      end
+    end
     values.each{|key, value| row[key.to_s] = value}
-    row    
+    row
   end
-  
+
   def insert_row(values)
     values.merge!("updated_at"=>Time.now.to_i)
-    @db.execute("insert into queue (#{values.keys.join(",")}) values (#{values.keys.map{"?"}.join(",")})", *values.values)
+    retries = 0
+    begin
+      @db.execute("insert into queue (#{values.keys.join(",")}) values (#{values.keys.map{"?"}.join(",")})", *values.values)
+    rescue SQLite3::BusyException
+      if retries < 3
+        retries +=1
+        sleep 1
+        retry
+      end
+    end
     values["id"] = @db.last_insert_row_id
   end
-  
+
   def refill_queue(last_id)
-    @db.execute("select * from queue where status in ('error', 'processing') and id > ? limit ?", last_id, 10000) do
-      |row|
-      last_id = row["id"] if row["id"] > last_id
-      wait_for_queue
-      add_to_work_queue(row)
+    retries = 0
+    begin
+      @db.execute("select * from queue where status in ('error', 'processing') and id > ? limit ?", last_id, 10000) do
+        |row|
+        last_id = row["id"] if row["id"] > last_id
+        wait_for_queue
+        add_to_work_queue(row)
+      end
+    rescue SQLite3::BusyException
+      if retries < 3
+        retries +=1
+        sleep 1
+        retry
+      end
     end
     last_id
-  end 
+  end
 
   def process_results
     while self.results.length > 0
       row = self.results.pop
-      result = json_decode(row["result"])      
+      result = json_decode(row["result"])
       debug("Done ID=#{row['internal_id']}, result=#{result.inspect}")
-      complete.call(row["internal_id"], result) if complete 
-      if result["error"]        
+      complete.call(row["internal_id"], result) if complete
+      if result["error"]
         status = case result["error"]["http_code"]
         when 400, 404 then "fatal" # Problematic request. Not a server problem.
         else "error"
         end
       else
         status = "completed"
-      end       
+      end
       updates = {:status=>status, :result=>row["result"]}
       updates["public_id"] = result["public_id"] if result["public_id"] && !row["public_id"]
-      begin 
+      begin
         update_row(row, updates)
       rescue SQLite3::ConstraintException
         updates = {:status=>"error", :result=>{:error=>{:message=>"public_id already exists"}}.to_json}
@@ -219,16 +296,16 @@ class Cloudinary::Migrator
       raise if retry_count > tries
       sleep rand * 3
       retry
-    end  
+    end
   end
-  
+
   def start
     return if @started
     @started = true
     @terminate = false
-    
+
     self.work.clear
-    
+
     main = self
     Thread.abort_on_exception = true
     1.upto(@threads) do
@@ -251,8 +328,8 @@ class Cloudinary::Migrator
               elsif defined?(Cloudinary::CarrierWave) && data.is_a?(Cloudinary::CarrierWave)
                 cw = true
                 begin
-                  data.model.save! 
-                rescue Cloudinary::CarrierWave::UploadError 
+                  data.model.save!
+                rescue Cloudinary::CarrierWave::UploadError
                   # upload errors will be handled by the result values.
                 end
                 result = data.metadata
@@ -264,22 +341,22 @@ class Cloudinary::Migrator
               elsif data.match(/^https?:/)
                 url = data
               else
-                file = main.temporary_file(data, row["public_id"] || "cloudinaryfile") 
+                file = main.temporary_file(data, row["public_id"] || "cloudinaryfile")
               end
             end
-            
+
             if url || file
               options = main.extra_options.merge(:public_id=>row["public_id"])
               json_decode(row["metadata"]).each do
                 |key, value|
                 options[key.to_sym] = value
               end
-                          
+
               result = Cloudinary::Uploader.upload(url || file, options.merge(:return_error=>true)) || ({:error=>{:message=>"Received nil from uploader!"}})
             elsif cw
               result ||= {"status" => "saved"}
             else
-              result = {"error" => {"message" => "Empty data and url", "http_code"=>404}} 
+              result = {"error" => {"message" => "Empty data and url", "http_code"=>404}}
             end
             main.results << {"id"=>row["id"], "internal_id"=>row["internal_id"], "result"=>result.to_json}
           rescue => e
@@ -289,14 +366,14 @@ class Cloudinary::Migrator
           ensure
             main.mutex.synchronize{main.in_process -= 1}
             main.close_if_needed(file)
-          end          
+          end
         end
       end
-    end 
-    
+    end
+
     retry_previous_queue # Retry all work from previous iteration before we start processing this one.
   end
-  
+
   def debug(message)
     if @debug
       $stderr.print "#{Time.now} Cloudinary::Migrator #{message}\n"
@@ -308,60 +385,60 @@ class Cloudinary::Migrator
     begin
       prev_last_id, last_id = last_id, refill_queue(last_id)
     end while last_id > prev_last_id
-    process_results    
+    process_results
   end
-  
+
   def process_all_pending
     # Waiting for work to finish. While we are at it, process results.
-    while self.in_process > 0      
+    while self.in_process > 0
       process_results
       sleep 0.1
     end
     # Make sure we processed all the results
     process_results
   end
-  
+
   def add_to_work_queue(row)
     self.work << row
     mutex.synchronize{self.in_process += 1}
   end
-  
+
   def wait_for_queue
     # Waiting f
     while self.work.length > @max_processing
-      process_results    
+      process_results
       sleep 0.1
-    end    
+    end
   end
 
-  def self.sample        
+  def self.sample
     migrator = Cloudinary::Migrator.new(
-      :retrieve=>proc{|id| Post.find(id).data}, 
+      :retrieve=>proc{|id| Post.find(id).data},
       :complete=>proc{|id, result| a}
       )
-    
+
     Post.find_each(:conditions=>["id > ?", migrator.max_given_id], :select=>"id") do
       |post|
       migrator.process(:id=>post.id, :public_id=>"post_#{post.id}")
     end
     migrator.done
-  end 
-    
-  def self.test  
+  end
+
+  def self.test
     posts = {}
-    done = {}      
+    done = {}
     migrator = Cloudinary::Migrator.new(
-      :retrieve=>proc{|id| posts[id]}, 
+      :retrieve=>proc{|id| posts[id]},
       :complete=>proc{|id, result| $stderr.print "done #{id} #{result}\n"; done[id] = result}
       )
     start = migrator.max_given_id + 1
     (start..1000).each{|i| posts[i] = "hello#{i}"}
-    
+
     posts.each do
       |id, data|
       migrator.process(:id=>id, :public_id=>"post_#{id}")
     end
     migrator.done
     pp [done.length, start]
-  end        
+  end
 end
