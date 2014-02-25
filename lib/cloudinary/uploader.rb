@@ -38,10 +38,17 @@ class Cloudinary::Uploader
               :eager_async=>Cloudinary::Utils.as_safe_bool(options[:eager_async]),
               :proxy=>options[:proxy],
               :folder=>options[:folder],
-              :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
               :allowed_formats =>  Cloudinary::Utils.build_array(options[:allowed_formats]).join(","),
+              :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
               :context => Cloudinary::Utils.encode_hash(options[:context]),
-              :face_coordinates => Cloudinary::Utils.encode_double_array(options[:face_coordinates])}    
+              :face_coordinates => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
+              :moderation => options[:moderation],
+              :raw_convert => options[:raw_convert],
+              :ocr => options[:ocr],
+              :categorization => options[:categorization],
+              :detection => options[:detection],
+              :similarity_search => options[:similarity_search],
+              :auto_tagging => options[:auto_tagging] && options[:auto_tagging].to_f}    
     params    
   end
    
@@ -96,7 +103,7 @@ class Cloudinary::Uploader
       [params, [:file]]
     end              
   end
-
+  
   def self.destroy(public_id, options={})
     call_api("destroy", options) do    
       {

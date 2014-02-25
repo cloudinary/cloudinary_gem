@@ -70,34 +70,34 @@ describe Cloudinary::Uploader do
   end
   
   it "should correctly handle unique_filename" do
-    result = Cloudinary::Uploader.upload("spec/logo.png", use_filename: true)
+    result = Cloudinary::Uploader.upload("spec/logo.png", :use_filename => true)
     result["public_id"].should match(/logo_[a-zA-Z0-9]{6}/)
-    result = Cloudinary::Uploader.upload("spec/logo.png", use_filename: true, unique_filename: false)
+    result = Cloudinary::Uploader.upload("spec/logo.png", :use_filename => true, :unique_filename => false)
     result["public_id"].should  == "logo"
   end
   
   it "should allow whitelisted formats if allowed_formats", :allowed=>true do
-    result = Cloudinary::Uploader.upload("spec/logo.png", allowed_formats: ["png"])
+    result = Cloudinary::Uploader.upload("spec/logo.png", :allowed_formats => ["png"])
     result["format"].should == "png"
   end
   
   it "should prevent non whitelisted formats from being uploaded if allowed_formats is specified", :allowed=>true do
-    lambda{Cloudinary::Uploader.upload("spec/logo.png", allowed_formats: ["jpg"])}.should raise_error
+    lambda{Cloudinary::Uploader.upload("spec/logo.png", :allowed_formats => ["jpg"])}.should raise_error
   end
   
   it "should allow non whitelisted formats if type is specified and convert to that type", :allowed=>true do
-    result = Cloudinary::Uploader.upload("spec/logo.png", allowed_formats: ["jpg"], format: "jpg")
+    result = Cloudinary::Uploader.upload("spec/logo.png", :allowed_formats => ["jpg"], :format => "jpg")
     result["format"].should == "jpg"
   end
   
   it "should allow sending face coordinates" do
     coordinates = [[120, 30, 109, 150], [121, 31, 110, 151]]
-    result = Cloudinary::Uploader.upload("spec/logo.png", {face_coordinates: coordinates, faces: true})
+    result = Cloudinary::Uploader.upload("spec/logo.png", {:face_coordinates => coordinates, :faces => true})
     result["faces"].should == coordinates
 
     different_coordinates = [[122, 32, 111, 152]]
-    Cloudinary::Uploader.explicit(result["public_id"], {face_coordinates: different_coordinates, faces: true, type: "upload"})
-    info = Cloudinary::Api.resource(result["public_id"], {faces: true})
+    Cloudinary::Uploader.explicit(result["public_id"], {:face_coordinates => different_coordinates, :faces => true, :type => "upload"})
+    info = Cloudinary::Api.resource(result["public_id"], {:faces => true})
     info["faces"].should == different_coordinates
   end
   
@@ -106,5 +106,31 @@ describe Cloudinary::Uploader do
     result = Cloudinary::Uploader.upload("spec/logo.png", {:context => context})
     info = Cloudinary::Api.resource(result["public_id"], {:context => true})
     info["context"].should == {"custom" => context}
+  end
+  
+  it "should support requesting manual moderation" do
+    result = Cloudinary::Uploader.upload("spec/logo.png", {:moderation => :manual})
+    result["moderation"][0]["status"].should == "pending"
+    result["moderation"][0]["kind"].should == "manual"
+  end
+  
+  it "should support requesting ocr info" do
+    lambda{Cloudinary::Uploader.upload("spec/logo.png", {:ocr => :illegal})}.should raise_error(CloudinaryException, /Illegal value/)
+  end
+  
+  it "should support requesting raw conversion" do
+    lambda{Cloudinary::Uploader.upload("spec/docx.docx", {:resource_type => :raw, :raw_convert => :illegal})}.should raise_error(CloudinaryException, /Illegal value/)
+  end
+  
+  it "should support requesting categorization" do
+    lambda{Cloudinary::Uploader.upload("spec/logo.png", {:categorization => :illegal})}.should raise_error(CloudinaryException, /Illegal value/)
+  end
+  
+  it "should support requesting detection" do
+    lambda{Cloudinary::Uploader.upload("spec/logo.png", {:detection => :illegal})}.should raise_error(CloudinaryException, /Illegal value/)
+  end
+  
+  it "should support requesting auto_tagging" do
+    lambda{Cloudinary::Uploader.upload("spec/logo.png", {:auto_tagging => 0.5})}.should raise_error(CloudinaryException, /Must use/)
   end
 end

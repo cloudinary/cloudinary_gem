@@ -36,20 +36,26 @@ class Cloudinary::Api
     type = options[:type]
     uri = "resources/#{resource_type}"
     uri += "/#{type}" if !type.blank?
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context, :direction), options)    
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context, :moderations, :direction), options)    
   end
   
   def self.resources_by_tag(tag, options={})
     resource_type = options[:resource_type] || "image"
     uri = "resources/#{resource_type}/tags/#{tag}"
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :direction), options)    
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction), options)    
+  end
+  
+  def self.resources_by_moderation(kind, status, options={})
+    resource_type = options[:resource_type] || "image"
+    uri = "resources/#{resource_type}/moderations/#{kind}/#{status}"
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction), options)    
   end
   
   def self.resources_by_ids(public_ids, options={})
     resource_type = options[:resource_type] || "image"
     type = options[:type] || "upload"
     uri = "resources/#{resource_type}/#{type}"
-    call_api(:get, uri, only(options, :tags, :context).merge(:public_ids => public_ids), options)
+    call_api(:get, uri, only(options, :tags, :context, :moderations).merge(:public_ids => public_ids), options)
   end
   
   def self.resource(public_id, options={})
@@ -57,6 +63,25 @@ class Cloudinary::Api
     type = options[:type] || "upload"
     uri = "resources/#{resource_type}/#{type}/#{public_id}"
     call_api(:get, uri, only(options, :colors, :exif, :faces, :image_metadata, :pages, :max_results), options)      
+  end
+  
+  def self.update(public_id, options={})
+    resource_type = options[:resource_type] || "image"
+    type = options[:type] || "upload"
+    uri = "resources/#{resource_type}/#{type}/#{public_id}"
+    update_options = {
+      :tags => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
+      :context => Cloudinary::Utils.encode_hash(options[:context]),
+      :face_coordinates => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
+      :moderation_status => options[:moderation_status],
+      :raw_convert => options[:raw_convert],
+      :ocr => options[:ocr],
+      :categorization => options[:categorization],
+      :detection => options[:detection],
+      :similarity_search => options[:similarity_search],
+      :auto_tagging => options[:auto_tagging] && options[:auto_tagging].to_f
+    }
+    call_api(:post, uri, update_options, options)
   end
   
   def self.delete_resources(public_ids, options={})

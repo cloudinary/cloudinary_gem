@@ -441,23 +441,23 @@ describe Cloudinary::Utils do
   end
   
   it "should correctly sign URLs", :signed => true do
-    options = {version: 1234, transformation: {crop: "crop", width: 10, height: 20}, sign_url: true}
+    options = {:version => 1234, :transformation => {:crop => "crop", :width => 10, :height => 20}, :sign_url => true}
     expected = "http://res.cloudinary.com/test123/image/upload/s--MaRXzoEC--/c_crop,h_20,w_10/v1234/image.jpg"
     actual = Cloudinary::Utils.cloudinary_url("image.jpg", options)
     actual.should == expected
     
-    options = {version: 1234, sign_url: true}
+    options = {:version => 1234, :sign_url => true}
     expected = "http://res.cloudinary.com/test123/image/upload/s--ZlgFLQcO--/v1234/image.jpg"
     actual = Cloudinary::Utils.cloudinary_url("image.jpg", options)
     actual.should == expected
     
-    options = {transformation: {crop: "crop", width: 10, height: 20}, sign_url: true}
+    options = {:transformation => {:crop => "crop", :width => 10, :height => 20}, :sign_url => true}
     expected = "http://res.cloudinary.com/test123/image/upload/s--Ai4Znfl3--/c_crop,h_20,w_10/image.jpg"
     actual = Cloudinary::Utils.cloudinary_url("image.jpg", options)
     actual.should == expected
     
     expected = "http://res.cloudinary.com/test123/image/fetch/s--_GAUclyB--/v1234/http://google.com/path/to/image.png"
-    actual = Cloudinary::Utils.cloudinary_url("http://google.com/path/to/image.png", type: "fetch", version: 1234, sign_url: true)
+    actual = Cloudinary::Utils.cloudinary_url("http://google.com/path/to/image.png", :type => "fetch", :version => 1234, :sign_url => true)
     actual.should == expected    
   end
 end

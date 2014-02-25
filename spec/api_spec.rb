@@ -202,5 +202,59 @@ describe Cloudinary::Api do
     resource.should_not be_blank
     resource["derived"].length.should == 0
   end
+  
+  it "should support setting manual moderation status" do
+    result = Cloudinary::Uploader.upload("spec/logo.png", {:moderation => :manual})
+    result["moderation"][0]["status"].should == "pending"
+    result["moderation"][0]["kind"].should == "manual"
+    api_result = Cloudinary::Api.update(result["public_id"], {:moderation_status => :approved})
+    api_result["moderation"][0]["status"].should == "approved"
+    api_result["moderation"][0]["kind"].should == "manual"
+  end
+  
+  it "should support requesting ocr info" do
+    result = Cloudinary::Uploader.upload("spec/logo.png")
+    lambda{Cloudinary::Api.update(result["public_id"], {:ocr => :illegal})}.should raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
+  end
+  
+  it "should support requesting raw conversion" do
+    result = Cloudinary::Uploader.upload("spec/docx.docx", :resource_type => :raw)
+    lambda{Cloudinary::Api.update(result["public_id"], {:resource_type => :raw, :raw_convert => :illegal})}.should raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
+  end
+  
+  it "should support requesting categorization" do
+    result = Cloudinary::Uploader.upload("spec/logo.png")
+    lambda{Cloudinary::Api.update(result["public_id"], {:categorization => :illegal})}.should raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
+  end
+  
+  it "should support requesting detection" do
+    result = Cloudinary::Uploader.upload("spec/logo.png")
+    lambda{Cloudinary::Api.update(result["public_id"], {:detection => :illegal})}.should raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
+  end
+  
+  it "should support requesting ocr info" do
+    result = Cloudinary::Uploader.upload("spec/logo.png")
+    lambda{Cloudinary::Api.update(result["public_id"], {:auto_tagging => 0.5})}.should raise_error(Cloudinary::Api::BadRequest, /^Must use/)
+  end
+  
+  it "should support listing by moderation kind and value" do
+    result1 = Cloudinary::Uploader.upload("spec/logo.png", {:moderation => :manual})
+    result2 = Cloudinary::Uploader.upload("spec/logo.png", {:moderation => :manual})
+    result3 = Cloudinary::Uploader.upload("spec/logo.png", {:moderation => :manual})
+    Cloudinary::Api.update(result1["public_id"], {:moderation_status => :approved})
+    Cloudinary::Api.update(result2["public_id"], {:moderation_status => :rejected})
+    approved = Cloudinary::Api.resources_by_moderation(:manual, :approved, :max_results => 1000)["resources"].map{|r| r["public_id"]}
+    approved.should include(result1["public_id"])
+    approved.should_not include(result2["public_id"])
+    approved.should_not include(result3["public_id"])
+    rejected = Cloudinary::Api.resources_by_moderation(:manual, :rejected, :max_results => 1000)["resources"].map{|r| r["public_id"]}
+    rejected.should include(result2["public_id"])
+    rejected.should_not include(result1["public_id"])
+    rejected.should_not include(result3["public_id"])
+    pending = Cloudinary::Api.resources_by_moderation(:manual, :pending, :max_results => 1000)["resources"].map{|r| r["public_id"]}
+    pending.should include(result3["public_id"])
+    pending.should_not include(result1["public_id"])
+    pending.should_not include(result2["public_id"])
+  end
 
 end
