@@ -1,3 +1,12 @@
+= Version 1.0.69 - 2014-02-25
+  * Admin API update method.
+  * Admin API listing by moderation kind and status.
+  * Support moderation status in admin API listing.
+  * Support moderation flag in upload. 
+  * New upload and update API parameters: moderation, ocr, raw_conversion, categorization, detection, similarity_search and auto_tagging.
+  * Allow CloudinaryHelper to be included into standalone classes.
+  * Added support for Sequel models using CarrierWave.
+
 = Version 1.0.68 - 2014-02-16
   * Support for uploading large raw files.
   * Correct support for image_tag and image_path override.
