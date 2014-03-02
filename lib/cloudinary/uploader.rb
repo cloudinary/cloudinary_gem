@@ -67,7 +67,14 @@ class Cloudinary::Uploader
   end
 
   # Upload large raw files. Note that public_id should include an extension for best results.
-  def self.upload_large(file, options={})
+  def self.upload_large(file, public_id_or_options={}, old_options={})
+    if public_id_or_options.is_a?(Hash)
+      options = public_id_or_options
+      public_id = options[:public_id]
+    else
+      public_id = public_id_or_options
+      options = old_options
+    end 
     if file.is_a?(Pathname) || !file.respond_to?(:read)
       filename = file
       file = File.open(file, "rb")
@@ -76,7 +83,6 @@ class Cloudinary::Uploader
     end
     upload = upload_id = nil
     index = 1
-    public_id = options[:public_id]
     while !file.eof?
       buffer = file.read(20_000_000)
       upload = upload_large_part(Cloudinary::Blob.new(buffer, :original_filename=>filename), options.merge(:public_id=>public_id, :upload_id=>upload_id, :part_number=>index, :final=>file.eof?))
