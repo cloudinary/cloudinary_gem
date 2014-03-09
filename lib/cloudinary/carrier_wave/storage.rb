@@ -5,7 +5,7 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     if uploader.is_main_uploader?
       case file
       when Cloudinary::CarrierWave::PreloadedCloudinaryFile
-        storage_type = uploader.class.storage_type || "upload"
+        storage_type = uploader.class.storage_type.to_s || "upload"
         raise CloudinaryException, "Uploader configured for type #{storage_type} but resource of type #{file.type} given." if storage_type != file.type
         if uploader.public_id && uploader.auto_rename_preloaded?
           @stored_version = file.version
