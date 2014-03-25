@@ -1,3 +1,10 @@
+= Version 1.0.70 - 2014-03-25
+  * Support upload_large without public_id. 
+  * Remove public_id from method parameters.
+  * Backward compatibility for old upload_large API.
+  * Issue #95 - exception when using storage_type :private
+  * Updating to jQuery plugin v1.0.13.
+
 = Version 1.0.69 - 2014-02-25
   * Admin API update method.
   * Admin API listing by moderation kind and status.
