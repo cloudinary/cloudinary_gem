@@ -30,11 +30,17 @@ module Cloudinary
   USER_AGENT = "cld-ruby-" + VERSION
     
   FORMAT_ALIASES = {
+    "gif" => "gif",
+    "jpg" => "jpg",
     "jpeg" => "jpg",
     "jpe" => "jpg",
+    "png" => "png",
     "tif" => "tiff",
+    "tif" => "tif",
+    "ps" => "ps",
     "ps" => "eps",
-    "ept" => "eps"
+    "ept" => "eps",
+    "eps" => "eps"
   }
   
   @@config = nil

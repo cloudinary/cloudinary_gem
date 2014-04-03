@@ -141,9 +141,9 @@ module Cloudinary::CarrierWave
     else
       # Try to auto-detect format
       format = Cloudinary::PreloadedFile.split_format(original_filename || "").last
-      format ||= "png" # TODO Default format? 
+      #format ||= "png" # TODO Default format? 
     end
     format = format.to_s.downcase
-    Cloudinary::FORMAT_ALIASES[format] || format
+    Cloudinary::FORMAT_ALIASES[format] || ''
   end
 end
