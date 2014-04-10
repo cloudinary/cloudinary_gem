@@ -113,21 +113,17 @@ describe Cloudinary::Uploader do
     result["moderation"][0]["status"].should == "pending"
     result["moderation"][0]["kind"].should == "manual"
   end
-  
-  it "should support requesting ocr info" do
-    lambda{Cloudinary::Uploader.upload("spec/logo.png", {:ocr => :illegal})}.should raise_error(CloudinaryException, /Illegal value/)
-  end
-  
+    
   it "should support requesting raw conversion" do
-    lambda{Cloudinary::Uploader.upload("spec/docx.docx", {:resource_type => :raw, :raw_convert => :illegal})}.should raise_error(CloudinaryException, /Illegal value/)
+    lambda{Cloudinary::Uploader.upload("spec/docx.docx", {:resource_type => :raw, :raw_convert => :illegal})}.should raise_error(CloudinaryException, /Illegal value|not a valid/)
   end
   
   it "should support requesting categorization" do
-    lambda{Cloudinary::Uploader.upload("spec/logo.png", {:categorization => :illegal})}.should raise_error(CloudinaryException, /Illegal value/)
+    lambda{Cloudinary::Uploader.upload("spec/logo.png", {:categorization => :illegal})}.should raise_error(CloudinaryException, /Illegal value|not a valid/)
   end
   
   it "should support requesting detection" do
-    lambda{Cloudinary::Uploader.upload("spec/logo.png", {:detection => :illegal})}.should raise_error(CloudinaryException, /Illegal value/)
+    lambda{Cloudinary::Uploader.upload("spec/logo.png", {:detection => :illegal})}.should raise_error(CloudinaryException, /Illegal value|not a valid/)
   end
   
   it "should support requesting auto_tagging" do
@@ -137,5 +133,12 @@ describe Cloudinary::Uploader do
   it "should support upload_large" do
     result = Cloudinary::Uploader.upload_large("spec/logo.png")
     result["public_id"].should match(/^[a-z0-9]+.png$/)
+  end
+  
+  it "should support unsigned uploading using presets", :upload_preset => true do
+    preset = Cloudinary::Api.create_upload_preset(:folder => "upload_folder", :unsigned => true)
+    result = Cloudinary::Uploader.unsigned_upload("spec/logo.png", preset["name"])
+    result["public_id"].should match(/^upload_folder\/[a-z0-9]+$/)
+    Cloudinary::Api.delete_upload_preset(preset["name"])
   end
 end

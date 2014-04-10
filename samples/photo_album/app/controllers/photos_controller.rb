@@ -6,6 +6,16 @@ class PhotosController < ApplicationController
 
   def new
     @photo = Photo.new(:title => "My photo \##{1 + (Photo.maximum(:id) || 0)}")
+    if unsigned_mode?
+      @unsigned = true
+      # make sure we have the appropriate preset
+      begin
+        Cloudinary::Api.upload_preset("sample_preset_dhfjhriu")
+      rescue
+        # An upload preset may contain (almost) all parameters that are used in upload. The following is just for illustration purposes
+        Cloudinary::Api.create_upload_preset(:name => "sample_preset_dhfjhriu", :unsigned => true, :folder => "preset_folder", :format => "jpg")
+      end
+    end
     render view_for_new
   end
 
@@ -41,6 +51,10 @@ class PhotosController < ApplicationController
   
   def direct_upload_mode?
     params[:direct].present?
+  end
+  
+  def unsigned_mode?
+    params[:unsigned].present?
   end
   
   def view_for_new

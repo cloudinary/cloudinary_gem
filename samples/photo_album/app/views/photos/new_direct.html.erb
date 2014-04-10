@@ -1,6 +1,6 @@
 <div id="direct_upload">
   <h1>New Photo</h1>
-  <h2>Direct upload from the browser</h2>
+  <h2>Direct upload from the browser<% if @unsigned %>. Unsigned upload using a preset<% end %></h2>
   <p>You can also drag and drop an image file into the dashed area.</p>
   <%= form_for(@photo, :url => photos_path) do |f| %>
     <div class="form_line">
@@ -14,7 +14,11 @@
       <div class="form_controls">
         <div class="upload_button_holder">
           <%= link_to("Upload", "#", :class => "upload_button") %>
-          <%= f.cl_image_upload(:image) %>
+          <% if @unsigned %>
+            <%= f.cl_unsigned_image_upload(:image, "sample_preset_dhfjhriu") %>
+          <% else %>
+            <%= f.cl_image_upload(:image) %>
+          <% end %>
         </div>
         <span class="status"></span>
       </div>

@@ -15,6 +15,10 @@ class Cloudinary::Uploader
   end
   
   def self.build_upload_params(options)
+    #symbolize keys
+    options = options.clone
+    options.keys.each{|key| options[key.to_sym] = options.delete(key) if key.is_a?(String)}
+    
     params = {:timestamp=>Time.now.to_i,
               :transformation => Cloudinary::Utils.generate_transformation_string(options.clone),
               :public_id=> options[:public_id],
@@ -48,8 +52,14 @@ class Cloudinary::Uploader
               :categorization => options[:categorization],
               :detection => options[:detection],
               :similarity_search => options[:similarity_search],
-              :auto_tagging => options[:auto_tagging] && options[:auto_tagging].to_f}    
+              :auto_tagging => options[:auto_tagging] && options[:auto_tagging].to_f,
+              :upload_preset => options[:upload_preset],
+              :phash => Cloudinary::Utils.as_safe_bool(options[:phash])}    
     params    
+  end
+  
+  def self.unsigned_upload(file, upload_preset, options={})
+    upload(file, options.merge(:unsigned => true, :upload_preset => upload_preset))
   end
    
   def self.upload(file, options={})
@@ -258,8 +268,10 @@ class Cloudinary::Uploader
     params, non_signable = yield
     non_signable ||= []
     
-    params[:signature] = Cloudinary::Utils.api_sign_request(params.reject{|k,v| non_signable.include?(k)}, api_secret)
-    params[:api_key] = api_key
+    unless options[:unsigned]
+      params[:signature] = Cloudinary::Utils.api_sign_request(params.reject{|k,v| non_signable.include?(k)}, api_secret)
+      params[:api_key] = api_key
+    end
 
     result = nil
     

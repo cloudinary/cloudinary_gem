@@ -158,6 +158,10 @@ module CloudinaryHelper
     cl_image_upload_tag("#{object_name}[#{method}]", options)
   end
   
+  def cl_unsigned_image_upload(object_name, method, upload_preset, options={})
+    cl_unsigned_image_upload_tag("#{object_name}[#{method}]", upload_preset, options)
+  end
+  
   def cl_upload_url(options={})
     Cloudinary::Utils.cloudinary_api_url("upload", {:resource_type=>:auto}.merge(options))
   end
@@ -165,7 +169,11 @@ module CloudinaryHelper
   def cl_upload_tag_params(options={})
     cloudinary_params = Cloudinary::Uploader.build_upload_params(options)
     cloudinary_params[:callback] = build_callback_url(options)
-    return Cloudinary::Utils.sign_request(cloudinary_params, options).to_json
+    if options[:unsigned]
+      return cloudinary_params.reject{|k, v| Cloudinary::Utils.safe_blank?(v)}.to_json
+    else
+      return Cloudinary::Utils.sign_request(cloudinary_params, options).to_json
+    end
   end
   
   def cl_image_upload_tag(field, options={})
@@ -178,6 +186,10 @@ module CloudinaryHelper
       :"class" => [html_options[:class], "cloudinary-fileupload"].flatten.compact 
     ).reject{|k,v| v.blank?}
     content_tag("input", nil, tag_options)
+  end
+  
+  def cl_unsigned_image_upload_tag(field, upload_preset, options={})
+    cl_image_upload_tag(field, options.merge(:unsigned => true, :upload_preset => upload_preset))
   end
   
   def cl_private_download_url(public_id, format, options = {})
@@ -242,6 +254,9 @@ end
 module Cloudinary::FormBuilder
   def cl_image_upload(method, options={})
     @template.cl_image_upload(@object_name, method, objectify_options(options))
+  end
+  def cl_unsigned_image_upload(method, upload_preset, options={})
+    @template.cl_unsigned_image_upload(@object_name, method, upload_preset, objectify_options(options))
   end
 end
 
