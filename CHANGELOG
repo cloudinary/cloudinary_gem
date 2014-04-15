@@ -1,3 +1,6 @@
+= Version 1.0.72 - 2014-04-15
+  * Fixing broken sign_request.
+
 = Version 1.0.71 - 2014-04-15
   * Upload preset support.
   * Unsigned upload support.
