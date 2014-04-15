@@ -1,3 +1,10 @@
+= Version 1.0.71 - 2014-04-15
+  * Upload preset support.
+  * Unsigned upload support.
+  * phash upload parameter support.
+  * Resource listing by start_at support.
+  * Updating to jQuery plugin v1.0.14.
+
 = Version 1.0.70 - 2014-03-25
   * Support upload_large without public_id. 
   * Remove public_id from method parameters.
