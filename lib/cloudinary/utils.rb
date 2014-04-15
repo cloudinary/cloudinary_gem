@@ -186,7 +186,7 @@ class Cloudinary::Utils
   def self.sign_request(params, options={})
     api_key = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
     api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
-    params = params.reject{|k, v| self.class.safe_blank?(v)}
+    params = params.reject{|k, v| self.safe_blank?(v)}
     params[:signature] = Cloudinary::Utils.api_sign_request(params, api_secret)
     params[:api_key] = api_key
     params
