@@ -19,10 +19,10 @@ class Cloudinary::Uploader
     options = options.clone
     options.keys.each{|key| options[key.to_sym] = options.delete(key) if key.is_a?(String)}
     
-    params = {:timestamp=>Time.now.to_i,
+    params = {:timestamp=>(options[:timestamp] || Time.now.to_i),
               :transformation => Cloudinary::Utils.generate_transformation_string(options.clone),
-              :public_id=> options[:public_id],
-              :callback=> options[:callback],
+              :public_id=>options[:public_id],
+              :callback=>options[:callback],
               :format=>options[:format],
               :type=>options[:type],
               :backup=>Cloudinary::Utils.as_safe_bool(options[:backup]),
@@ -108,7 +108,7 @@ class Cloudinary::Uploader
   def self.upload_large_part(file, options={})
     call_api("upload_large", options.merge(:resource_type=>:raw)) do    
       params = {
-        :timestamp=>Time.now.to_i,
+        :timestamp=>(options[:timestamp] || Time.now.to_i),
         :type=>options[:type],
         :public_id=>options[:public_id],
         :backup=>options[:backup],
@@ -128,7 +128,7 @@ class Cloudinary::Uploader
   def self.destroy(public_id, options={})
     call_api("destroy", options) do    
       {
-        :timestamp=>Time.now.to_i,
+        :timestamp=>(options[:timestamp] || Time.now.to_i),
         :type=>options[:type],
         :public_id=> public_id,
         :invalidate=>options[:invalidate],
@@ -139,7 +139,7 @@ class Cloudinary::Uploader
   def self.rename(from_public_id, to_public_id, options={})
     call_api("rename", options) do    
       {
-        :timestamp=>Time.now.to_i,
+        :timestamp=>(options[:timestamp] || Time.now.to_i),
         :type=>options[:type],
         :overwrite=>options[:overwrite],
         :from_public_id=>from_public_id,
@@ -161,7 +161,7 @@ class Cloudinary::Uploader
   def self.explicit(public_id, options={})
     call_api("explicit", options) do    
       {
-        :timestamp=>Time.now.to_i,
+        :timestamp=>(options[:timestamp] || Time.now.to_i),
         :type=>options[:type],
         :public_id=> public_id,
         :callback=> options[:callback],
@@ -187,7 +187,7 @@ class Cloudinary::Uploader
     
     result = call_api("sprite", options) do
       {
-        :timestamp=>Time.now.to_i,
+        :timestamp=>(options[:timestamp] || Time.now.to_i),
         :tag=>tag,
         :async=>options[:async],
         :notification_url=>options[:notification_url],
@@ -207,7 +207,7 @@ class Cloudinary::Uploader
   def self.multi(tag, options={})
     call_api("multi", options) do
       {
-        :timestamp=>Time.now.to_i,
+        :timestamp=>(options[:timestamp] || Time.now.to_i),
         :tag=>tag,
         :format=>options[:format],
         :async=>options[:async],
@@ -220,7 +220,7 @@ class Cloudinary::Uploader
   def self.explode(public_id, options={})    
     call_api("explode", options) do
       {
-        :timestamp=>Time.now.to_i,
+        :timestamp=>(options[:timestamp] || Time.now.to_i),
         :public_id=>public_id,
         :type=>options[:type],
         :format=>options[:format],
@@ -250,7 +250,7 @@ class Cloudinary::Uploader
   def self.call_tags_api(tag, command, public_ids = [], options = {})
     return call_api("tags", options) do
       {
-        :timestamp=>Time.now.to_i,
+        :timestamp=>(options[:timestamp] || Time.now.to_i),
         :tag=>tag,
         :public_ids => Cloudinary::Utils.build_array(public_ids),
         :command => command,
