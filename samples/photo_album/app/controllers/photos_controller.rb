@@ -1,3 +1,4 @@
+require 'digest/sha1'
 class PhotosController < ApplicationController
 
   def index
@@ -9,11 +10,12 @@ class PhotosController < ApplicationController
     if unsigned_mode?
       @unsigned = true
       # make sure we have the appropriate preset
+      @preset_name = "sample_" + Digest::SHA1.hexdigest(Cloudinary.config.api_key + Cloudinary.config.api_secret)
       begin
-        Cloudinary::Api.upload_preset("sample_preset_dhfjhriu")
+        Cloudinary::Api.upload_preset(@preset_name)
       rescue
         # An upload preset may contain (almost) all parameters that are used in upload. The following is just for illustration purposes
-        Cloudinary::Api.create_upload_preset(:name => "sample_preset_dhfjhriu", :unsigned => true, :folder => "preset_folder", :format => "jpg")
+        Cloudinary::Api.create_upload_preset(:name => @preset_name, :unsigned => true, :folder => "preset_folder")
       end
     end
     render view_for_new
