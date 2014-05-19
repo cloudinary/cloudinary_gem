@@ -2,7 +2,7 @@ require 'digest/md5'
 module CloudinaryHelper
   # Stand-in for Rails image_tag helper that accepts various options for transformations.
   #
-  # source:: the public ID, possibly with a file type extension.  If there is no extension, the 
+  # source:: the public ID, possibly with a file type extension.  If there is no extension, the
   #          :format option is expected to indicate what the extension is.  This value can contain
   #          the version, or not.
   # options:: Options you would normally pass to image_tag as well as Cloudinary-specific options
@@ -37,9 +37,9 @@ module CloudinaryHelper
   def cl_image_path(source, options = {})
     options = options.clone
     url = cloudinary_url_internal(source, options)
-    image_path_without_cloudinary(url)    
+    image_path_without_cloudinary(url)
   end
-    
+
   def image_tag_with_cloudinary(*args)
     source, options = args
     cl_image_tag(source, {:type=>:asset}.merge(options || {}))
@@ -50,61 +50,61 @@ module CloudinaryHelper
     cl_image_path(source, {:type=>:asset}.merge(options || {}))
   end
 
-  def fetch_image_tag(profile, options = {})    
+  def fetch_image_tag(profile, options = {})
     cl_image_tag(profile, {:type=>:fetch}.merge(options))
   end
-  
-  def facebook_profile_image_tag(profile, options = {})    
+
+  def facebook_profile_image_tag(profile, options = {})
     cl_image_tag(profile, {:type=>:facebook}.merge(options))
   end
-  
-  def facebook_profile_image_path(profile, options = {})    
+
+  def facebook_profile_image_path(profile, options = {})
     cl_image_path(profile, {:type=>:facebook}.merge(options))
   end
 
-  def gravatar_profile_image_tag(email, options = {})    
+  def gravatar_profile_image_tag(email, options = {})
     cl_image_tag(Digest::MD5.hexdigest(email.strip.downcase), {:type=>:gravatar, :format=>:jpg}.merge(options))
   end
-  
-  def gravatar_profile_image_path(email, options = {})    
+
+  def gravatar_profile_image_path(email, options = {})
     cl_image_path(Digest::MD5.hexdigest(email.strip.downcase), {:type=>:gravatar, :format=>:jpg}.merge(options))
   end
 
-  def twitter_profile_image_tag(profile, options = {})    
+  def twitter_profile_image_tag(profile, options = {})
     cl_image_tag(profile, {:type=>:twitter}.merge(options))
   end
-  
-  def twitter_profile_image_path(profile, options = {})    
+
+  def twitter_profile_image_path(profile, options = {})
     cl_image_path(profile, {:type=>:twitter}.merge(options))
   end
 
-  def twitter_name_profile_image_tag(profile, options = {})    
+  def twitter_name_profile_image_tag(profile, options = {})
     cl_image_tag(profile, {:type=>:twitter_name}.merge(options))
   end
-  
-  def twitter_name_profile_image_path(profile, options = {})    
+
+  def twitter_name_profile_image_path(profile, options = {})
     cl_image_path(profile, {:type=>:twitter_name}.merge(options))
   end
-  
-  def gplus_profile_image_tag(profile, options = {})    
+
+  def gplus_profile_image_tag(profile, options = {})
     cl_image_tag(profile, {:type=>:gplus}.merge(options))
   end
-  
-  def gplus_profile_image_path(profile, options = {})    
+
+  def gplus_profile_image_path(profile, options = {})
     cl_image_path(profile, {:type=>:gplus}.merge(options))
   end
 
   def cl_sprite_url(source, options = {})
     options = options.clone
-    
+
     version_store = options.delete(:version_store)
     if options[:version].blank? && (version_store == :file) && defined?(Rails) && defined?(Rails.root)
       file_name = "#{Rails.root}/tmp/cloudinary/cloudinary_sprite_#{source.sub(/\..*/, '')}.version"
       if File.exists?(file_name)
-        options[:version] = File.read(file_name).chomp        
+        options[:version] = File.read(file_name).chomp
       end
-    end  
-    
+    end
+
     options[:format] = "css" unless source.ends_with?(".css")
     cloudinary_url_internal(source, options.merge(:type=>:sprite))
   end
@@ -118,23 +118,23 @@ module CloudinaryHelper
     form_options = options.delete(:form) || {}
     form_options[:method] = :post
     form_options[:multipart] = true
-     
-    params = Cloudinary::Uploader.build_upload_params(options.merge(:callback=>callback_url))  
-    params[:signature] = Cloudinary::Utils.api_sign_request(params, Cloudinary.config.api_secret)  
+
+    params = Cloudinary::Uploader.build_upload_params(options.merge(:callback=>callback_url))
+    params[:signature] = Cloudinary::Utils.api_sign_request(params, Cloudinary.config.api_secret)
     params[:api_key] = Cloudinary.config.api_key
-  
-    api_url = Cloudinary::Utils.cloudinary_api_url("upload", 
+
+    api_url = Cloudinary::Utils.cloudinary_api_url("upload",
                 {:resource_type => options.delete(:resource_type), :upload_prefix => options.delete(:upload_prefix)})
 
     form_tag(api_url, form_options) do
       content = []
-  
+
       params.each do |name, value|
         content << hidden_field_tag(name, value, :id => nil) if value.present?
       end
-  
+
       content << capture(&block)
-  
+
       content.join("\n").html_safe
     end
   end
@@ -143,29 +143,29 @@ module CloudinaryHelper
   def cloudinary_js_config
     params = {}
     CLOUDINARY_JS_CONFIG_PARAMS.each do
-      |param| 
+      |param|
       value = Cloudinary.config.send(param)
       params[param] = value if !value.nil?
-    end    
-    content_tag("script", "$.cloudinary.config(#{params.to_json});".html_safe, :type=>"text/javascript")      
+    end
+    content_tag("script", "$.cloudinary.config(#{params.to_json});".html_safe, :type=>"text/javascript")
   end
 
   def cloudinary_url(source, options = {})
     cloudinary_url_internal(source, options.clone)
   end
-  
+
   def cl_image_upload(object_name, method, options={})
     cl_image_upload_tag("#{object_name}[#{method}]", options)
   end
-  
+
   def cl_unsigned_image_upload(object_name, method, upload_preset, options={})
     cl_unsigned_image_upload_tag("#{object_name}[#{method}]", upload_preset, options)
   end
-  
+
   def cl_upload_url(options={})
     Cloudinary::Utils.cloudinary_api_url("upload", {:resource_type=>:auto}.merge(options))
   end
-  
+
   def cl_upload_tag_params(options={})
     cloudinary_params = Cloudinary::Uploader.build_upload_params(options)
     cloudinary_params[:callback] = build_callback_url(options)
@@ -175,23 +175,27 @@ module CloudinaryHelper
       return Cloudinary::Utils.sign_request(cloudinary_params, options).to_json
     end
   end
-  
-  def cl_image_upload_tag(field, options={})
-    html_options = options.delete(:html) || {}         
 
-    tag_options = html_options.merge(:type=>"file", :name=>"file", 
+  def cl_image_upload_tag(field, options={})
+    html_options = options.delete(:html) || {}
+    if options.delete(:multiple)
+      html_options[:multiple] = true
+      field = "#{ field }[]" unless field.to_s[-2..-1] == "[]"
+    end
+
+    tag_options = html_options.merge(:type=>"file", :name=>"file",
       :"data-url"=>cl_upload_url(options),
       :"data-form-data"=>cl_upload_tag_params(options),
       :"data-cloudinary-field"=>field,
-      :"class" => [html_options[:class], "cloudinary-fileupload"].flatten.compact 
+      :"class" => [html_options[:class], "cloudinary-fileupload"].flatten.compact
     ).reject{|k,v| v.blank?}
     content_tag("input", nil, tag_options)
   end
-  
+
   def cl_unsigned_image_upload_tag(field, upload_preset, options={})
     cl_image_upload_tag(field, options.merge(:unsigned => true, :upload_preset => upload_preset))
   end
-  
+
   def cl_private_download_url(public_id, format, options = {})
     Cloudinary::Utils.private_download_url(public_id, format, options)
   end
@@ -203,7 +207,7 @@ module CloudinaryHelper
   def cl_signed_download_url(public_id, options = {})
     Cloudinary::Utils.signed_download_url(public_id, options)
   end
-  
+
   def self.included(base)
     ActionView::Helpers::FormBuilder.send(:include, Cloudinary::FormBuilder)
     base.class_eval do
@@ -219,22 +223,22 @@ module CloudinaryHelper
       end
     end
   end
-  
+
   private
   def cloudinary_url_internal(source, options = {})
     options[:ssl_detected] = request.ssl? if defined?(request) && request && request.respond_to?(:ssl?)
-    if defined?(CarrierWave::Uploader::Base) && source.is_a?(CarrierWave::Uploader::Base)      
+    if defined?(CarrierWave::Uploader::Base) && source.is_a?(CarrierWave::Uploader::Base)
       if source.version_name.present?
-        options[:transformation] = Cloudinary::Utils.build_array(source.transformation) + Cloudinary::Utils.build_array(options[:transformation]) 
-      end         
-      options.reverse_merge!(      
+        options[:transformation] = Cloudinary::Utils.build_array(source.transformation) + Cloudinary::Utils.build_array(options[:transformation])
+      end
+      options.reverse_merge!(
         :resource_type => Cloudinary::Utils.resource_type_for_format(source.filename || source.format),
         :type => source.storage_type,
         :format => source.format)
-      source = source.full_public_id      
+      source = source.full_public_id
     end
     Cloudinary::Utils.cloudinary_url(source, options)
-  end  
+  end
 
   def build_callback_url(options)
     callback_path = options.delete(:callback_cors) || Cloudinary.config.callback_cors || "/cloudinary_cors.html"
@@ -248,7 +252,7 @@ module CloudinaryHelper
       callback_url << callback_path
     end
     callback_url
-  end  
+  end
 end
 
 module Cloudinary::FormBuilder
@@ -263,14 +267,14 @@ end
 if defined? ActionView::Helpers::AssetUrlHelper
   module ActionView::Helpers::AssetUrlHelper
     alias :original_path_to_asset :path_to_asset
-  
+
     def path_to_asset(source, options={})
       options ||= {}
       if Cloudinary.config.enhance_image_tag && options[:type] == :image
         source = Cloudinary::Utils.cloudinary_url(source, options.merge(:type=>:asset))
       end
       original_path_to_asset(source, options)
-    end    
+    end
   end
 end
 
@@ -289,10 +293,10 @@ begin
           original_image_path(Cloudinary::Utils.cloudinary_url(img, :type=>:asset))
         else
           original_image_path(img)
-        end      
-      end      
+        end
+      end
     end
-  end  
+  end
 rescue LoadError
   # no sass rails support. Ignore.
 end
@@ -305,11 +309,11 @@ begin
       options = {}
       sass_options.each{|k, v| options[k.to_sym] = v.value}
       url = Cloudinary::Utils.cloudinary_url(public_id.value, {:type=>:asset}.merge(options))
-      Sass::Script::String.new("url(#{url})")      
+      Sass::Script::String.new("url(#{url})")
     end
     declare :cloudinary_url, [:string], :var_kwargs => true
   end
 rescue LoadError
   # no sass support. Ignore.
 end
-  
+
