@@ -50,7 +50,8 @@ module Cloudinary
         "api_key" => ENV["CLOUDINARY_API_KEY"],
         "api_secret" => ENV["CLOUDINARY_API_SECRET"],
         "secure_distribution" => ENV["CLOUDINARY_SECURE_DISTRIBUTION"],
-        "private_cdn" => ENV["CLOUDINARY_PRIVATE_CDN"].to_s == 'true'
+        "private_cdn" => ENV["CLOUDINARY_PRIVATE_CDN"].to_s == 'true',
+        "secure" => ENV["CLOUDINARY_SECURE"].to_s == 'true',
       )
     elsif first_time && ENV["CLOUDINARY_URL"]
       config_from_url(ENV["CLOUDINARY_URL"])
