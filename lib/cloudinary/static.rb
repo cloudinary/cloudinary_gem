@@ -34,7 +34,7 @@ class Cloudinary::Static
   end
   
   def self.root
-    defined?(Rails) ? Rails.root : Pathname.new(".")
+    (defined?(Rails) && Rails.root) || Pathname.new(".")
   end
   
   def self.metadata_file_path
