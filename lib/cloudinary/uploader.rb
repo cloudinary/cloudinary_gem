@@ -262,13 +262,13 @@ class Cloudinary::Uploader
   def self.call_api(action, options)
     options = options.clone
     return_error = options.delete(:return_error)
-    api_key = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
-    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
 
     params, non_signable = yield
     non_signable ||= []
     
     unless options[:unsigned]
+      api_key = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
+      api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
       params[:signature] = Cloudinary::Utils.api_sign_request(params.reject{|k,v| non_signable.include?(k)}, api_secret)
       params[:api_key] = api_key
     end

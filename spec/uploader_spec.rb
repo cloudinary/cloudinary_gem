@@ -135,10 +135,23 @@ describe Cloudinary::Uploader do
     result["public_id"].should match(/^[a-z0-9]+.png$/)
   end
   
-  it "should support unsigned uploading using presets", :upload_preset => true do
-    preset = Cloudinary::Api.create_upload_preset(:folder => "upload_folder", :unsigned => true)
-    result = Cloudinary::Uploader.unsigned_upload("spec/logo.png", preset["name"])
-    result["public_id"].should match(/^upload_folder\/[a-z0-9]+$/)
-    Cloudinary::Api.delete_upload_preset(preset["name"])
+  context "unsigned" do
+    after do
+      Cloudinary.class_variable_set(:@@config, nil)
+    end
+    
+    it "should support unsigned uploading using presets", :upload_preset => true do
+      preset = Cloudinary::Api.create_upload_preset(:folder => "upload_folder", :unsigned => true)
+
+      Cloudinary.config.api_key = nil
+      Cloudinary.config.api_secret = nil
+
+      result = Cloudinary::Uploader.unsigned_upload("spec/logo.png", preset["name"])
+      result["public_id"].should match(/^upload_folder\/[a-z0-9]+$/)
+
+      Cloudinary.class_variable_set(:@@config, nil)
+
+      Cloudinary::Api.delete_upload_preset(preset["name"])
+    end
   end
 end
