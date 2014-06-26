@@ -1,5 +1,7 @@
 require 'digest/md5'
 module CloudinaryHelper
+  CL_BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+
   # Stand-in for Rails image_tag helper that accepts various options for transformations.
   #
   # source:: the public ID, possibly with a file type extension.  If there is no extension, the
@@ -29,10 +31,26 @@ module CloudinaryHelper
     options[:height] = options.delete(:html_height) if options.include?(:html_height)
     options[:size] = options.delete(:html_size) if options.include?(:html_size)
     options[:border] = options.delete(:html_border) if options.include?(:html_border)
-
-    image_tag_without_cloudinary(source, options)
+    responsive_placeholder = Cloudinary::Utils.config_option_consume(options, :responsive_placeholder)
+    hidpi = options.delete(:hidpi)
+    responsive = options.delete(:responsive)
+    if hidpi || responsive
+      options["data-src"] = source      
+      extra_class = responsive ? "cld-responsive" : "cld-hidpi"
+      options[:class] = [options[:class], extra_class].compact.join(" ")
+      source = responsive_placeholder
+    end
+    if source
+      image_tag_without_cloudinary(source, options)
+    else
+      content_tag 'img', nil, options
+    end
   end
 
+  def cl_blank
+    CL_BLANK
+  end
+  
   # Works similarly to cl_image_tag, however just generates the URL of the image
   def cl_image_path(source, options = {})
     options = options.clone

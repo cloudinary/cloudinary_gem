@@ -7,6 +7,7 @@ require 'aws_cf_signer'
 class Cloudinary::Utils
   # @deprecated Use Cloudinary::SHARED_CDN
   SHARED_CDN = Cloudinary::SHARED_CDN  
+  DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {width: :auto, crop: :limit}
   
   # Warning: options are being destructively updated!
   def self.generate_transformation_string(options={})
@@ -18,9 +19,11 @@ class Cloudinary::Utils
       options[key.to_sym] = options.delete(key) if key.is_a?(String)
     end
     
+    responsive_width = config_option_consume(options, :responsive_width) 
     size = options.delete(:size)
     options[:width], options[:height] = size.split("x") if size    
     width = options[:width]
+    width = width.to_s if width.is_a?(Symbol)
     height = options[:height]
     has_layer = !options[:overlay].blank? || !options[:underlay].blank?
          
@@ -28,10 +31,10 @@ class Cloudinary::Utils
     angle = build_array(options.delete(:angle)).join(".")
 
     no_html_sizes = has_layer || !angle.blank? || crop.to_s == "fit" || crop.to_s == "limit" || crop.to_s == "lfill"
-    options.delete(:width) if width && (width.to_f < 1 || no_html_sizes)
-    options.delete(:height) if height && (height.to_f < 1 || no_html_sizes)
+    options.delete(:width) if width && (width.to_f < 1 || no_html_sizes || width == "auto" || responsive_width)
+    options.delete(:height) if height && (height.to_f < 1 || no_html_sizes || responsive_width)
 
-    width=height=nil if crop.nil? && !has_layer
+    width=height=nil if crop.nil? && !has_layer && width != "auto"
 
     background = options.delete(:background)
     background = background.sub(/^#/, 'rgb:') if background
@@ -61,10 +64,11 @@ class Cloudinary::Utils
       border = nil
     end
     flags = build_array(options.delete(:flags)).join(".")
+    dpr = config_option_consume(options, :dpr)
     
-    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect, :a=>angle, :bo=>border, :fl=>flags, :co=>color}
+    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect, :a=>angle, :bo=>border, :fl=>flags, :co=>color, :dpr=>dpr}
     { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :cs=>:color_space, :o=>:opacity,
-      :p=>:prefix, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page, :dl=>:delay, :dpr=>:dpr
+      :p=>:prefix, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page, :dl=>:delay
     }.each do
       |param, option|
       params[param] = options.delete(option)
@@ -73,7 +77,20 @@ class Cloudinary::Utils
     transformation = params.reject{|k,v| v.blank?}.map{|k,v| [k.to_s, v]}.sort_by(&:first).map{|k,v| "#{k}_#{v}"}.join(",")
     raw_transformation = options.delete(:raw_transformation)
     transformation = [transformation, raw_transformation].reject(&:blank?).join(",")
-    (base_transformations << transformation).reject(&:blank?).join("/")    
+    transformations = base_transformations << transformation
+    if responsive_width
+      responsive_width_transformation = Cloudinary.config.responsive_width_transformation || DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION
+      transformations << generate_transformation_string(responsive_width_transformation.clone)
+    end
+
+    if width.to_s == "auto" || responsive_width
+      options[:responsive] = true
+    end
+    if dpr.to_s == "auto"
+      options[:hidpi] = true
+    end
+
+    transformations.reject(&:blank?).join("/")    
   end
   
   def self.api_string_to_sign(params_to_sign)
