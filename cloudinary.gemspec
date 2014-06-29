@@ -23,4 +23,5 @@ Gem::Specification.new do |s|
   s.add_dependency "rest-client"
   s.add_dependency "aws_cf_signer"
   s.add_development_dependency "rspec"
+  s.add_development_dependency "actionpack"
 end

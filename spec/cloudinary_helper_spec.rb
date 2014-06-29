@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'cloudinary'
+require 'action_view'
 require 'cloudinary/helper'
 
 helper_class = Class.new do
