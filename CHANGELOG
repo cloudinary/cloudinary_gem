@@ -1,3 +1,13 @@
+= Version 1.0.73 - 2014-06-30
+  * Support dpr transformation parameter.
+  * Support automatic dpr (for HiDPI) and automatic width (for responsive).
+  * Accept timestamp parameter in upload method options.
+  * Support pHash info in admin API.
+  * Support the multiple upload flag directly in cl_image_upload_tag.
+  * 'secure' configuration parameter from environment variable.
+  * Make api_key and api_secret optional in unsigned upload.
+  * Support the case Rails is defined but Rails.root isn't.
+
 = Version 1.0.72 - 2014-04-15
   * Fixing broken sign_request.
 
