@@ -5,11 +5,12 @@ describe Cloudinary::Api do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
 
   before(:all) do
+    @timestamp_tag = "api_test_tag_#{Time.now.to_i}"
     @api = Cloudinary::Api
     Cloudinary::Uploader.destroy("api_test")
     Cloudinary::Uploader.destroy("api_test2")
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test", :tags=>"api_test_tag", :context => "key=value", :eager=>[:width=>100,:crop=>:scale])
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test2", :tags=>"api_test_tag", :context => "key=value", :eager=>[:width=>100,:crop=>:scale])
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test", :tags=> ["api_test_tag", @timestamp_tag], :context => "key=value", :eager=>[:width=>100,:crop=>:scale])
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test2", :tags=> ["api_test_tag", @timestamp_tag], :context => "key=value", :eager=>[:width=>100,:crop=>:scale])
     @api.delete_transformation("api_test_transformation") rescue nil
     @api.delete_transformation("api_test_transformation2") rescue nil
     @api.delete_transformation("api_test_transformation3") rescue nil
@@ -44,20 +45,20 @@ describe Cloudinary::Api do
   it "should allow listing resources by type" do
     resource = @api.resources(:type=>"upload", :tags=>true)["resources"].find{|resource| resource["public_id"] == "api_test"}
     resource.should_not be_blank
-    resource["tags"].should == ["api_test_tag"]
+    resource["tags"].should == ["api_test_tag", @timestamp_tag]
   end
 
   it "should allow listing resources by prefix" do
     resources = @api.resources(:type=>"upload", :prefix=>"api_test", :tags => true, :context => true)["resources"]
     resources.map{|resource| resource["public_id"]}.should include("api_test", "api_test2")
-    resources.map{|resource| resource["tags"]}.should include(["api_test_tag"])
+    resources.map{|resource| resource["tags"]}.should include(["api_test_tag", @timestamp_tag])
     resources.map{|resource| resource["context"]}.should include({"custom" => {"key" => "value"}})
   end
 
   it "should allow listing resources by tag" do
     resources = @api.resources_by_tag("api_test_tag", :tags => true, :context => true)["resources"]
     resources.find{|resource| resource["public_id"] == "api_test"}.should_not be_blank
-    resources.map{|resource| resource["tags"]}.should include(["api_test_tag"])
+    resources.map{|resource| resource["tags"]}.should include(["api_test_tag", @timestamp_tag])
     resources.map{|resource| resource["context"]}.should include({"custom" => {"key" => "value"}})
   end
   
@@ -65,7 +66,7 @@ describe Cloudinary::Api do
     resources = @api.resources_by_ids(["api_test", "api_test2"], :tags => true, :context => true)["resources"]
     resources.length.should == 2
     resources.find{|resource| resource["public_id"] == "api_test"}.should_not be_blank
-    resources.map{|resource| resource["tags"]}.should include(["api_test_tag"])
+    resources.map{|resource| resource["tags"]}.should include(["api_test_tag", @timestamp_tag])
     resources.map{|resource| resource["context"]}.should include({"custom" => {"key" => "value"}})
   end
   
@@ -79,16 +80,16 @@ describe Cloudinary::Api do
   end
   
   it "should allow listing resources in both directions" do
-    asc_resources = @api.resources(:type=>"upload", :prefix=>"api_test", :direction => "asc")["resources"]
-    desc_resources = @api.resources(:type=>"upload", :prefix=>"api_test", :direction => "desc")["resources"]
+    asc_resources = @api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => "asc")["resources"]
+    desc_resources = @api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => "desc")["resources"]
     # NOTE: this assumes the full list fits in a page which is the case unless resources with 'api_test' prefix were
     # uploaded to the account against which this test runs
     asc_resources.reverse.should == desc_resources
-    asc_resources_alt = @api.resources(:type=>"upload", :prefix=>"api_test", :direction => 1)["resources"]
-    desc_resources_alt = @api.resources(:type=>"upload", :prefix=>"api_test", :direction => -1)["resources"]
+    asc_resources_alt = @api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => 1)["resources"]
+    desc_resources_alt = @api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => -1)["resources"]
     asc_resources_alt.reverse.should == desc_resources_alt
     asc_resources.should == asc_resources_alt
-    lambda{@api.resources(:type=>"upload", :prefix=>"api_test", :direction => "anythingelse")["resources"]}.should raise_error(Cloudinary::Api::BadRequest)
+    lambda{@api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => "anythingelse")["resources"]}.should raise_error(Cloudinary::Api::BadRequest)
   end
 
   it "should allow get resource metadata" do

@@ -7,7 +7,7 @@ require 'aws_cf_signer'
 class Cloudinary::Utils
   # @deprecated Use Cloudinary::SHARED_CDN
   SHARED_CDN = Cloudinary::SHARED_CDN  
-  DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {width: :auto, crop: :limit}
+  DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {:width => :auto, :crop => :limit}
   
   # Warning: options are being destructively updated!
   def self.generate_transformation_string(options={})
