@@ -52,6 +52,7 @@ class Cloudinary::Uploader
               :categorization => options[:categorization],
               :detection => options[:detection],
               :similarity_search => options[:similarity_search],
+              :background_removal => options[:background_removal],
               :auto_tagging => options[:auto_tagging] && options[:auto_tagging].to_f,
               :upload_preset => options[:upload_preset],
               :phash => Cloudinary::Utils.as_safe_bool(options[:phash])}    
