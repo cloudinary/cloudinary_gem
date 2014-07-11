@@ -56,7 +56,9 @@ class Cloudinary::Uploader
               :background_removal => options[:background_removal],
               :auto_tagging => options[:auto_tagging] && options[:auto_tagging].to_f,
               :upload_preset => options[:upload_preset],
-              :phash => Cloudinary::Utils.as_safe_bool(options[:phash])}    
+              :phash => Cloudinary::Utils.as_safe_bool(options[:phash]),
+              :return_delete_token => Cloudinary::Utils.as_safe_bool(options[:return_delete_token]),
+            }
     params    
   end
   
