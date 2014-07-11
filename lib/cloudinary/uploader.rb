@@ -46,6 +46,7 @@ class Cloudinary::Uploader
               :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
               :context => Cloudinary::Utils.encode_hash(options[:context]),
               :face_coordinates => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
+              :custom_coordinates => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
               :moderation => options[:moderation],
               :raw_convert => options[:raw_convert],
               :ocr => options[:ocr],
