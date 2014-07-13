@@ -38,6 +38,7 @@ module CloudinaryHelper
       options["data-src"] = source      
       extra_class = responsive ? "cld-responsive" : "cld-hidpi"
       options[:class] = [options[:class], extra_class].compact.join(" ")
+      responsive_placeholder = CL_BLANK if responsive_placeholder == "blank"
       source = responsive_placeholder
     end
     if source
