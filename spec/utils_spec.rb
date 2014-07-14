@@ -477,4 +477,9 @@ describe Cloudinary::Utils do
     options.should == {responsive: true}
     result.should == "http://res.cloudinary.com/test123/image/upload/c_crop,h_100,w_100/c_pad,w_auto/test"     
   end
+
+  it "should correctly encode double arrays" do
+    Cloudinary::Utils.encode_double_array([1,2,3,4]).should == "1,2,3,4"
+    Cloudinary::Utils.encode_double_array([[1,2,3,4],[5,6,7,8]]).should == "1,2,3,4|5,6,7,8"
+  end
 end

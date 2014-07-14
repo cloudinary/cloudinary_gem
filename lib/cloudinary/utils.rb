@@ -305,7 +305,12 @@ class Cloudinary::Utils
   end
   
   def self.encode_double_array(array)
-    build_array(array).map{|a| build_array(a).join(",")}.join("|")
+    array = build_array(array)
+    if array.length > 0 && array[0].is_a?(Array)
+      return array.map{|a| build_array(a).join(",")}.join("|")
+    else
+      return array.join(",")
+    end
   end
   
   IMAGE_FORMATS = %w(bmp png tif tiff jpg jpeg gif pdf ico eps jpc jp2 psd) 
