@@ -1,3 +1,12 @@
+= Version 1.0.74 - 2014-07-14
+  * Support custom_coordinates in upload and update. Support coordinates in resource details.
+  * Support delete_by_token for direct uploads.
+  * Support shorthand blank for cl_image_tag with responsive/hidpi.
+  * Correctly encode one-level double arrays.
+  * Support non-upload resources in signed_preloaded_image (Issue #117).
+  * Support background removal upload and admin API parameter.
+  * Update Cloudinary's jQuery plugin to v1.0.19.
+
 = Version 1.0.73 - 2014-06-30
   * Support dpr transformation parameter.
   * Support automatic dpr (for HiDPI) and automatic width (for responsive).
