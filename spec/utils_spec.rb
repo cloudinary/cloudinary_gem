@@ -471,7 +471,7 @@ describe Cloudinary::Utils do
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {responsive: true}
     result.should == "http://res.cloudinary.com/test123/image/upload/c_crop,h_100,w_100/c_limit,w_auto/test" 
-    Cloudinary.config.responsive_width_transformation = {width: :auto, crop: :pad}
+    Cloudinary.config.responsive_width_transformation = {:width => :auto, :crop => :pad}
     options = {:width=>100, :height=>100, :crop=>:crop, :responsive_width=>true}
     result = Cloudinary::Utils.cloudinary_url("test", options)
     options.should == {responsive: true}
