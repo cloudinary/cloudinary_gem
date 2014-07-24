@@ -35,11 +35,12 @@ module CloudinaryHelper
     hidpi = options.delete(:hidpi)
     responsive = options.delete(:responsive)
     if hidpi || responsive
-      options["data-src"] = source      
+      options["data-src"] = source
+      source = nil
       extra_class = responsive ? "cld-responsive" : "cld-hidpi"
       options[:class] = [options[:class], extra_class].compact.join(" ")
       responsive_placeholder = CL_BLANK if responsive_placeholder == "blank"
-      source = responsive_placeholder
+      options[:src] = responsive_placeholder
     end
     if source
       image_tag_without_cloudinary(source, options)
