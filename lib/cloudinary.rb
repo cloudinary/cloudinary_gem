@@ -40,11 +40,10 @@ module Cloudinary
   @@config = nil
   
   def self.config(new_config=nil)
-    first_time = @@config.nil?
     @@config ||= OpenStruct.new((YAML.load(ERB.new(IO.read(config_dir.join("cloudinary.yml"))).result)[config_env] rescue {}))
         
-    # Heroku support
-    if first_time && ENV["CLOUDINARY_CLOUD_NAME"]
+    # Allow overriding configuration with environment variables
+    if ENV["CLOUDINARY_CLOUD_NAME"]
       set_config(
         "cloud_name" => ENV["CLOUDINARY_CLOUD_NAME"],
         "api_key" => ENV["CLOUDINARY_API_KEY"],
@@ -53,7 +52,7 @@ module Cloudinary
         "private_cdn" => ENV["CLOUDINARY_PRIVATE_CDN"].to_s == 'true',
         "secure" => ENV["CLOUDINARY_SECURE"].to_s == 'true'
       )
-    elsif first_time && ENV["CLOUDINARY_URL"]
+    elsif ENV["CLOUDINARY_URL"]
       config_from_url(ENV["CLOUDINARY_URL"])
     end
 
