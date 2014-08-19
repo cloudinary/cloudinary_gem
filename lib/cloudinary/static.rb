@@ -3,7 +3,7 @@ require 'time'
 require 'set'
 class Cloudinary::Static
   IGNORE_FILES = [".svn", "CVS", "RCS", ".git", ".hg"]
-  SUPPORTED_IMAGES = [/\.gif$/i, /\.jpe?g$/i, /\.png$/i, /\.bmp$/i, /\.ico$/i]
+  SUPPORTED_IMAGES = [/\.(gif|jpe?g|png|bmp|ico|webp|wdp|jxr|jp2|svg|pdf)$/i]
   STATIC_IMAGE_DIRS = ["app/assets/images", "lib/assets/images", "vendor/assets/images", "public/images"]
   METADATA_FILE = ".cloudinary.static"
   METADATA_TRASH_FILE = ".cloudinary.static.trash"
