@@ -433,7 +433,8 @@ describe Cloudinary::Utils do
       ["a+b", "a%2Bb"],
       ["a%20b", "a%20b"],
       ["a-b", "a-b"],
-      ["a??b", "a%3F%3Fb"]
+      ["a??b", "a%3F%3Fb"],
+      ["parentheses(interject)", "parentheses%28interject%29"]
     ].each do
       |source, target|
       Cloudinary::Utils.cloudinary_url(source).should == "http://res.cloudinary.com/test123/image/upload/#{target}"   
