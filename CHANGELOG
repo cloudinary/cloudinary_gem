@@ -1,3 +1,6 @@
+= Version 1.0.76 - 2014-08-24
+  * Added supported image types for rake cloudinary:sync_static.
+
 = Version 1.0.75 - 2014-07-30
   * Don't use Rails' image_tag for repsponsive/hidpi to prevent wrong alt and data URIs.
 
