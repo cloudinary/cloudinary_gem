@@ -5,14 +5,19 @@ describe Cloudinary::Api do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
 
   before(:all) do
+    @timestamp_tag = "api_test_tag_#{Time.now.to_i}"
     @api = Cloudinary::Api
     Cloudinary::Uploader.destroy("api_test")
     Cloudinary::Uploader.destroy("api_test2")
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test", :tags=>"api_test_tag", :context => "key=value", :eager=>[:width=>100,:crop=>:scale])
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test2", :tags=>"api_test_tag", :context => "key=value", :eager=>[:width=>100,:crop=>:scale])
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test", :tags=> ["api_test_tag", @timestamp_tag], :context => "key=value", :eager=>[:width=>100,:crop=>:scale])
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test2", :tags=> ["api_test_tag", @timestamp_tag], :context => "key=value", :eager=>[:width=>100,:crop=>:scale])
     @api.delete_transformation("api_test_transformation") rescue nil
     @api.delete_transformation("api_test_transformation2") rescue nil
     @api.delete_transformation("api_test_transformation3") rescue nil
+    @api.delete_upload_preset("api_test_upload_preset") rescue nil
+    @api.delete_upload_preset("api_test_upload_preset2") rescue nil
+    @api.delete_upload_preset("api_test_upload_preset3") rescue nil
+    @api.delete_upload_preset("api_test_upload_preset4") rescue nil
   end
   
   it "should allow listing resource_types" do
@@ -40,20 +45,20 @@ describe Cloudinary::Api do
   it "should allow listing resources by type" do
     resource = @api.resources(:type=>"upload", :tags=>true)["resources"].find{|resource| resource["public_id"] == "api_test"}
     resource.should_not be_blank
-    resource["tags"].should == ["api_test_tag"]
+    resource["tags"].should == ["api_test_tag", @timestamp_tag]
   end
 
   it "should allow listing resources by prefix" do
     resources = @api.resources(:type=>"upload", :prefix=>"api_test", :tags => true, :context => true)["resources"]
     resources.map{|resource| resource["public_id"]}.should include("api_test", "api_test2")
-    resources.map{|resource| resource["tags"]}.should include(["api_test_tag"])
+    resources.map{|resource| resource["tags"]}.should include(["api_test_tag", @timestamp_tag])
     resources.map{|resource| resource["context"]}.should include({"custom" => {"key" => "value"}})
   end
 
   it "should allow listing resources by tag" do
     resources = @api.resources_by_tag("api_test_tag", :tags => true, :context => true)["resources"]
     resources.find{|resource| resource["public_id"] == "api_test"}.should_not be_blank
-    resources.map{|resource| resource["tags"]}.should include(["api_test_tag"])
+    resources.map{|resource| resource["tags"]}.should include(["api_test_tag", @timestamp_tag])
     resources.map{|resource| resource["context"]}.should include({"custom" => {"key" => "value"}})
   end
   
@@ -61,21 +66,30 @@ describe Cloudinary::Api do
     resources = @api.resources_by_ids(["api_test", "api_test2"], :tags => true, :context => true)["resources"]
     resources.length.should == 2
     resources.find{|resource| resource["public_id"] == "api_test"}.should_not be_blank
-    resources.map{|resource| resource["tags"]}.should include(["api_test_tag"])
+    resources.map{|resource| resource["tags"]}.should include(["api_test_tag", @timestamp_tag])
     resources.map{|resource| resource["context"]}.should include({"custom" => {"key" => "value"}})
   end
   
+  it "should allow listing resources by start date", :start_at => true do
+    sleep(2)
+    start_at = Time.now.to_s
+    sleep(2)
+    response = Cloudinary::Uploader.upload("spec/logo.png")
+    resources = @api.resources(:type=>"upload", :start_at=>start_at, :direction => "asc")["resources"]
+    resources.map{|resource| resource["public_id"]}.should == [response["public_id"]]
+  end
+  
   it "should allow listing resources in both directions" do
-    asc_resources = @api.resources(:type=>"upload", :prefix=>"api_test", :direction => "asc")["resources"]
-    desc_resources = @api.resources(:type=>"upload", :prefix=>"api_test", :direction => "desc")["resources"]
+    asc_resources = @api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => "asc")["resources"]
+    desc_resources = @api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => "desc")["resources"]
     # NOTE: this assumes the full list fits in a page which is the case unless resources with 'api_test' prefix were
     # uploaded to the account against which this test runs
     asc_resources.reverse.should == desc_resources
-    asc_resources_alt = @api.resources(:type=>"upload", :prefix=>"api_test", :direction => 1)["resources"]
-    desc_resources_alt = @api.resources(:type=>"upload", :prefix=>"api_test", :direction => -1)["resources"]
+    asc_resources_alt = @api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => 1)["resources"]
+    desc_resources_alt = @api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => -1)["resources"]
     asc_resources_alt.reverse.should == desc_resources_alt
     asc_resources.should == asc_resources_alt
-    lambda{@api.resources(:type=>"upload", :prefix=>"api_test", :direction => "anythingelse")["resources"]}.should raise_error(Cloudinary::Api::BadRequest)
+    lambda{@api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => "anythingelse")["resources"]}.should raise_error(Cloudinary::Api::BadRequest)
   end
 
   it "should allow get resource metadata" do
@@ -191,6 +205,47 @@ describe Cloudinary::Api do
     lambda{@api.transformation("c_scale,w_100")}.should raise_error(Cloudinary::Api::NotFound)
   end
   
+  it "should allow creating and listing upload_presets", :upload_preset => true do
+    @api.create_upload_preset(:name => "api_test_upload_preset", :folder => "folder")
+    @api.create_upload_preset(:name => "api_test_upload_preset2", :folder => "folder2")
+    @api.create_upload_preset(:name => "api_test_upload_preset3", :folder => "folder3")
+    @api.upload_presets["presets"].first(3).map{|p| p["name"]}.should == ["api_test_upload_preset3", "api_test_upload_preset2", "api_test_upload_preset"]
+    @api.delete_upload_preset("api_test_upload_preset")
+    @api.delete_upload_preset("api_test_upload_preset2")
+    @api.delete_upload_preset("api_test_upload_preset3")
+  end
+  
+  it "should allow getting a single upload_preset", :upload_preset => true do
+    result = @api.create_upload_preset(:unsigned => true, :folder => "folder", :width => 100, :crop => :scale, :tags => ["a","b","c"], :context => {:a => "b", :c => "d"})
+    name = result["name"]
+    preset = @api.upload_preset(name)
+    preset["name"].should == name
+    preset["unsigned"].should == true
+    preset["settings"]["folder"].should == "folder"
+    preset["settings"]["transformation"].should == [{"width" => 100, "crop" => "scale"}]
+    preset["settings"]["context"].should == {"a" => "b", "c" => "d"}
+    preset["settings"]["tags"].should == ["a","b","c"]
+    @api.delete_upload_preset(name)
+  end
+  
+  it "should allow deleting upload_presets", :upload_preset => true do
+    @api.create_upload_preset(:name => "api_test_upload_preset4", :folder => "folder")
+    preset = @api.upload_preset("api_test_upload_preset4")
+    @api.delete_upload_preset("api_test_upload_preset4")
+    lambda{preset = @api.upload_preset("api_test_upload_preset4")}.should raise_error
+  end
+  
+  it "should allow updating upload_presets", :upload_preset => true do
+    name = @api.create_upload_preset(:folder => "folder")["name"]
+    preset = @api.upload_preset(name)
+    @api.update_upload_preset(name, preset["settings"].merge(:colors => true, :unsigned => true, :disallow_public_id => true))
+    preset = @api.upload_preset(name)
+    preset["name"].should == name
+    preset["unsigned"].should == true
+    preset["settings"].should == {"folder" => "folder", "colors" => true, "disallow_public_id" => true}
+    @api.delete_upload_preset(name)
+  end
+  
   # this test must be last because it deletes (potentially) all dependent transformations which some tests rely on. Excluded by default.
   it "should allow deleting all resources", :delete_all=>true do
     Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test5", :eager=>[:width=>101,:crop=>:scale])
@@ -211,15 +266,10 @@ describe Cloudinary::Api do
     api_result["moderation"][0]["status"].should == "approved"
     api_result["moderation"][0]["kind"].should == "manual"
   end
-  
-  it "should support requesting ocr info" do
-    result = Cloudinary::Uploader.upload("spec/logo.png")
-    lambda{Cloudinary::Api.update(result["public_id"], {:ocr => :illegal})}.should raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
-  end
-  
+    
   it "should support requesting raw conversion" do
     result = Cloudinary::Uploader.upload("spec/docx.docx", :resource_type => :raw)
-    lambda{Cloudinary::Api.update(result["public_id"], {:resource_type => :raw, :raw_convert => :illegal})}.should raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
+    lambda{Cloudinary::Api.update(result["public_id"], {:resource_type => :raw, :raw_convert => :illegal})}.should raise_error(Cloudinary::Api::BadRequest, /^Illegal value|not a valid/)
   end
   
   it "should support requesting categorization" do
@@ -232,7 +282,7 @@ describe Cloudinary::Api do
     lambda{Cloudinary::Api.update(result["public_id"], {:detection => :illegal})}.should raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
   end
   
-  it "should support requesting ocr info" do
+  it "should support requesting auto_tagging" do
     result = Cloudinary::Uploader.upload("spec/logo.png")
     lambda{Cloudinary::Api.update(result["public_id"], {:auto_tagging => 0.5})}.should raise_error(Cloudinary::Api::BadRequest, /^Must use/)
   end

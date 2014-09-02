@@ -1,6 +1,6 @@
 <div id="direct_upload">
   <h1>New Photo</h1>
-  <h2>Direct upload from the browser</h2>
+  <h2>Direct upload from the browser<% if @unsigned %>. Unsigned upload using a preset<% end %></h2>
   <p>You can also drag and drop an image file into the dashed area.</p>
   <%= form_for(@photo, :url => photos_path) do |f| %>
     <div class="form_line">
@@ -14,7 +14,11 @@
       <div class="form_controls">
         <div class="upload_button_holder">
           <%= link_to("Upload", "#", :class => "upload_button") %>
-          <%= f.cl_image_upload(:image) %>
+          <% if @unsigned %>
+            <%= f.cl_unsigned_image_upload(:image, @preset_name) %>
+          <% else %>
+            <%= f.cl_image_upload(:image, :return_delete_token=>true) %>
+          <% end %>
         </div>
         <span class="status"></span>
       </div>
@@ -73,11 +77,28 @@
       .off("cloudinarydone").on("cloudinarydone", function (e, data) {
         $("#photo_bytes").val(data.result.bytes);
         $(".status").text("");
-        $(".preview").html(
-          $.cloudinary.image(data.result.public_id, {
-            format: data.result.format, width: 50, height: 50, crop: "fit"
-          })
-        );
+        var preview = $(".preview").html('');
+        $.cloudinary.image(data.result.public_id, {
+          format: data.result.format, width: 50, height: 50, crop: "fit"
+        }).appendTo(preview);
+
+        $('<a/>').
+          addClass('delete_by_token').
+          attr({href: '#'}).
+          data({delete_token: data.result.delete_token}).
+          html('&times;').
+          appendTo(preview).
+          click(function(e) {
+            e.preventDefault();
+            $.cloudinary.delete_by_token($(this).data('delete_token')).done(function(){
+              $('.preview').html('');
+              $('#info').html('');
+              $("#photo_bytes").val('');
+              $('input[name="photo[image]"]').remove();
+            }).fail(function() {
+              $('.status').text("Cannot delete image");
+          });
+        });
         view_upload_details(data.result);
       });
     });

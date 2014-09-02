@@ -1,3 +1,38 @@
+= Version 1.0.76 - 2014-08-24
+  * Added supported image types for rake cloudinary:sync_static.
+
+= Version 1.0.75 - 2014-07-30
+  * Don't use Rails' image_tag for repsponsive/hidpi to prevent wrong alt and data URIs.
+
+= Version 1.0.74 - 2014-07-14
+  * Support custom_coordinates in upload and update. Support coordinates in resource details.
+  * Support delete_by_token for direct uploads.
+  * Support shorthand blank for cl_image_tag with responsive/hidpi.
+  * Correctly encode one-level double arrays.
+  * Support non-upload resources in signed_preloaded_image (Issue #117).
+  * Support background removal upload and admin API parameter.
+  * Update Cloudinary's jQuery plugin to v1.0.19.
+
+= Version 1.0.73 - 2014-06-30
+  * Support dpr transformation parameter.
+  * Support automatic dpr (for HiDPI) and automatic width (for responsive).
+  * Accept timestamp parameter in upload method options.
+  * Support pHash info in admin API.
+  * Support the multiple upload flag directly in cl_image_upload_tag.
+  * 'secure' configuration parameter from environment variable.
+  * Make api_key and api_secret optional in unsigned upload.
+  * Support the case Rails is defined but Rails.root isn't.
+
+= Version 1.0.72 - 2014-04-15
+  * Fixing broken sign_request.
+
+= Version 1.0.71 - 2014-04-15
+  * Upload preset support.
+  * Unsigned upload support.
+  * phash upload parameter support.
+  * Resource listing by start_at support.
+  * Updating to jQuery plugin v1.0.14.
+
 = Version 1.0.70 - 2014-03-25
   * Support upload_large without public_id. 
   * Remove public_id from method parameters.

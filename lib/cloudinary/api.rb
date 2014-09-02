@@ -36,7 +36,7 @@ class Cloudinary::Api
     type = options[:type]
     uri = "resources/#{resource_type}"
     uri += "/#{type}" if !type.blank?
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context, :moderations, :direction), options)    
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context, :moderations, :direction, :start_at), options)    
   end
   
   def self.resources_by_tag(tag, options={})
@@ -62,7 +62,7 @@ class Cloudinary::Api
     resource_type = options[:resource_type] || "image"
     type = options[:type] || "upload"
     uri = "resources/#{resource_type}/#{type}/#{public_id}"
-    call_api(:get, uri, only(options, :colors, :exif, :faces, :image_metadata, :pages, :max_results), options)      
+    call_api(:get, uri, only(options, :colors, :exif, :faces, :image_metadata, :pages, :phash, :coordinates, :max_results), options)      
   end
   
   def self.update(public_id, options={})
@@ -73,12 +73,14 @@ class Cloudinary::Api
       :tags => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
       :context => Cloudinary::Utils.encode_hash(options[:context]),
       :face_coordinates => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
+      :custom_coordinates => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
       :moderation_status => options[:moderation_status],
       :raw_convert => options[:raw_convert],
       :ocr => options[:ocr],
       :categorization => options[:categorization],
       :detection => options[:detection],
       :similarity_search => options[:similarity_search],
+      :background_removal => options[:background_removal],
       :auto_tagging => options[:auto_tagging] && options[:auto_tagging].to_f
     }
     call_api(:post, uri, update_options, options)
@@ -145,6 +147,29 @@ class Cloudinary::Api
   
   def self.create_transformation(name, definition, options={})
     call_api(:post, "transformations/#{name}", {:transformation=>transformation_string(definition)}, options)
+  end
+  
+  # upload presets
+  def self.upload_presets(options={})
+    call_api(:get, "upload_presets", only(options, :next_cursor, :max_results), options)    
+  end
+
+  def self.upload_preset(name, options={})
+    call_api(:get, "upload_presets/#{name}", only(options, :max_results), options)
+  end
+  
+  def self.delete_upload_preset(name, options={})
+    call_api(:delete, "upload_presets/#{name}", {}, options)    
+  end
+  
+  def self.update_upload_preset(name, options={})
+    params = Cloudinary::Uploader.build_upload_params(options)
+    call_api(:put, "upload_presets/#{name}", params.merge(only(options, :unsigned, :disallow_public_id)), options)
+  end
+  
+  def self.create_upload_preset(options={})
+    params = Cloudinary::Uploader.build_upload_params(options)
+    call_api(:post, "upload_presets", params.merge(only(options, :name, :unsigned, :disallow_public_id)), options)
   end
   
   protected
