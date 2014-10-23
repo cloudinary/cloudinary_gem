@@ -191,7 +191,7 @@ class Cloudinary::Utils
       shared_domain ||= secure_distribution == Cloudinary::SHARED_CDN
 
       if shared_domain && cdn_subdomain
-        secure_distribution.gsub!('res.', "res-#{(Zlib::crc32(source) % 5) + 1}.")
+        secure_distribution = secure_distribution.gsub('res.', "res-#{(Zlib::crc32(source) % 5) + 1}.")
       end
 
       prefix = "https://#{secure_distribution}"
