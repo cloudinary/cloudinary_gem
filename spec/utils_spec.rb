@@ -349,6 +349,13 @@ describe Cloudinary::Utils do
     result.should == "http://a2.hello.com/test123/image/upload/test" 
   end
   
+  it "should support cdn_subdomain with secure on if using shared_domain" do
+    options = {:secure=>true, :cdn_subdomain=>true}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "https://res-2.cloudinary.com/test123/image/upload/test"
+  end
+
   it "should support string param" do
     options = {"effect"=>{"sepia"=>10}}
     result = Cloudinary::Utils.cloudinary_url("test", options)
