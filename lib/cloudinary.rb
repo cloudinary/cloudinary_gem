@@ -7,10 +7,6 @@ require "erb"
 require "cloudinary/version"
 require "cloudinary/exceptions"
 require "cloudinary/missing"
-require "cloudinary/helper" if defined?(::ActionView::Base)
-require "cloudinary/controller" if defined?(::ActionController::Base)
-require "cloudinary/railtie" if defined?(Rails) && defined?(Rails::Railtie)
-require "cloudinary/engine" if defined?(Rails) && defined?(Rails::Engine)
 
 module Cloudinary
   autoload :Utils, 'cloudinary/utils'
@@ -105,3 +101,10 @@ module Cloudinary
     new_config.each{|k,v| @@config.send(:"#{k}=", v) if !v.nil?}
   end
 end
+
+# Prevent require loop if included after Rails is already initialized.
+require "cloudinary/helper" if defined?(::ActionView::Base)
+require "cloudinary/controller" if defined?(::ActionController::Base)
+require "cloudinary/railtie" if defined?(Rails) && defined?(Rails::Railtie)
+require "cloudinary/engine" if defined?(Rails) && defined?(Rails::Engine)
+
