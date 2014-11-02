@@ -76,6 +76,15 @@ module Cloudinary
     end    
   end
   
+  def self.app_root
+    if (defined?(Rails) && Rails.root)
+      # Rails 2.2 return String for Rails.root
+      Rails.root.is_a?(Pathname) ? Rails.root : Pathname.new(Rails.root)
+    else
+      Pathname.new(".")
+    end
+  end
+
   private
   
   def self.config_env
@@ -86,8 +95,7 @@ module Cloudinary
   
   def self.config_dir
     return Pathname.new(ENV["CLOUDINARY_CONFIG_DIR"]) if ENV["CLOUDINARY_CONFIG_DIR"] 
-    return Rails.root.join("config") if defined?(Rails)
-    Pathname.new("config")
+    self.app_root.join("config")
   end
   
   def self.set_config(new_config)
