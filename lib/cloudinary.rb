@@ -7,10 +7,6 @@ require "erb"
 require "cloudinary/version"
 require "cloudinary/exceptions"
 require "cloudinary/missing"
-require "cloudinary/helper" if defined?(::ActionView::Base)
-require "cloudinary/controller" if defined?(::ActionController::Base)
-require "cloudinary/railtie" if defined?(Rails) && defined?(Rails::Railtie)
-require "cloudinary/engine" if defined?(Rails) && defined?(Rails::Engine)
 
 module Cloudinary
   autoload :Utils, 'cloudinary/utils'
@@ -50,7 +46,8 @@ module Cloudinary
         "api_key" => ENV["CLOUDINARY_API_KEY"],
         "api_secret" => ENV["CLOUDINARY_API_SECRET"],
         "secure_distribution" => ENV["CLOUDINARY_SECURE_DISTRIBUTION"],
-        "private_cdn" => ENV["CLOUDINARY_PRIVATE_CDN"].to_s == 'true'
+        "private_cdn" => ENV["CLOUDINARY_PRIVATE_CDN"].to_s == 'true',
+        "secure" => ENV["CLOUDINARY_SECURE"].to_s == 'true'
       )
     elsif first_time && ENV["CLOUDINARY_URL"]
       config_from_url(ENV["CLOUDINARY_URL"])
@@ -79,6 +76,15 @@ module Cloudinary
     end    
   end
   
+  def self.app_root
+    if (defined?(Rails) && Rails.root)
+      # Rails 2.2 return String for Rails.root
+      Rails.root.is_a?(Pathname) ? Rails.root : Pathname.new(Rails.root)
+    else
+      Pathname.new(".")
+    end
+  end
+
   private
   
   def self.config_env
@@ -89,11 +95,17 @@ module Cloudinary
   
   def self.config_dir
     return Pathname.new(ENV["CLOUDINARY_CONFIG_DIR"]) if ENV["CLOUDINARY_CONFIG_DIR"] 
-    return Rails.root.join("config") if defined?(Rails)
-    Pathname.new("config")
+    self.app_root.join("config")
   end
   
   def self.set_config(new_config)
     new_config.each{|k,v| @@config.send(:"#{k}=", v) if !v.nil?}
   end
 end
+
+# Prevent require loop if included after Rails is already initialized.
+require "cloudinary/helper" if defined?(::ActionView::Base)
+require "cloudinary/controller" if defined?(::ActionController::Base)
+require "cloudinary/railtie" if defined?(Rails) && defined?(Rails::Railtie)
+require "cloudinary/engine" if defined?(Rails) && defined?(Rails::Engine)
+

@@ -433,7 +433,8 @@ describe Cloudinary::Utils do
       ["a+b", "a%2Bb"],
       ["a%20b", "a%20b"],
       ["a-b", "a-b"],
-      ["a??b", "a%3F%3Fb"]
+      ["a??b", "a%3F%3Fb"],
+      ["parentheses(interject)", "parentheses%28interject%29"]
     ].each do
       |source, target|
       Cloudinary::Utils.cloudinary_url(source).should == "http://res.cloudinary.com/test123/image/upload/#{target}"   
@@ -441,23 +442,45 @@ describe Cloudinary::Utils do
   end
   
   it "should correctly sign URLs", :signed => true do
-    options = {version: 1234, transformation: {crop: "crop", width: 10, height: 20}, sign_url: true}
+    options = {:version => 1234, :transformation => {:crop => "crop", :width => 10, :height => 20}, :sign_url => true}
     expected = "http://res.cloudinary.com/test123/image/upload/s--MaRXzoEC--/c_crop,h_20,w_10/v1234/image.jpg"
     actual = Cloudinary::Utils.cloudinary_url("image.jpg", options)
     actual.should == expected
     
-    options = {version: 1234, sign_url: true}
+    options = {:version => 1234, :sign_url => true}
     expected = "http://res.cloudinary.com/test123/image/upload/s--ZlgFLQcO--/v1234/image.jpg"
     actual = Cloudinary::Utils.cloudinary_url("image.jpg", options)
     actual.should == expected
     
-    options = {transformation: {crop: "crop", width: 10, height: 20}, sign_url: true}
+    options = {:transformation => {:crop => "crop", :width => 10, :height => 20}, :sign_url => true}
     expected = "http://res.cloudinary.com/test123/image/upload/s--Ai4Znfl3--/c_crop,h_20,w_10/image.jpg"
     actual = Cloudinary::Utils.cloudinary_url("image.jpg", options)
     actual.should == expected
     
     expected = "http://res.cloudinary.com/test123/image/fetch/s--_GAUclyB--/v1234/http://google.com/path/to/image.png"
-    actual = Cloudinary::Utils.cloudinary_url("http://google.com/path/to/image.png", type: "fetch", version: 1234, sign_url: true)
+    actual = Cloudinary::Utils.cloudinary_url("http://google.com/path/to/image.png", :type => "fetch", :version => 1234, :sign_url => true)
     actual.should == expected    
+  end
+  
+  it "should correctly sign_request" do
+    params = Cloudinary::Utils.sign_request({:public_id=>"folder/file", :version=>"1234"})
+    params.should == {:public_id=>"folder/file", :version=>"1234", :signature=>"7a3349cbb373e4812118d625047ede50b90e7b67", :api_key=>"1234"}
+  end
+
+  it "should support responsive width" do
+    options = {:width=>100, :height=>100, :crop=>:crop, :responsive_width=>true}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {responsive: true}
+    result.should == "http://res.cloudinary.com/test123/image/upload/c_crop,h_100,w_100/c_limit,w_auto/test" 
+    Cloudinary.config.responsive_width_transformation = {:width => :auto, :crop => :pad}
+    options = {:width=>100, :height=>100, :crop=>:crop, :responsive_width=>true}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {responsive: true}
+    result.should == "http://res.cloudinary.com/test123/image/upload/c_crop,h_100,w_100/c_pad,w_auto/test"     
+  end
+
+  it "should correctly encode double arrays" do
+    Cloudinary::Utils.encode_double_array([1,2,3,4]).should == "1,2,3,4"
+    Cloudinary::Utils.encode_double_array([[1,2,3,4],[5,6,7,8]]).should == "1,2,3,4|5,6,7,8"
   end
 end

@@ -36,54 +36,81 @@ class Cloudinary::Api
     type = options[:type]
     uri = "resources/#{resource_type}"
     uri += "/#{type}" if !type.blank?
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context, :direction), options)    
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context, :moderations, :direction, :start_at), options)    
   end
   
   def self.resources_by_tag(tag, options={})
     resource_type = options[:resource_type] || "image"
     uri = "resources/#{resource_type}/tags/#{tag}"
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :direction), options)    
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction), options)    
+  end
+  
+  def self.resources_by_moderation(kind, status, options={})
+    resource_type = options[:resource_type] || "image"
+    uri = "resources/#{resource_type}/moderations/#{kind}/#{status}"
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction), options)    
   end
   
   def self.resources_by_ids(public_ids, options={})
     resource_type = options[:resource_type] || "image"
     type = options[:type] || "upload"
     uri = "resources/#{resource_type}/#{type}"
-    call_api(:get, uri, only(options, :tags, :context).merge(:public_ids => public_ids), options)
+    call_api(:get, uri, only(options, :tags, :context, :moderations).merge(:public_ids => public_ids), options)
   end
   
   def self.resource(public_id, options={})
     resource_type = options[:resource_type] || "image"
     type = options[:type] || "upload"
     uri = "resources/#{resource_type}/#{type}/#{public_id}"
-    call_api(:get, uri, only(options, :colors, :exif, :faces, :image_metadata, :pages, :max_results), options)      
+    call_api(:get, uri, only(options, :colors, :exif, :faces, :image_metadata, :pages, :phash, :coordinates, :max_results), options)      
+  end
+  
+  def self.update(public_id, options={})
+    resource_type = options[:resource_type] || "image"
+    type = options[:type] || "upload"
+    uri = "resources/#{resource_type}/#{type}/#{public_id}"
+    update_options = {
+      :tags => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
+      :context => Cloudinary::Utils.encode_hash(options[:context]),
+      :face_coordinates => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
+      :custom_coordinates => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
+      :moderation_status => options[:moderation_status],
+      :raw_convert => options[:raw_convert],
+      :ocr => options[:ocr],
+      :categorization => options[:categorization],
+      :detection => options[:detection],
+      :similarity_search => options[:similarity_search],
+      :background_removal => options[:background_removal],
+      :auto_tagging => options[:auto_tagging] && options[:auto_tagging].to_f
+    }
+    call_api(:post, uri, update_options, options)
   end
   
   def self.delete_resources(public_ids, options={})
     resource_type = options[:resource_type] || "image"
     type = options[:type] || "upload"    
     uri = "resources/#{resource_type}/#{type}"
-    call_api(:delete, uri, {:public_ids=>public_ids}.merge(only(options, :keep_original)), options)      
+    call_api(:delete, uri, {:public_ids=>public_ids}.merge(only(options, :keep_original, :invalidate)), options)      
   end
 
   def self.delete_resources_by_prefix(prefix, options={})
     resource_type = options[:resource_type] || "image"
     type = options[:type] || "upload"    
     uri = "resources/#{resource_type}/#{type}"
-    call_api(:delete, uri, {:prefix=>prefix}.merge(only(options, :keep_original, :next_cursor)), options)      
+    call_api(:delete, uri, {:prefix=>prefix}.merge(only(options, :keep_original, :next_cursor, :invalidate)), options)      
   end
   
   def self.delete_all_resources(options={})
     resource_type = options[:resource_type] || "image"
     type = options[:type] || "upload"    
     uri = "resources/#{resource_type}/#{type}"
-    call_api(:delete, uri, {:all=>true}.merge(only(options, :keep_original, :next_cursor)), options)      
+    call_api(:delete, uri, {:all=>true}.merge(only(options, :keep_original, :next_cursor, :invalidate)), options)      
   end
   
   def self.delete_resources_by_tag(tag, options={})
     resource_type = options[:resource_type] || "image"
     uri = "resources/#{resource_type}/tags/#{tag}"
-    call_api(:delete, uri, only(options, :keep_original, :next_cursor), options)    
+    call_api(:delete, uri, only(options, :keep_original, :next_cursor, :invalidate), options)    
   end
   
   def self.delete_derived_resources(derived_resource_ids, options={})
@@ -120,6 +147,29 @@ class Cloudinary::Api
   
   def self.create_transformation(name, definition, options={})
     call_api(:post, "transformations/#{name}", {:transformation=>transformation_string(definition)}, options)
+  end
+  
+  # upload presets
+  def self.upload_presets(options={})
+    call_api(:get, "upload_presets", only(options, :next_cursor, :max_results), options)    
+  end
+
+  def self.upload_preset(name, options={})
+    call_api(:get, "upload_presets/#{name}", only(options, :max_results), options)
+  end
+  
+  def self.delete_upload_preset(name, options={})
+    call_api(:delete, "upload_presets/#{name}", {}, options)    
+  end
+  
+  def self.update_upload_preset(name, options={})
+    params = Cloudinary::Uploader.build_upload_params(options)
+    call_api(:put, "upload_presets/#{name}", params.merge(only(options, :unsigned, :disallow_public_id)), options)
+  end
+  
+  def self.create_upload_preset(options={})
+    params = Cloudinary::Uploader.build_upload_params(options)
+    call_api(:post, "upload_presets", params.merge(only(options, :name, :unsigned, :disallow_public_id)), options)
   end
   
   protected

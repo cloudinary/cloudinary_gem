@@ -39,3 +39,5 @@ form .error { color: #c55; margin: 0 10px; }
 #direct_upload { border: 4px dashed #ccc; }
 
 .upload_details { font-size: 12px; margin: 20px; border-top: 1px solid #ccc; word-wrap: break-word; }
+.preview { position: relative; }
+.preview .delete_by_token { position: absolute; top: 0; left: -12px; text-decoration: none; line-height: 9px; font-size: 12px; }
