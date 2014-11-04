@@ -1,3 +1,7 @@
+= Version 1.0.78 - 2014-11-04
+  * Add app_root method that handled Rails.root, which is a String in old Rails versions.
+  * Issue #127 - solve cyclical dependency in case cloudinary was included after Rails was initialized.
+
 = Version 1.0.77 - 2014-09-22
   * Update Cloudinary's jQuery plugin to v1.0.20.
   * Support invalidation in bulk deletion requests.
