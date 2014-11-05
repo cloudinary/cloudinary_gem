@@ -163,20 +163,8 @@ class Cloudinary::Utils
 
     if cloud_name.start_with?("/") # For development
       prefix = "/res" + cloud_name
-    else 
-      shared_domain = !private_cdn
-      if secure        
-        if secure_distribution.nil? || secure_distribution == Cloudinary::OLD_AKAMAI_SHARED_CDN
-          secure_distribution = private_cdn ? "#{cloud_name}-res.cloudinary.com" : Cloudinary::SHARED_CDN
-        end
-        shared_domain ||= secure_distribution == Cloudinary::SHARED_CDN
-        prefix = "https://#{secure_distribution}"
-      else
-        subdomain = cdn_subdomain ? "a#{(Zlib::crc32(source) % 5) + 1}." : ""
-        host = cname.blank? ? "#{private_cdn ? "#{cloud_name}-" : ""}res.cloudinary.com" : cname
-        prefix = "http://#{subdomain}#{host}"
-      end
-      prefix += "/#{cloud_name}" if shared_domain
+    else
+      prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, cname, secure, secure_distribution)
     end
     
     if shorten && resource_type.to_s == "image" && type.to_s == "upload"
@@ -193,6 +181,30 @@ class Cloudinary::Utils
     source = prefix + "/" + [resource_type, type, rest].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
   end
   
+  def self.unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, cname, secure, secure_distribution)
+    shared_domain = !private_cdn
+
+    if secure
+      if secure_distribution.nil? || secure_distribution == Cloudinary::OLD_AKAMAI_SHARED_CDN
+        secure_distribution = private_cdn ? "#{cloud_name}-res.cloudinary.com" : Cloudinary::SHARED_CDN
+      end
+      shared_domain ||= secure_distribution == Cloudinary::SHARED_CDN
+
+      if shared_domain && cdn_subdomain
+        secure_distribution = secure_distribution.gsub('res.', "res-#{(Zlib::crc32(source) % 5) + 1}.")
+      end
+
+      prefix = "https://#{secure_distribution}"
+    else
+      subdomain = cdn_subdomain ? "a#{(Zlib::crc32(source) % 5) + 1}." : ""
+      host = cname.blank? ? "#{private_cdn ? "#{cloud_name}-" : ""}res.cloudinary.com" : cname
+      prefix = "http://#{subdomain}#{host}"
+    end
+    prefix += "/#{cloud_name}" if shared_domain
+
+    prefix
+  end
+
   def self.cloudinary_api_url(action = 'upload', options = {})
     cloudinary = options[:upload_prefix] || Cloudinary.config.upload_prefix || "https://api.cloudinary.com"
     cloud_name = options[:cloud_name] || Cloudinary.config.cloud_name || raise(CloudinaryException, "Must supply cloud_name")
