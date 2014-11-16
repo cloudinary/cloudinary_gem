@@ -356,6 +356,20 @@ describe Cloudinary::Utils do
     result.should == "https://res-2.cloudinary.com/test123/image/upload/test"
   end
 
+  it "should support secure_cdn_subdomain false override with secure" do
+    options = {:secure=>true, :cdn_subdomain=>true, :secure_cdn_subdomain=>false}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "https://res.cloudinary.com/test123/image/upload/test"
+  end
+
+  it "should support secure_cdn_subdomain true override with secure" do
+    options = {:secure=>true, :cdn_subdomain=>true, :secure_cdn_subdomain=>true, :private_cdn=>true}
+    result = Cloudinary::Utils.cloudinary_url("test", options)
+    options.should == {}
+    result.should == "https://test123-res-2.cloudinary.com/image/upload/test"
+  end
+
   it "should support string param" do
     options = {"effect"=>{"sepia"=>10}}
     result = Cloudinary::Utils.cloudinary_url("test", options)

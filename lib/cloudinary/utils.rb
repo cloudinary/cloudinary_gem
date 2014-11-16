@@ -124,6 +124,7 @@ class Cloudinary::Utils
     shorten = config_option_consume(options, :shorten) 
     force_remote = options.delete(:force_remote)
     cdn_subdomain = config_option_consume(options, :cdn_subdomain) 
+    secure_cdn_subdomain = config_option_consume(options, :secure_cdn_subdomain) 
     sign_url = config_option_consume(options, :sign_url)
     secret = config_option_consume(options, :api_secret)
     
@@ -161,11 +162,7 @@ class Cloudinary::Utils
       source = "#{source}.#{format}" if !format.blank?
     end
 
-    if cloud_name.start_with?("/") # For development
-      prefix = "/res" + cloud_name
-    else
-      prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, cname, secure, secure_distribution)
-    end
+    prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
     
     if shorten && resource_type.to_s == "image" && type.to_s == "upload"
       resource_type = "iu"
@@ -181,7 +178,17 @@ class Cloudinary::Utils
     source = prefix + "/" + [resource_type, type, rest].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
   end
   
-  def self.unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, cname, secure, secure_distribution)
+  # cdn_subdomain and secure_cdn_subdomain
+  # 1) Customers in shared distribution (e.g. res.cloudinary.com)
+  #   if cdn_domain is true uses res-[1-5].cloudinary.com for both http and https. Setting secure_cdn_subdomain to false disables this for https.
+  # 2) Customers with private cdn 
+  #   if cdn_domain is true uses cloudname-res-[1-5].cloudinary.com for http
+  #   if secure_cdn_domain is true uses cloudname-res-[1-5].cloudinary.com for https (please contact support if you require this)
+  # 3) Customers with cname
+  #   if cdn_domain is true uses a[1-5].cname for http. For https, uses the same naming scheme as 1 for shared distribution and as 2 for private distribution.
+  def self.unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
+    return "/res#{cloud_name}" if cloud_name.start_with?("/") # For development
+
     shared_domain = !private_cdn
 
     if secure
@@ -189,16 +196,19 @@ class Cloudinary::Utils
         secure_distribution = private_cdn ? "#{cloud_name}-res.cloudinary.com" : Cloudinary::SHARED_CDN
       end
       shared_domain ||= secure_distribution == Cloudinary::SHARED_CDN
+      secure_cdn_subdomain = cdn_subdomain if secure_cdn_subdomain.nil? && shared_domain
 
-      if shared_domain && cdn_subdomain
-        secure_distribution = secure_distribution.gsub('res.', "res-#{(Zlib::crc32(source) % 5) + 1}.")
+      if secure_cdn_subdomain
+        secure_distribution = secure_distribution.gsub('res.cloudinary.com', "res-#{(Zlib::crc32(source) % 5) + 1}.cloudinary.com")
       end
 
       prefix = "https://#{secure_distribution}"
-    else
+    elsif cname
       subdomain = cdn_subdomain ? "a#{(Zlib::crc32(source) % 5) + 1}." : ""
-      host = cname.blank? ? "#{private_cdn ? "#{cloud_name}-" : ""}res.cloudinary.com" : cname
-      prefix = "http://#{subdomain}#{host}"
+      prefix = "http://#{subdomain}#{cname}"
+    else
+      host = [private_cdn ? "#{cloud_name}-" : "", "res", cdn_subdomain ? "-#{(Zlib::crc32(source) % 5) + 1}" : "", ".cloudinary.com"].join
+      prefix = "http://#{host}"        
     end
     prefix += "/#{cloud_name}" if shared_domain
 
