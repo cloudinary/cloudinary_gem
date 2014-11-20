@@ -264,7 +264,7 @@ class Cloudinary::Utils
   end
   
   def self.cloudinary_url(public_id, options = {})
-    if options[:type].to_s == 'authenticated'
+    if options[:type].to_s == 'authenticated' && !options[:sign_url]
       result = signed_download_url(public_id, options)
     else
       result = unsigned_download_url(public_id, options)
