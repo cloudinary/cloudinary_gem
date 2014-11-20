@@ -127,6 +127,7 @@ class Cloudinary::Utils
     secure_cdn_subdomain = config_option_consume(options, :secure_cdn_subdomain) 
     sign_url = config_option_consume(options, :sign_url)
     secret = config_option_consume(options, :api_secret)
+    sign_version = config_option_consume(options, :sign_version) # Deprecated behavior
     
     original_source = source
     return original_source if source.blank?
@@ -170,12 +171,14 @@ class Cloudinary::Utils
     end
     version ||= 1 if source.include?("/") and !source.match(/^v[0-9]+/) and !source.match(/^https?:\//)
     
-    rest = [transformation, version ? "v#{version}" : nil, source].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
+    source = source.gsub(%r(([^:])//), '\1/')
+    version &&= "v#{version}" 
+    transformation = transformation.gsub(%r(([^:])//), '\1/')
     if sign_url
-      rest = 's--' + Base64.urlsafe_encode64(Digest::SHA1.digest(rest + secret))[0,8] + '--/' + rest
+      to_sign = [transformation, sign_version && version, source].reject(&:blank?).join("/")
+      signature = 's--' + Base64.urlsafe_encode64(Digest::SHA1.digest(to_sign + secret))[0,8] + '--'
     end
-    
-    source = prefix + "/" + [resource_type, type, rest].reject(&:blank?).join("/").gsub(%r(([^:])//), '\1/')
+    source = prefix + "/" + [resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
   end
   
   # cdn_subdomain and secure_cdn_subdomain
