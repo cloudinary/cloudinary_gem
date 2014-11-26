@@ -118,6 +118,7 @@ class Cloudinary::Uploader
         :backup=>options[:backup],
         :final=>options[:final],
         :part_number=>options[:part_number],
+        :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
         :upload_id=>options[:upload_id]
       }
       if file.is_a?(Pathname) || !file.respond_to?(:read)
