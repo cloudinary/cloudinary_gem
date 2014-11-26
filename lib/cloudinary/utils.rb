@@ -128,7 +128,13 @@ class Cloudinary::Utils
     sign_url = config_option_consume(options, :sign_url)
     secret = config_option_consume(options, :api_secret)
     sign_version = config_option_consume(options, :sign_version) # Deprecated behavior
-    
+    seo_suffix = options.delete(:seo_suffix)
+    use_root_path = options.delete(:use_root_path)
+    if !private_cdn
+      raise(CloudinaryException, "SEO Suffix only supported in private CDN") unless seo_suffix.blank?
+      raise(CloudinaryException, "Root path only supported in private CDN") if use_root_path
+    end
+   
     original_source = source
     return original_source if source.blank?
     if defined?(CarrierWave::Uploader::Base) && source.is_a?(CarrierWave::Uploader::Base)
@@ -154,32 +160,63 @@ class Cloudinary::Utils
       end
     end
     
-    type ||= :upload
+    resource_type, type = finalize_resource_type(resource_type, type, seo_suffix, use_root_path, shorten)
+    source, source_to_sign = finalize_source(source, format, seo_suffix)
+    
+    version ||= 1 if source_to_sign.include?("/") and !source_to_sign.match(/^v[0-9]+/) and !source_to_sign.match(/^https?:\//)    
+    version &&= "v#{version}" 
 
-    if source.match(%r(^https?:/)i)
-      source = smart_escape(source)
-    else
-      source = smart_escape(URI.decode(source)) 
-      source = "#{source}.#{format}" if !format.blank?
+    transformation = transformation.gsub(%r(([^:])//), '\1/')
+    if sign_url
+      to_sign = [transformation, sign_version && version, source_to_sign].reject(&:blank?).join("/")
+      signature = 's--' + Base64.urlsafe_encode64(Digest::SHA1.digest(to_sign + secret))[0,8] + '--'
     end
 
     prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
-    
+    source = prefix + "/" + [resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
+  end
+
+  def self.finalize_source(source, format, seo_suffix)
+    source = source.gsub(%r(([^:])//), '\1/')
+    if source.match(%r(^https?:/)i)
+      source = smart_escape(source)
+      source_to_sign = source
+    else
+      source = smart_escape(URI.decode(source)) 
+      source_to_sign = source
+      source = "#{source}/#{seo_suffix}" unless seo_suffix.blank?
+      source = "#{source}.#{format}" if !format.blank?
+    end
+    [source, source_to_sign]
+  end    
+
+  def self.finalize_resource_type(resource_type, type, seo_suffix, use_root_path, shorten)
+    type ||= :upload
+    if !seo_suffix.blank?
+      if resource_type.to_s == "image" && type.to_s == "upload"
+        resource_type = "images"
+        type = nil
+      elsif resource_type.to_s == "raw" && type.to_s == "upload" 
+        resource_type = "files"
+        type = nil
+      else
+        raise(CloudinaryException, "SEO Suffix only supported for image/upload and raw/upload")
+      end
+    end
+    if use_root_path
+      if (resource_type.to_s == "image" && type.to_s == "upload") || (resource_type.to_s == "images" && type.blank?)
+        resource_type = nil
+        type = nil
+      else
+        raise(CloudinaryException, "Root path only supported for image/upload")
+      end
+    end
     if shorten && resource_type.to_s == "image" && type.to_s == "upload"
       resource_type = "iu"
       type = nil
     end
-    version ||= 1 if source.include?("/") and !source.match(/^v[0-9]+/) and !source.match(/^https?:\//)
-    
-    source = source.gsub(%r(([^:])//), '\1/')
-    version &&= "v#{version}" 
-    transformation = transformation.gsub(%r(([^:])//), '\1/')
-    if sign_url
-      to_sign = [transformation, sign_version && version, source].reject(&:blank?).join("/")
-      signature = 's--' + Base64.urlsafe_encode64(Digest::SHA1.digest(to_sign + secret))[0,8] + '--'
-    end
-    source = prefix + "/" + [resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
-  end
+    [resource_type, type]
+  end    
   
   # cdn_subdomain and secure_cdn_subdomain
   # 1) Customers in shared distribution (e.g. res.cloudinary.com)

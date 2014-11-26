@@ -74,6 +74,53 @@ describe Cloudinary::Utils do
     test_cloudinary_url("test", {:format=>:jpg}, "http://res.cloudinary.com/test123/image/upload/test.jpg", {})
   end
 
+  it "should disallow seo_suffix in shared distribution" do
+    lambda{Cloudinary::Utils.cloudinary_url("test", {:seo_suffix=>"hello"})}.should raise_error(CloudinaryException)
+  end
+
+  it "should disallow seo_suffix in non upload types" do
+    lambda{Cloudinary::Utils.cloudinary_url("test", {:seo_suffix=>"hello", :private_cdn=>true, :type=>:facebook})}.should raise_error(CloudinaryException)
+  end
+
+  it "should support seo_suffix for private_cdn" do    
+    test_cloudinary_url("test", {:seo_suffix=>"hello", :private_cdn=>true}, "http://test123-res.cloudinary.com/images/test/hello", {})
+    test_cloudinary_url("test", {:seo_suffix=>"hello", :angle=>0, :private_cdn=>true}, "http://test123-res.cloudinary.com/images/a_0/test/hello", {})
+  end
+
+  it "should put format after seo_suffix" do
+    test_cloudinary_url("test", {:seo_suffix=>"hello", :private_cdn=>true, :format=>"jpg"}, "http://test123-res.cloudinary.com/images/test/hello.jpg", {})
+  end
+
+  it "should not sign the seo_suffix" do
+    expected_signture = Cloudinary::Utils.cloudinary_url("test", :format=>"jpg", :sign_url=>true).match(/s--[0-9A-Za-z_-]{8}--/).to_s
+    test_cloudinary_url("test", {:seo_suffix=>"hello", :private_cdn=>true, :format=>"jpg", :sign_url=>true}, "http://test123-res.cloudinary.com/images/#{expected_signture}/test/hello.jpg", {})
+
+    expected_signture = Cloudinary::Utils.cloudinary_url("test", :format=>"jpg", :angle=>0, :sign_url=>true).match(/s--[0-9A-Za-z_-]{8}--/).to_s
+    test_cloudinary_url("test", {:seo_suffix=>"hello", :private_cdn=>true, :format=>"jpg", :angle=>0, :sign_url=>true}, "http://test123-res.cloudinary.com/images/#{expected_signture}/a_0/test/hello.jpg", {})
+  end
+
+  it "should support seo_suffix for raw uploads" do    
+    test_cloudinary_url("test", {:seo_suffix=>"hello", :private_cdn=>true, :resource_type=>:raw}, "http://test123-res.cloudinary.com/files/test/hello", {})
+  end
+
+  it "should disllow use_root_path in shared distribution" do
+    lambda{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true})}.should raise_error(CloudinaryException)
+  end
+
+  it "should support use_root_path for private_cdn" do
+    test_cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true}, "http://test123-res.cloudinary.com/test", {})
+    test_cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true, :angle=>0}, "http://test123-res.cloudinary.com/a_0/test", {})
+  end
+
+  it "should support use_root_path together with seo_suffix for private_cdn" do
+    test_cloudinary_url("test", {:use_root_path=>true, :seo_suffix=>"hello", :private_cdn=>true}, "http://test123-res.cloudinary.com/test/hello", {})
+  end
+
+  it "should disllow use_root_path if not image/upload" do
+    lambda{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true, :type=>:facebook})}.should raise_error(CloudinaryException)
+    lambda{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true, :resource_type=>:raw})}.should raise_error(CloudinaryException)
+  end
+
   it "should use width and height from options only if crop is given" do
     test_cloudinary_url("test", {:width=>100, :height=>100}, "http://res.cloudinary.com/test123/image/upload/test", {:width=>100, :height=>100})
     test_cloudinary_url("test", {:width=>100, :height=>100, :crop=>:crop}, "http://res.cloudinary.com/test123/image/upload/c_crop,h_100,w_100/test", {:width=>100, :height=>100})
