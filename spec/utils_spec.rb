@@ -82,6 +82,11 @@ describe Cloudinary::Utils do
     lambda{Cloudinary::Utils.cloudinary_url("test", {:seo_suffix=>"hello", :private_cdn=>true, :type=>:facebook})}.should raise_error(CloudinaryException)
   end
 
+  it "should disallow seo_suffix with / or ." do
+    lambda{Cloudinary::Utils.cloudinary_url("test", {:seo_suffix=>"hello/world", :private_cdn=>true})}.should raise_error(CloudinaryException)
+    lambda{Cloudinary::Utils.cloudinary_url("test", {:seo_suffix=>"hello.world", :private_cdn=>true})}.should raise_error(CloudinaryException)
+  end
+
   it "should support seo_suffix for private_cdn" do    
     test_cloudinary_url("test", {:seo_suffix=>"hello", :private_cdn=>true}, "http://test123-res.cloudinary.com/images/test/hello", {})
     test_cloudinary_url("test", {:seo_suffix=>"hello", :angle=>0, :private_cdn=>true}, "http://test123-res.cloudinary.com/images/a_0/test/hello", {})

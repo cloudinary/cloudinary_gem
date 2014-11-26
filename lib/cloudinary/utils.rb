@@ -184,7 +184,10 @@ class Cloudinary::Utils
     else
       source = smart_escape(URI.decode(source)) 
       source_to_sign = source
-      source = "#{source}/#{seo_suffix}" unless seo_suffix.blank?
+      unless seo_suffix.blank?
+        raise(CloudinaryException, "seo_suffix should not include . or /") if seo_suffix.match(%r([\./]))
+        source = "#{source}/#{seo_suffix}" 
+      end
       source = "#{source}.#{format}" if !format.blank?
     end
     [source, source_to_sign]
