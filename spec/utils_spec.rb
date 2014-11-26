@@ -18,8 +18,8 @@ describe Cloudinary::Utils do
   
   def test_cloudinary_url(public_id, options, expected_url, expected_options)
     url = Cloudinary::Utils.cloudinary_url(public_id, options)
-    url.should == expected_url
-    options.should == expected_options
+    expect(url).to eq(expected_url)
+    expect(options).to eq(expected_options)
     url
   end
 
@@ -75,16 +75,16 @@ describe Cloudinary::Utils do
   end
 
   it "should disallow seo_suffix in shared distribution" do
-    lambda{Cloudinary::Utils.cloudinary_url("test", {:seo_suffix=>"hello"})}.should raise_error(CloudinaryException)
+    expect{Cloudinary::Utils.cloudinary_url("test", {:seo_suffix=>"hello"})}.to raise_error(CloudinaryException)
   end
 
   it "should disallow seo_suffix in non upload types" do
-    lambda{Cloudinary::Utils.cloudinary_url("test", {:seo_suffix=>"hello", :private_cdn=>true, :type=>:facebook})}.should raise_error(CloudinaryException)
+    expect{Cloudinary::Utils.cloudinary_url("test", {:seo_suffix=>"hello", :private_cdn=>true, :type=>:facebook})}.to raise_error(CloudinaryException)
   end
 
   it "should disallow seo_suffix with / or ." do
-    lambda{Cloudinary::Utils.cloudinary_url("test", {:seo_suffix=>"hello/world", :private_cdn=>true})}.should raise_error(CloudinaryException)
-    lambda{Cloudinary::Utils.cloudinary_url("test", {:seo_suffix=>"hello.world", :private_cdn=>true})}.should raise_error(CloudinaryException)
+    expect{Cloudinary::Utils.cloudinary_url("test", {:seo_suffix=>"hello/world", :private_cdn=>true})}.to raise_error(CloudinaryException)
+    expect{Cloudinary::Utils.cloudinary_url("test", {:seo_suffix=>"hello.world", :private_cdn=>true})}.to raise_error(CloudinaryException)
   end
 
   it "should support seo_suffix for private_cdn" do    
@@ -109,7 +109,7 @@ describe Cloudinary::Utils do
   end
 
   it "should disllow use_root_path in shared distribution" do
-    lambda{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true})}.should raise_error(CloudinaryException)
+    expect{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true})}.to raise_error(CloudinaryException)
   end
 
   it "should support use_root_path for private_cdn" do
@@ -122,8 +122,8 @@ describe Cloudinary::Utils do
   end
 
   it "should disllow use_root_path if not image/upload" do
-    lambda{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true, :type=>:facebook})}.should raise_error(CloudinaryException)
-    lambda{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true, :resource_type=>:raw})}.should raise_error(CloudinaryException)
+    expect{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true, :type=>:facebook})}.to raise_error(CloudinaryException)
+    expect{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true, :resource_type=>:raw})}.to raise_error(CloudinaryException)
   end
 
   it "should use width and height from options only if crop is given" do
@@ -163,7 +163,7 @@ describe Cloudinary::Utils do
 
   it "should support array of tranformations" do    
     result = Cloudinary::Utils.generate_transformation_string([{:x=>100, :y=>100, :width=>200, :crop=>:fill}, {:radius=>10}])
-    result.should ==  "c_fill,w_200,x_100,y_100/r_10" 
+    expect(result).to eq("c_fill,w_200,x_100,y_100/r_10")
   end
 
   it "should not include empty tranformations" do    
@@ -296,20 +296,20 @@ describe Cloudinary::Utils do
 
   it "build_upload_params should not destroy options" do
     options = {:width=>100, :crop=>:scale}
-    Cloudinary::Uploader.build_upload_params(options)[:transformation].should == "c_scale,w_100"
-    options.length.should == 2
+    expect(Cloudinary::Uploader.build_upload_params(options)[:transformation]).to eq("c_scale,w_100")
+    expect(options.length).to eq(2)
   end
 
   it "build_upload_params canonize booleans" do
     options = {:backup=>true, :use_filename=>false, :colors=>"true", :exif=>"false", :colors=>:true, 
                :image_metadata=>:false, :invalidate=>1, :eager_async=>"1"}
     params = Cloudinary::Uploader.build_upload_params(options)
-    Cloudinary::Api.only(params, *options.keys).should == {
+    expect(Cloudinary::Api.only(params, *options.keys)).to eq(
       :backup=>1, :use_filename=>0, :colors=>1, :exif=>0, :colors=>1, 
                :image_metadata=>0, :invalidate=>1, :eager_async=>1
-    }
-    Cloudinary::Uploader.build_upload_params(:backup=>nil)[:backup].should be_nil
-    Cloudinary::Uploader.build_upload_params({})[:backup].should be_nil
+    )
+    expect(Cloudinary::Uploader.build_upload_params(:backup=>nil)[:backup]).to be_nil
+    expect(Cloudinary::Uploader.build_upload_params({})[:backup]).to be_nil
   end
   
   it "should add version if public_id contains /" do
@@ -328,7 +328,7 @@ describe Cloudinary::Utils do
   it "should allow to use folders in PreloadedFile" do
     signature = Cloudinary::Utils.api_sign_request({:public_id=>"folder/file", :version=>"1234"}, Cloudinary.config.api_secret)
     preloaded = Cloudinary::PreloadedFile.new("image/upload/v1234/folder/file.jpg#" + signature)
-    preloaded.should be_valid
+    expect(preloaded).to be_valid
   end
   
   it "should escape public_ids" do
@@ -341,7 +341,7 @@ describe Cloudinary::Utils do
       ["parentheses(interject)", "parentheses%28interject%29"]
     ].each do
       |source, target|
-      Cloudinary::Utils.cloudinary_url(source).should == "http://res.cloudinary.com/test123/image/upload/#{target}"   
+      expect(Cloudinary::Utils.cloudinary_url(source)).to eq("http://res.cloudinary.com/test123/image/upload/#{target}")
     end      
   end
   
@@ -362,7 +362,7 @@ describe Cloudinary::Utils do
   
   it "should correctly sign_request" do
     params = Cloudinary::Utils.sign_request({:public_id=>"folder/file", :version=>"1234"})
-    params.should == {:public_id=>"folder/file", :version=>"1234", :signature=>"7a3349cbb373e4812118d625047ede50b90e7b67", :api_key=>"1234"}
+    expect(params).to eq(:public_id=>"folder/file", :version=>"1234", :signature=>"7a3349cbb373e4812118d625047ede50b90e7b67", :api_key=>"1234")
   end
 
   it "should support responsive width" do
@@ -372,7 +372,7 @@ describe Cloudinary::Utils do
   end
 
   it "should correctly encode double arrays" do
-    Cloudinary::Utils.encode_double_array([1,2,3,4]).should == "1,2,3,4"
-    Cloudinary::Utils.encode_double_array([[1,2,3,4],[5,6,7,8]]).should == "1,2,3,4|5,6,7,8"
+    expect(Cloudinary::Utils.encode_double_array([1,2,3,4])).to eq("1,2,3,4")
+    expect(Cloudinary::Utils.encode_double_array([[1,2,3,4],[5,6,7,8]])).to eq("1,2,3,4|5,6,7,8")
   end
 end
