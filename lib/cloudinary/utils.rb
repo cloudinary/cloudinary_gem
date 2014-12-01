@@ -188,7 +188,10 @@ class Cloudinary::Utils
         raise(CloudinaryException, "seo_suffix should not include . or /") if seo_suffix.match(%r([\./]))
         source = "#{source}/#{seo_suffix}" 
       end
-      source = "#{source}.#{format}" if !format.blank?
+      if !format.blank?
+        source = "#{source}.#{format}" 
+        source_to_sign = "#{source_to_sign}.#{format}" 
+      end
     end
     [source, source_to_sign]
   end    
