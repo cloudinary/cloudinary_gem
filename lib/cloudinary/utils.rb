@@ -173,7 +173,7 @@ class Cloudinary::Utils
     end
 
     prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
-    source = prefix + "/" + [resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
+    source = [prefix, resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
   end
 
   def self.finalize_source(source, format, seo_suffix)
