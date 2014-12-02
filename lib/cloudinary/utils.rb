@@ -128,10 +128,10 @@ class Cloudinary::Utils
     sign_url = config_option_consume(options, :sign_url)
     secret = config_option_consume(options, :api_secret)
     sign_version = config_option_consume(options, :sign_version) # Deprecated behavior
-    seo_suffix = options.delete(:seo_suffix)
+    url_suffix = options.delete(:url_suffix)
     use_root_path = options.delete(:use_root_path)
     if !private_cdn
-      raise(CloudinaryException, "SEO Suffix only supported in private CDN") unless seo_suffix.blank?
+      raise(CloudinaryException, "URL Suffix only supported in private CDN") unless url_suffix.blank?
       raise(CloudinaryException, "Root path only supported in private CDN") if use_root_path
     end
    
@@ -160,8 +160,8 @@ class Cloudinary::Utils
       end
     end
     
-    resource_type, type = finalize_resource_type(resource_type, type, seo_suffix, use_root_path, shorten)
-    source, source_to_sign = finalize_source(source, format, seo_suffix)
+    resource_type, type = finalize_resource_type(resource_type, type, url_suffix, use_root_path, shorten)
+    source, source_to_sign = finalize_source(source, format, url_suffix)
     
     version ||= 1 if source_to_sign.include?("/") and !source_to_sign.match(/^v[0-9]+/) and !source_to_sign.match(/^https?:\//)    
     version &&= "v#{version}" 
@@ -176,7 +176,7 @@ class Cloudinary::Utils
     source = [prefix, resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
   end
 
-  def self.finalize_source(source, format, seo_suffix)
+  def self.finalize_source(source, format, url_suffix)
     source = source.gsub(%r(([^:])//), '\1/')
     if source.match(%r(^https?:/)i)
       source = smart_escape(source)
@@ -184,9 +184,9 @@ class Cloudinary::Utils
     else
       source = smart_escape(URI.decode(source)) 
       source_to_sign = source
-      unless seo_suffix.blank?
-        raise(CloudinaryException, "seo_suffix should not include . or /") if seo_suffix.match(%r([\./]))
-        source = "#{source}/#{seo_suffix}" 
+      unless url_suffix.blank?
+        raise(CloudinaryException, "url_suffix should not include . or /") if url_suffix.match(%r([\./]))
+        source = "#{source}/#{url_suffix}" 
       end
       if !format.blank?
         source = "#{source}.#{format}" 
@@ -196,9 +196,9 @@ class Cloudinary::Utils
     [source, source_to_sign]
   end    
 
-  def self.finalize_resource_type(resource_type, type, seo_suffix, use_root_path, shorten)
+  def self.finalize_resource_type(resource_type, type, url_suffix, use_root_path, shorten)
     type ||= :upload
-    if !seo_suffix.blank?
+    if !url_suffix.blank?
       if resource_type.to_s == "image" && type.to_s == "upload"
         resource_type = "images"
         type = nil
@@ -206,7 +206,7 @@ class Cloudinary::Utils
         resource_type = "files"
         type = nil
       else
-        raise(CloudinaryException, "SEO Suffix only supported for image/upload and raw/upload")
+        raise(CloudinaryException, "URL Suffix only supported for image/upload and raw/upload")
       end
     end
     if use_root_path
