@@ -141,13 +141,13 @@ describe Cloudinary::Uploader do
     end
     
     it "should support unsigned uploading using presets", :upload_preset => true do
-      preset = Cloudinary::Api.create_upload_preset(:folder => "upload_folder", :unsigned => true)
+      preset = Cloudinary::Api.create_upload_preset(:folder => "test_folder_upload", :unsigned => true)
 
       Cloudinary.config.api_key = nil
       Cloudinary.config.api_secret = nil
 
       result = Cloudinary::Uploader.unsigned_upload("spec/logo.png", preset["name"])
-      expect(result["public_id"]).to match(/^upload_folder\/[a-z0-9]+$/)
+      expect(result["public_id"]).to match(/^test_folder_upload\/[a-z0-9]+$/)
 
       Cloudinary.class_variable_set(:@@config, nil)
 
