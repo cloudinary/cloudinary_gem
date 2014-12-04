@@ -171,6 +171,14 @@ class Cloudinary::Api
     params = Cloudinary::Uploader.build_upload_params(options)
     call_api(:post, "upload_presets", params.merge(only(options, :name, :unsigned, :disallow_public_id)), options)
   end
+
+  def self.root_folders(options={})
+    call_api(:get, "folders", {}, options)
+  end
+
+  def self.subfolders(of_folder_path, options={})
+    call_api(:get, "folders/#{of_folder_path}", {}, options)
+  end
   
   protected
   

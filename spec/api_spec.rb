@@ -307,4 +307,21 @@ describe Cloudinary::Api do
     expect(pending).not_to include(result2["public_id"])
   end
 
+  it "should support listing folders" do
+    #pending("For this test to work, 'Auto-create folders' should be enabled in the Upload Settings, " + 
+    #        "and the account should be empty of folders. " +
+    #        "Comment out this line if you really want to test it.")
+    Cloudinary::Uploader.upload("spec/logo.png", {:public_id => "test_folder1/item"})
+    Cloudinary::Uploader.upload("spec/logo.png", {:public_id => "test_folder2/item"})
+    Cloudinary::Uploader.upload("spec/logo.png", {:public_id => "test_folder1/test_subfolder1/item"})
+    Cloudinary::Uploader.upload("spec/logo.png", {:public_id => "test_folder1/test_subfolder2/item"})
+    result = Cloudinary::Api.root_folders
+    expect(result["folders"][0]["name"]).to eq("test_folder1")
+    expect(result["folders"][1]["name"]).to eq("test_folder2")
+    result = Cloudinary::Api.subfolders("test_folder1")
+    expect(result["folders"][0]["path"]).to eq("test_folder1/test_subfolder1")
+    expect(result["folders"][1]["path"]).to eq("test_folder1/test_subfolder2")
+    expect{Cloudinary::Api.subfolders("test_folder")}.to raise_error(Cloudinary::Api::NotFound)
+    Cloudinary::Api.delete_resources_by_prefix("test_folder")
+  end
 end
