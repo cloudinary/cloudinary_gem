@@ -1,6 +1,6 @@
 # Copyright Cloudinary
 # Support for store in CarrierWave files that were preloaded to cloudinary (e.g., by javascript)
-# Field value must be in the format:  "image/upload/v<version>/#<public_id>.<format>#<signature>"
+# Field value must be in the format:  "image/upload/v<version>/<public_id>.<format>#<signature>"
 # Where signature is the cloduinary API signature on the public_id and version.
 module Cloudinary::CarrierWave
   PRELOADED_CLOUDINARY_PATH = Cloudinary::PreloadedFile::PRELOADED_CLOUDINARY_PATH
