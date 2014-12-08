@@ -183,7 +183,7 @@ module CloudinaryHelper
   end
 
   def cl_upload_url(options={})
-    Cloudinary::Utils.cloudinary_api_url("upload", {:resource_type=>:auto}.merge(options))
+    Cloudinary::Utils.cloudinary_api_url(options[:chunk_size] ? "upload_chunked" : "upload", {:resource_type=>options[:chunk_size] ? :raw : :auto}.merge(options))
   end
 
   def cl_upload_tag_params(options={})
@@ -207,6 +207,7 @@ module CloudinaryHelper
       :"data-url"=>cl_upload_url(options),
       :"data-form-data"=>cl_upload_tag_params(options),
       :"data-cloudinary-field"=>field,
+      :"data-max-chunk-size"=>options[:chunk_size],
       :"class" => [html_options[:class], "cloudinary-fileupload"].flatten.compact
     ).reject{|k,v| v.blank?}
     content_tag("input", nil, tag_options)
