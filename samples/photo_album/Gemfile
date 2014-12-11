@@ -6,7 +6,7 @@ gem 'jquery-rails'
 
 gem 'carrierwave'
 
-gem 'cloudinary', '~> 1.0.72'
+gem 'cloudinary', '~> 1.0.79'
 
 group :assets do
   gem 'uglifier', '>= 1.0.3'
