@@ -308,9 +308,9 @@ describe Cloudinary::Api do
   end
 
   it "should support listing folders" do
-    #pending("For this test to work, 'Auto-create folders' should be enabled in the Upload Settings, " + 
-    #        "and the account should be empty of folders. " +
-    #        "Comment out this line if you really want to test it.")
+    pending("For this test to work, 'Auto-create folders' should be enabled in the Upload Settings, " + 
+            "and the account should be empty of folders. " +
+            "Comment out this line if you really want to test it.")
     Cloudinary::Uploader.upload("spec/logo.png", {:public_id => "test_folder1/item"})
     Cloudinary::Uploader.upload("spec/logo.png", {:public_id => "test_folder2/item"})
     Cloudinary::Uploader.upload("spec/logo.png", {:public_id => "test_folder1/test_subfolder1/item"})
