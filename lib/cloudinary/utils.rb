@@ -129,7 +129,7 @@ class Cloudinary::Utils
     secret = config_option_consume(options, :api_secret)
     sign_version = config_option_consume(options, :sign_version) # Deprecated behavior
     url_suffix = options.delete(:url_suffix)
-    use_root_path = options.delete(:use_root_path)
+    use_root_path = config_option_consume(options, :use_root_path)
     if !private_cdn
       raise(CloudinaryException, "URL Suffix only supported in private CDN") unless url_suffix.blank?
       raise(CloudinaryException, "Root path only supported in private CDN") if use_root_path

@@ -1,3 +1,13 @@
+= Version 1.0.79 - 2014-12-11
+  * Support folder listing API.
+  * Add support for conditional processing in CarrierWave plugin.
+  * Support tags in upload_large.
+  * Support url_suffix and use_root_path for private_cdn URL building.
+  * Allow using sign_url with type authenticated.
+  * Don't sign version component by default.
+  * Support for new domain sharding syntax and secure domain sharding. Support for secure_cdn_subdomain flag.
+  * Update Cloudinary's jQuery plugin to v1.0.21.
+
 = Version 1.0.78 - 2014-11-04
   * Add app_root method that handled Rails.root, which is a String in old Rails versions.
   * Issue #127 - solve cyclical dependency in case cloudinary was included after Rails was initialized.
