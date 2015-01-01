@@ -183,7 +183,7 @@ module CloudinaryHelper
   end
 
   def cl_upload_url(options={})
-    Cloudinary::Utils.cloudinary_api_url(options[:chunk_size] ? "upload_chunked" : "upload", {:resource_type=>options[:chunk_size] ? :raw : :auto}.merge(options))
+    Cloudinary::Utils.cloudinary_api_url(options[:chunk_size] ? "upload_chunked" : "upload", {:resource_type=>:auto}.merge(options))
   end
 
   def cl_upload_tag_params(options={})

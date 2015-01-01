@@ -1,3 +1,6 @@
+= Version 1.0.80 - 2015-01-01
+  * Support upload_chunked direct upload for large raw files.
+
 = Version 1.0.79 - 2014-12-11
   * Support folder listing API.
   * Add support for conditional processing in CarrierWave plugin.
