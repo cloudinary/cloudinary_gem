@@ -60,7 +60,7 @@ module Cloudinary::CarrierWave
 
   def filename
     return nil if self.blank?
-    return [self.full_public_id, self.format].join(".")
+    return [self.full_public_id, self.format].reject(&:blank?).join(".")
   end
 
   # default public_id to use if no uploaded file. Override with public_id of an uploaded image if you want a default image.
@@ -176,8 +176,12 @@ module Cloudinary::CarrierWave
     return Cloudinary::PreloadedFile.split_format(identifier)
   end
 
+  def default_format
+    "png"
+  end
+
   def resource_type
-    Cloudinary::Utils.resource_type_for_format(self.filename || self.format)
+    Cloudinary::Utils.resource_type_for_format(requested_format || original_filename || default_format)
   end
   
   # For the given methods - versions should call the main uploader method

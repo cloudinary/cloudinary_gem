@@ -135,7 +135,7 @@ module Cloudinary::CarrierWave
     @tags
   end
 
-  def format
+  def requested_format
     format_processor = self.all_processors.find{|processor| processor[0] == :convert}
     if format_processor
       # Explicit format is given
@@ -146,11 +146,15 @@ module Cloudinary::CarrierWave
       # No local format. The reset should be handled by main uploader
       uploader = self.model.send(self.mounted_as)
       format = uploader.format
-    else
-      # Try to auto-detect format
-      format = Cloudinary::PreloadedFile.split_format(original_filename || "").last
-      format ||= "png" # TODO Default format?
     end
+    format
+  end
+
+  def format
+    format = Cloudinary::PreloadedFile.split_format(original_filename || "").last
+    return format || "" if resource_type == "raw"
+    format = requested_format || format || default_format
+ 
     format = format.to_s.downcase
     Cloudinary::FORMAT_ALIASES[format] || format
   end
