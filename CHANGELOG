@@ -1,3 +1,6 @@
+= Version 1.0.81 - 2015-01-08
+  * CarrierWave - support default_format if format is unknown, support arbitrary format for resource_type raw.
+
 = Version 1.0.80 - 2015-01-01
   * Support upload_chunked direct upload for large raw files.
 
