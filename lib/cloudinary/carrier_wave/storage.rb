@@ -83,7 +83,9 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     elsif defined?(Mongoid::Document) && uploader.model.is_a?(Mongoid::Document)
       # Mongoid support
       if Mongoid::VERSION.split(".").first.to_i >= 4
-        uploader.model.set(:"#{column}" => name)
+        column = column.to_sym
+        uploader.model.write_attribute(column, name)
+        uploader.model.set(column => name)
       else
         uploader.model.set(column, name)
       end
