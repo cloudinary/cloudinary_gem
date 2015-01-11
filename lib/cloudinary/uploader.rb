@@ -1,9 +1,9 @@
 # Copyright Cloudinary
-require 'rest_client'
+require 'faraday'
 require 'json'
 
 class Cloudinary::Uploader
-  
+
   def self.build_eager(eager)
     return nil if eager.nil?
     Cloudinary::Utils.build_array(eager).map do
@@ -13,12 +13,12 @@ class Cloudinary::Uploader
       [Cloudinary::Utils.generate_transformation_string(transformation), format].compact.join("/")
     end.join("|")
   end
-  
+
   def self.build_upload_params(options)
     #symbolize keys
     options = options.clone
     options.keys.each{|key| options[key.to_sym] = options.delete(key) if key.is_a?(String)}
-    
+
     params = {:timestamp=>(options[:timestamp] || Time.now.to_i),
               :transformation => Cloudinary::Utils.generate_transformation_string(options.clone),
               :public_id=>options[:public_id],
@@ -59,25 +59,25 @@ class Cloudinary::Uploader
               :phash => Cloudinary::Utils.as_safe_bool(options[:phash]),
               :return_delete_token => Cloudinary::Utils.as_safe_bool(options[:return_delete_token]),
             }
-    params    
+    params
   end
-  
+
   def self.unsigned_upload(file, upload_preset, options={})
     upload(file, options.merge(:unsigned => true, :upload_preset => upload_preset))
   end
-   
+
   def self.upload(file, options={})
-    call_api("upload", options) do    
+    call_api("upload", options) do
       params = build_upload_params(options)
       if file.is_a?(Pathname)
-        params[:file] = File.open(file, "rb")
+        params[:file] = Faraday::UploadIO.new(file.to_s, "application/octet-stream")
       elsif file.respond_to?(:read) || file =~ /^https?:|^s3:|^data:[^;]*;base64,([a-zA-Z0-9\/+\n=]+)$/
         params[:file] = file
-      else 
-        params[:file] = File.open(file, "rb")
+      else
+        params[:file] = Faraday::UploadIO.new(file, "application/octet-stream")
       end
       [params, [:file]]
-    end              
+    end
   end
 
   # Upload large raw files. Note that public_id should include an extension for best results.
@@ -88,7 +88,7 @@ class Cloudinary::Uploader
     else
       public_id = public_id_or_options
       options = old_options
-    end 
+    end
     if file.is_a?(Pathname) || !file.respond_to?(:read)
       filename = file
       file = File.open(file, "rb")
@@ -101,16 +101,16 @@ class Cloudinary::Uploader
       buffer = file.read(20_000_000)
       upload = upload_large_part(Cloudinary::Blob.new(buffer, :original_filename=>filename), options.merge(:public_id=>public_id, :upload_id=>upload_id, :part_number=>index, :final=>file.eof?))
       upload_id = upload["upload_id"]
-      public_id = upload["public_id"]      
+      public_id = upload["public_id"]
       index += 1
     end
     upload
   end
-    
+
 
   # Upload large raw files. Note that public_id should include an extension for best results.
   def self.upload_large_part(file, options={})
-    call_api("upload_large", options.merge(:resource_type=>:raw)) do    
+    call_api("upload_large", options.merge(:resource_type=>:raw)) do
       params = {
         :timestamp=>(options[:timestamp] || Time.now.to_i),
         :type=>options[:type],
@@ -127,22 +127,22 @@ class Cloudinary::Uploader
         params[:file] = file
       end
       [params, [:file]]
-    end              
+    end
   end
 
   def self.destroy(public_id, options={})
-    call_api("destroy", options) do    
+    call_api("destroy", options) do
       {
         :timestamp=>(options[:timestamp] || Time.now.to_i),
         :type=>options[:type],
         :public_id=> public_id,
         :invalidate=>options[:invalidate],
       }
-    end              
+    end
   end
 
   def self.rename(from_public_id, to_public_id, options={})
-    call_api("rename", options) do    
+    call_api("rename", options) do
       {
         :timestamp=>(options[:timestamp] || Time.now.to_i),
         :type=>options[:type],
@@ -150,21 +150,21 @@ class Cloudinary::Uploader
         :from_public_id=>from_public_id,
         :to_public_id=>to_public_id,
       }
-    end              
+    end
   end
 
   def self.exists?(public_id, options={})
     cloudinary_url = Cloudinary::Utils.cloudinary_url(public_id, options)
-    begin
-      RestClient::Request.execute(:method => :head, :url => cloudinary_url, :timeout=>5).code.to_s =~ /2\d{2}/
-    rescue RestClient::ResourceNotFound => e
-      return false
+    conn = Faraday.new(:url => cloudinary_url)
+    response = conn.post do |req|
+      req.options.timeout = 5
+      req.method = :head
     end
-    
+    response.status.to_s =~ /2\d{2}/
   end
 
   def self.explicit(public_id, options={})
-    call_api("explicit", options) do    
+    call_api("explicit", options) do
       {
         :timestamp=>(options[:timestamp] || Time.now.to_i),
         :type=>options[:type],
@@ -173,39 +173,39 @@ class Cloudinary::Uploader
         :eager=>build_eager(options[:eager]),
         :headers=>build_custom_headers(options[:headers]),
         :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
-        :face_coordinates => options[:face_coordinates] && Cloudinary::Utils.encode_double_array(options[:face_coordinates])  
+        :face_coordinates => options[:face_coordinates] && Cloudinary::Utils.encode_double_array(options[:face_coordinates])
       }
-    end              
+    end
   end
-    
-  TEXT_PARAMS = [:public_id, :font_family, :font_size, :font_color, :text_align, :font_weight, :font_style, :background, :opacity, :text_decoration, :line_spacing]  
+
+  TEXT_PARAMS = [:public_id, :font_family, :font_size, :font_color, :text_align, :font_weight, :font_style, :background, :opacity, :text_decoration, :line_spacing]
   def self.text(text, options={})
     call_api("text", options) do
       params = {:timestamp => Time.now.to_i, :text=>text}
       TEXT_PARAMS.each{|k| params[k] = options[k] if !options[k].nil?}
       params
     end
-  end  
-    
+  end
+
   def self.generate_sprite(tag, options={})
     version_store = options.delete(:version_store)
-    
+
     result = call_api("sprite", options) do
       {
         :timestamp=>(options[:timestamp] || Time.now.to_i),
         :tag=>tag,
         :async=>options[:async],
         :notification_url=>options[:notification_url],
-        :transformation => Cloudinary::Utils.generate_transformation_string(options.merge(:fetch_format=>options[:format]))        
-      }    
+        :transformation => Cloudinary::Utils.generate_transformation_string(options.merge(:fetch_format=>options[:format]))
+      }
     end
-    
+
     if version_store == :file && result && result["version"]
       if defined?(Rails) && defined?(Rails.root)
         FileUtils.mkdir_p("#{Rails.root}/tmp/cloudinary")
-        File.open("#{Rails.root}/tmp/cloudinary/cloudinary_sprite_#{tag}.version", "w"){|file| file.print result["version"].to_s}                      
-      end  
-    end      
+        File.open("#{Rails.root}/tmp/cloudinary/cloudinary_sprite_#{tag}.version", "w"){|file| file.print result["version"].to_s}
+      end
+    end
     return result
   end
 
@@ -217,12 +217,12 @@ class Cloudinary::Uploader
         :format=>options[:format],
         :async=>options[:async],
         :notification_url=>options[:notification_url],
-        :transformation => Cloudinary::Utils.generate_transformation_string(options.clone)        
-      }    
+        :transformation => Cloudinary::Utils.generate_transformation_string(options.clone)
+      }
     end
   end
-  
-  def self.explode(public_id, options={})    
+
+  def self.explode(public_id, options={})
     call_api("explode", options) do
       {
         :timestamp=>(options[:timestamp] || Time.now.to_i),
@@ -230,28 +230,28 @@ class Cloudinary::Uploader
         :type=>options[:type],
         :format=>options[:format],
         :notification_url=>options[:notification_url],
-        :transformation => Cloudinary::Utils.generate_transformation_string(options.clone)        
-      }    
+        :transformation => Cloudinary::Utils.generate_transformation_string(options.clone)
+      }
     end
   end
-    
-  # options may include 'exclusive' (boolean) which causes clearing this tag from all other resources 
+
+  # options may include 'exclusive' (boolean) which causes clearing this tag from all other resources
   def self.add_tag(tag, public_ids = [], options = {})
     exclusive = options.delete(:exclusive)
     command = exclusive ? "set_exclusive" : "add"
-    return self.call_tags_api(tag, command, public_ids, options)    
+    return self.call_tags_api(tag, command, public_ids, options)
   end
 
   def self.remove_tag(tag, public_ids = [], options = {})
-    return self.call_tags_api(tag, "remove", public_ids, options)    
+    return self.call_tags_api(tag, "remove", public_ids, options)
   end
 
   def self.replace_tag(tag, public_ids = [], options = {})
-    return self.call_tags_api(tag, "replace", public_ids, options)    
+    return self.call_tags_api(tag, "replace", public_ids, options)
   end
-  
+
   private
-  
+
   def self.call_tags_api(tag, command, public_ids = [], options = {})
     return call_api("tags", options) do
       {
@@ -260,17 +260,17 @@ class Cloudinary::Uploader
         :public_ids => Cloudinary::Utils.build_array(public_ids),
         :command => command,
         :type => options[:type]
-      }    
-    end    
+      }
+    end
   end
-     
+
   def self.call_api(action, options)
     options = options.clone
     return_error = options.delete(:return_error)
 
     params, non_signable = yield
     non_signable ||= []
-    
+
     unless options[:unsigned]
       api_key = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
       api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
@@ -279,30 +279,42 @@ class Cloudinary::Uploader
     end
 
     result = nil
-    
+
     api_url = Cloudinary::Utils.cloudinary_api_url(action, options)
-    
-    RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=>60, :headers => {"User-Agent" => Cloudinary::USER_AGENT}) do
-      |response, request, tmpresult|
-      raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" if ![200,400,401,403,404,500].include?(response.code)
-      begin
-        result = Cloudinary::Utils.json_decode(response.body)
-      rescue => e
-        # Error is parsing json
-        raise CloudinaryException, "Error parsing server response (#{response.code}) - #{response.body}. Got - #{e}"
-      end
-      if result["error"]
-        if return_error
-          result["error"]["http_code"] = response.code
-        else
-          raise CloudinaryException, result["error"]["message"]
-        end
-      end        
+
+    conn = Faraday.new(:url => api_url) do |c|
+      c.request :multipart
+      c.request :url_encoded
+      c.adapter :net_http
     end
-    
-    result    
+
+    response = conn.post do |req|
+      req.options.timeout = 60
+      req.body = params.reject{|k, v| v.nil? || v==""}
+      req.headers["User-Agent"] = Cloudinary::USER_AGENT
+    end
+
+    if ![200,400,401,403,404,500].include?(response.status)
+      raise CloudinaryException, "Server returned unexpected status code - #{response.status} - #{response.body}"
+    end
+
+    begin
+      result = Cloudinary::Utils.json_decode(response.body)
+    rescue => e
+      # Error is parsing json
+      raise CloudinaryException, "Error parsing server response (#{response.status}) - #{response.body}. Got - #{e}"
+    end
+    if result["error"]
+      if return_error
+        result["error"]["http_code"] = response.status
+      else
+        raise CloudinaryException, result["error"]["message"]
+      end
+    end
+
+    result
   end
-  
+
   def self.build_custom_headers(headers)
     Array(headers).map{|*a| a.join(": ")}.join("\n")
   end
