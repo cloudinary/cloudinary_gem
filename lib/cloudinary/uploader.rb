@@ -122,7 +122,7 @@ class Cloudinary::Uploader
         :upload_id=>options[:upload_id]
       }
       if file.is_a?(Pathname) || !file.respond_to?(:read)
-        params[:file] = File.open(file, "rb")
+        params[:file] = Faraday::UploadIO.new(file.to_s, "application/octet-stream")
       else
         params[:file] = file
       end
