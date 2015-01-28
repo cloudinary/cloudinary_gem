@@ -108,8 +108,10 @@ describe Cloudinary::Utils do
     test_cloudinary_url("test", {:url_suffix=>"hello", :private_cdn=>true, :resource_type=>:raw}, "http://test123-res.cloudinary.com/files/test/hello", {})
   end
 
-  it "should disllow use_root_path in shared distribution" do
-    expect{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true})}.to raise_error(CloudinaryException)
+  it "should allow use_root_path in shared distribution" do
+    # expect{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true})}.to raise_error(CloudinaryException)
+    test_cloudinary_url("test", {:use_root_path=>true, :private_cdn=>false}, "http://res.cloudinary.com/test123/test", {})
+    test_cloudinary_url("test", {:use_root_path=>true, :private_cdn=>false, :angle=>0}, "http://res.cloudinary.com/test123/a_0/test", {})
   end
 
   it "should support use_root_path for private_cdn" do
