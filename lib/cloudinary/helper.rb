@@ -235,7 +235,7 @@ module CloudinaryHelper
       if !method_defined?(:image_tag)
         include ActionView::Helpers::AssetTagHelper
       end
-      if defined?(Rails) && !Rails.version.start_with?("2") && Cloudinary.config.enhance_image_tag
+      if defined?(Rails::version) && !Rails.version.start_with?('2') && Cloudinary.config.enhance_image_tag
         alias_method_chain :image_tag, :cloudinary
         alias_method_chain :image_path, :cloudinary
       else
@@ -299,7 +299,7 @@ if defined? ActionView::Helpers::AssetUrlHelper
   end
 end
 
-if defined?(Rails) && Rails.version.start_with?("2")
+if defined?(Rails::version) && Rails.version.start_with('2')
   ActionView::Base.send :include, ActionView::Helpers::AssetTagHelper
   ActionView::Base.send :include, CloudinaryHelper
 end

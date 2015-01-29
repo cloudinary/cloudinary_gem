@@ -4,3 +4,10 @@ RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
   config.filter_run_excluding :delete_all => true
 end
+
+# Create a regexp with the given tag name.
+# @param [String or Symbol] tag tag name (e.g. `img`)
+# @return [Regexp] the regular expression to match the tag
+def html_tag_matcher( tag)
+  /<#{tag}([\s]+[-[:word:]]+[\s]*\=\s*\"[^\"]*\")*\s*>.*<\s*\/#{tag}\s*>/
+end
