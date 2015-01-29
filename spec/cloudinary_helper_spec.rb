@@ -1,3 +1,4 @@
+require 'rspec'
 require 'spec_helper'
 require 'cloudinary'
 require 'action_view'
@@ -7,7 +8,7 @@ helper_class = Class.new do
   include CloudinaryHelper
 end
 
-describe CloudinaryHelper do
+RSpec.describe CloudinaryHelper do
   let(:helper) { helper_class.new }
 
 
@@ -16,9 +17,12 @@ describe CloudinaryHelper do
     subject(:input) { helper.cl_image_upload_tag(:image_id, options) }
 
     before do
-      Cloudinary::Utils.stub(:cloudinary_api_url)
-      Cloudinary::Utils.stub(:sign_request)
-      helper.stub(:build_callback_url)
+      # :should syntax
+      # Cloudinary::Utils.should_receive(:cloudinary_api_url).and_return('')
+      # Cloudinary::Utils.should_receive(:sign_request).and_return( Hash.new)
+      # :expect syntax
+      allow(Cloudinary::Utils).to receive_messages :cloudinary_api_url => '', :sign_request => Hash.new
+      allow(helper).to receive(:build_callback_url).and_return('')
     end
 
     it "allow multiple upload" do
@@ -29,19 +33,25 @@ describe CloudinaryHelper do
   end
 
   context "#cl_image_tag" do
-    subject(:input) { helper.cl_image_tag("sample.jpg", options) }
+    subject(:input) { helper.cl_image_tag('sample.jpg', options) }
 
     context "responsive_width" do
       let(:options) { {responsive_width: true, cloud_name: "test"} }
       it "should use data-src for responsive_width" do
-        expect(input).to eq("<img class=\"cld-responsive\" data-src=\"http://res.cloudinary.com/test/image/upload/c_limit,w_auto/sample.jpg\"></img>")
+        img_tag = html_tag_matcher 'img'
+        expect(input).to match img_tag
+        expect(input).to include('class="cld-responsive"')
+        expect(input).to include( 'data-src="http://res.cloudinary.com/test/image/upload/c_limit,w_auto/sample.jpg"')
       end
     end
 
     context "dpr_auto" do
       let(:options) { {dpr: :auto, cloud_name: "test"} }
       it "should use data-src for dpr auto" do
-        expect(input).to eq("<img class=\"cld-hidpi\" data-src=\"http://res.cloudinary.com/test/image/upload/dpr_auto/sample.jpg\"></img>")
+        img_tag = html_tag_matcher 'img'
+        expect(input).to match(img_tag)
+        expect(input).to include('data-src="http://res.cloudinary.com/test/image/upload/dpr_auto/sample.jpg"')
+        expect(input).to include('class="cld-hidpi"')
       end
     end
   end

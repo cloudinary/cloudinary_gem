@@ -77,7 +77,7 @@ module Cloudinary
   end
   
   def self.app_root
-    if (defined?(Rails) && Rails.root)
+    if defined? Rails::root
       # Rails 2.2 return String for Rails.root
       Rails.root.is_a?(Pathname) ? Rails.root : Pathname.new(Rails.root)
     else
@@ -89,7 +89,7 @@ module Cloudinary
   
   def self.config_env
     return ENV["CLOUDINARY_ENV"] if ENV["CLOUDINARY_ENV"]
-    return Rails.env if defined?(Rails)
+    return Rails.env if defined? Rails::env
     nil
   end
   
