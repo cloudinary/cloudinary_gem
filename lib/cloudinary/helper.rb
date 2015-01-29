@@ -235,7 +235,7 @@ module CloudinaryHelper
       end
       callback_url << callback_path
     end
-    callback_url
+    callback_path
   end  
 end
 
