@@ -130,11 +130,9 @@ class Cloudinary::Utils
     sign_version = config_option_consume(options, :sign_version) # Deprecated behavior
     url_suffix = options.delete(:url_suffix)
     use_root_path = config_option_consume(options, :use_root_path)
-    if !private_cdn
-      raise(CloudinaryException, "URL Suffix only supported in private CDN") unless url_suffix.blank?
-      raise(CloudinaryException, "Root path only supported in private CDN") if use_root_path
-    end
-   
+
+    raise(CloudinaryException, "URL Suffix only supported in private CDN") if url_suffix.present? and not private_cdn
+
     original_source = source
     return original_source if source.blank?
     if defined?(CarrierWave::Uploader::Base) && source.is_a?(CarrierWave::Uploader::Base)

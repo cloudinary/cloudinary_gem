@@ -108,24 +108,28 @@ describe Cloudinary::Utils do
     test_cloudinary_url("test", {:url_suffix=>"hello", :private_cdn=>true, :resource_type=>:raw}, "http://test123-res.cloudinary.com/files/test/hello", {})
   end
 
-  it "should allow use_root_path in shared distribution" do
-    # expect{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true})}.to raise_error(CloudinaryException)
-    test_cloudinary_url("test", {:use_root_path=>true, :private_cdn=>false}, "http://res.cloudinary.com/test123/test", {})
-    test_cloudinary_url("test", {:use_root_path=>true, :private_cdn=>false, :angle=>0}, "http://res.cloudinary.com/test123/a_0/test", {})
-  end
+  describe 'root_path support' do
 
-  it "should support use_root_path for private_cdn" do
-    test_cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true}, "http://test123-res.cloudinary.com/test", {})
-    test_cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true, :angle=>0}, "http://test123-res.cloudinary.com/a_0/test", {})
-  end
+    it "should allow use_root_path in shared distribution" do
+      # expect{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true})}.to raise_error(CloudinaryException)
+      test_cloudinary_url("test", {:use_root_path=>true, :private_cdn=>false}, "http://res.cloudinary.com/test123/test", {})
+      test_cloudinary_url("test", {:use_root_path=>true, :private_cdn=>false, :angle=>0}, "http://res.cloudinary.com/test123/a_0/test", {})
+    end
 
-  it "should support use_root_path together with url_suffix for private_cdn" do
-    test_cloudinary_url("test", {:use_root_path=>true, :url_suffix=>"hello", :private_cdn=>true}, "http://test123-res.cloudinary.com/test/hello", {})
-  end
+    it "should support use_root_path for private_cdn" do
+      test_cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true}, "http://test123-res.cloudinary.com/test", {})
+      test_cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true, :angle=>0}, "http://test123-res.cloudinary.com/a_0/test", {})
+    end
 
-  it "should disllow use_root_path if not image/upload" do
-    expect{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true, :type=>:facebook})}.to raise_error(CloudinaryException)
-    expect{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true, :resource_type=>:raw})}.to raise_error(CloudinaryException)
+    it "should support use_root_path together with url_suffix for private_cdn" do
+      test_cloudinary_url("test", {:use_root_path=>true, :url_suffix=>"hello", :private_cdn=>true}, "http://test123-res.cloudinary.com/test/hello", {})
+    end
+
+    it "should disallow use_root_path if not image/upload" do
+      expect{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true, :type=>:facebook})}.to raise_error(CloudinaryException)
+      expect{Cloudinary::Utils.cloudinary_url("test", {:use_root_path=>true, :private_cdn=>true, :resource_type=>:raw})}.to raise_error(CloudinaryException)
+    end
+
   end
 
   it "should use width and height from options only if crop is given" do
