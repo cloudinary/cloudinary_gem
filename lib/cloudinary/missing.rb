@@ -3,6 +3,14 @@ if !nil.respond_to?(:blank?)
     def blank?
       respond_to?(:empty?) ? empty? : !self
     end
+
+    # An object is present if it's not blank.
+    #
+    # @return [true, false]
+    def present?
+      !blank?
+    end
+
   end
   
   class NilClass #:nodoc:
