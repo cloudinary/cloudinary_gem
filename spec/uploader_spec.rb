@@ -18,7 +18,7 @@ describe Cloudinary::Uploader do
   end
 
   it "should successfully upload file by url" do
-    result = Cloudinary::Uploader.upload("http://cloudinary.com/images/logo.png")
+    result = Cloudinary::Uploader.upload("http://cloudinary.com/images/old_logo.png")
     expect(result["width"]).to eq(241)
     expect(result["height"]).to eq(51)
     expected_signature = Cloudinary::Utils.api_sign_request({:public_id=>result["public_id"], :version=>result["version"]}, Cloudinary.config.api_secret)
