@@ -17,12 +17,14 @@ RSpec.describe CloudinaryHelper do
     subject(:input) { helper.cl_image_upload_tag(:image_id, options) }
 
     before do
-      # :should syntax
-      # Cloudinary::Utils.should_receive(:cloudinary_api_url).and_return('')
-      # Cloudinary::Utils.should_receive(:sign_request).and_return( Hash.new)
-      # :expect syntax
-      allow(Cloudinary::Utils).to receive_messages :cloudinary_api_url => '', :sign_request => Hash.new
-      allow(helper).to receive(:build_callback_url).and_return('')
+      if defined? allow
+        allow(Cloudinary::Utils).to receive_messages :cloudinary_api_url => '', :sign_request => Hash.new
+        allow(helper).to receive(:build_callback_url).and_return('')
+      else
+        Cloudinary::Utils.should_receive(:cloudinary_api_url).and_return('')
+        Cloudinary::Utils.should_receive(:sign_request).and_return(Hash.new)
+        helper.should_receive(:build_callback_url).and_return('')
+      end
     end
 
     it "allow multiple upload" do
