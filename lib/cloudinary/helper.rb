@@ -299,7 +299,7 @@ if defined? ActionView::Helpers::AssetUrlHelper
   end
 end
 
-if defined?(Rails::version) && Rails.version.start_with('2')
+if defined?(Rails::version) && Rails.version.start_with?('2')
   ActionView::Base.send :include, ActionView::Helpers::AssetTagHelper
   ActionView::Base.send :include, CloudinaryHelper
 end
