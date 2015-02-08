@@ -1,3 +1,10 @@
+= Version 1.0.82 - 2015-02-05
+  * Solve problem with CarrierWave integration to newer versions on the mongoid and carrierwave-mongoid gems.
+  * Enable root path for shared CDN: 
+    * Modified restriction in utils so that it doesn't fail for root path with shared CDN.
+    * Added Object::present? predicate. Check if Object::present doesn't exist before defining it.
+  * Checking for `defined?(Rails)` is not enough if we want to invoke `Rails.version` etc. It was changed to `defined? Rails::version`.
+
 = Version 1.0.81 - 2015-01-08
   * CarrierWave - support default_format if format is unknown, support arbitrary format for resource_type raw.
 
