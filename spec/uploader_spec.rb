@@ -131,8 +131,19 @@ describe Cloudinary::Uploader do
   end
 
   it "should support upload_large" do
-    result = Cloudinary::Uploader.upload_large("spec/logo.png")
-    expect(result["public_id"]).to match(/^[a-z0-9]+.png$/)
+    io = StringIO.new
+    header = "BMJ\xB9Y\x00\x00\x00\x00\x00\x8A\x00\x00\x00|\x00\x00\x00x\x05\x00\x00x\x05\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\xC0\xB8Y\x00a\x0F\x00\x00a\x0F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\x00\x00\xFF\x00\x00\xFF\x00\x00\x00\x00\x00\x00\xFFBGRs\x00\x00\x00\x00\x00\x00\x00\x00T\xB8\x1E\xFC\x00\x00\x00\x00\x00\x00\x00\x00fff\xFC\x00\x00\x00\x00\x00\x00\x00\x00\xC4\xF5(\xFF\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    io.puts(header)
+    2940000.times{ io.puts("\xFF") }
+    io.rewind
+    result = Cloudinary::Uploader.upload_large(io, :chunk_size => 5243000)
+    expect(result["resource_type"]).to eq('raw')
+    io.rewind
+    result = Cloudinary::Uploader.upload_large(io, :resource_type => 'image', :chunk_size => 5243000)
+    expect(result["resource_type"]).to eq('image')
+    expect(result["width"]).to eq(1400)
+    expect(result["height"]).to eq(1400)
+    expect(result["format"]).to eq("bmp")
   end
   
   context "unsigned" do
