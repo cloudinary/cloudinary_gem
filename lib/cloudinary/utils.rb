@@ -6,9 +6,9 @@ require 'aws_cf_signer'
 
 class Cloudinary::Utils
   # @deprecated Use Cloudinary::SHARED_CDN
-  SHARED_CDN = Cloudinary::SHARED_CDN  
+  SHARED_CDN = Cloudinary::SHARED_CDN
   DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {:width => :auto, :crop => :limit}
-  
+
   # Warning: options are being destructively updated!
   def self.generate_transformation_string(options={})
     if options.is_a?(Array)
@@ -18,15 +18,15 @@ class Cloudinary::Utils
     options.keys.each do |key|
       options[key.to_sym] = options.delete(key) if key.is_a?(String)
     end
-    
-    responsive_width = config_option_consume(options, :responsive_width) 
+
+    responsive_width = config_option_consume(options, :responsive_width)
     size = options.delete(:size)
-    options[:width], options[:height] = size.split("x") if size    
+    options[:width], options[:height] = size.split("x") if size
     width = options[:width]
     width = width.to_s if width.is_a?(Symbol)
     height = options[:height]
     has_layer = !options[:overlay].blank? || !options[:underlay].blank?
-         
+
     crop = options.delete(:crop)
     angle = build_array(options.delete(:angle)).join(".")
 
@@ -41,38 +41,51 @@ class Cloudinary::Utils
 
     color = options.delete(:color)
     color = color.sub(/^#/, 'rgb:') if color
-        
+
     base_transformations = build_array(options.delete(:transformation))
     if base_transformations.any?{|base_transformation| base_transformation.is_a?(Hash)}
       base_transformations = base_transformations.map do
         |base_transformation|
         base_transformation.is_a?(Hash) ? generate_transformation_string(base_transformation.clone) : generate_transformation_string(:transformation=>base_transformation)
       end
-    else      
+    else
       named_transformation = base_transformations.join(".")
       base_transformations = []
     end
-    
+
     effect = options.delete(:effect)
     effect = Array(effect).flatten.join(":") if effect.is_a?(Array) || effect.is_a?(Hash)
-    
+
     border = options.delete(:border)
     if border.is_a?(Hash)
       border = "#{border[:width] || 2}px_solid_#{(border[:color] || "black").sub(/^#/, 'rgb:')}"
-    elsif border.to_s =~ /^\d+$/ # fallback to html border attribute 
+    elsif border.to_s =~ /^\d+$/ # fallback to html border attribute
       options[:border] = border
       border = nil
     end
     flags = build_array(options.delete(:flags)).join(".")
     dpr = config_option_consume(options, :dpr)
-    
+
+    if options.include? :offset
+      options[:start_offset], options[:end_offset] = split_range options.delete(:offset)
+    end
+
     params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect, :a=>angle, :bo=>border, :fl=>flags, :co=>color, :dpr=>dpr}
     { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :cs=>:color_space, :o=>:opacity,
-      :p=>:prefix, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page, :dl=>:delay
+      :p=>:prefix, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page, :dl=>:delay,
+      :vc=>:video_codec, :so => :start_offset, :eo => :end_offset, :du => :duration,
+      :ac => :audio_codec, :br => :bit_rate, :sf => :sampling_frequency
     }.each do
       |param, option|
       params[param] = options.delete(option)
-    end    
+    end
+
+
+    params[:vc] = process_video params[:vc] if params[:vc].present?
+    [:so, :eo, :du].each do |range_value|
+      params[range_value] = norm_range_value params[range_value] if params[range_value].present?
+    end
+
 
     transformation = params.reject{|k,v| v.blank?}.map{|k,v| [k.to_s, v]}.sort_by(&:first).map{|k,v| "#{k}_#{v}"}.join(",")
     raw_transformation = options.delete(:raw_transformation)
@@ -90,13 +103,106 @@ class Cloudinary::Utils
       options[:hidpi] = true
     end
 
-    transformations.reject(&:blank?).join("/")    
+    transformations.reject(&:blank?).join("/")
   end
+
+  OFFSET_NUMBER_PATTERN = "([0-9]*\\.[0-9]+|[0-9]+)"
+  OFFSET_TIME_PATTERN = "([0-9]*\\.[0-9]+|[0-9]+)(ms)?"
+  PERCENT_SIGN_PATTERN = "[\\%pP]"
+  # OFFSET_PERCENT_PATTERN = "#{OFFSET_NUMBER_PATTERN}(#{PERCENT_SIGN_PATTERN})"
+  OFFSET_ANY_PATTERN = "(#{OFFSET_NUMBER_PATTERN})(#{PERCENT_SIGN_PATTERN}|ms)?"
+  OFFSET_ANY_RANGE_PATTERN = "#{OFFSET_ANY_PATTERN}\.\.#{OFFSET_ANY_PATTERN}"
   
+  # OFFSET_RANGE_RE = /#{OFFSET_NUMBER_PATTERN}\.\.#{OFFSET_NUMBER_PATTERN}/
+  # OFFSET_PERCENT_RANGE_RE = /#{OFFSET_PERCENT_PATTERN}\.\.#{OFFSET_PERCENT_PATTERN}/
+  OFFSET_ANY_RANGE_RE = /#{OFFSET_ANY_RANGE_PATTERN}/
+
+  def self.split_range(range)
+    case range
+      when Range
+        [range.first, range.last]
+      when String
+        range.split ".." if OFFSET_ANY_RANGE_RE =~ range
+      when Array
+        [range.first, range.last]
+      else
+        NIL
+    end
+  end
+
+  # @param [String] value a decimal value which may have a 'p' or '%' postfix. E.g. '35%', '0.4p'
+  # @return [Object|String] a normalized String of the input value if possible otherwise the value itself
+  def self.norm_range_value(value)
+
+    if value.is_a? String and (offset = /^#{OFFSET_ANY_PATTERN}$/.match value)
+        number = offset[2].include?('.') ? offset[2].to_f : offset[2].to_i
+        sign = case true
+          when %w(% p P).include?( offset[3])
+            'p'
+          when offset[3] == 'ms'
+            'ms'
+          else
+            ''
+        end
+        value = "#{number}#{sign}"
+
+
+
+    end
+    #
+    # if value.is_a? String
+    #   if (offset = /#{OFFSET_ANY_PATTERN}/.match value)
+    #     number = offset[2].include?('.') ? offset[2].to_f : offset[2].to_i
+    #     sign = case true
+    #       when %w(% p P).include?( offset[3])
+    #         'p'
+    #       when offset[3] == 'ms'
+    #         'ms'
+    #       else
+    #         ''
+    #     end
+    #     value = "#{number}#{sign}"
+    #   elsif (offset = /\d{1,2}(:\d\d){0,2}(\.\d{1,3}(ms)?)/.match value)
+    #     value
+    #   end
+    #
+    # end
+    value
+  end
+
+  # A video codec parameter can be either a String or a Hash.
+  #
+  # @param [Object] param 'vc_<codec>[%3A<profile>%3A[<level>]]'
+  #                       or <tt>{ codec: 'h264', profile: 'basic', level: '3.1' }</tt>
+  # @return [String] <codec>:<profile>:[<level>]] if a Hash wsa provided or the param if a String was provided.
+  #                   Returns NIL if param is not a Hash or String
+  def self.process_video(param)
+
+    case param
+      when Hash
+        video = ""
+        if param.has_key? :codec
+          video = param[:codec]
+          if param.has_key? :profile
+            video.concat ":" + param[:profile]
+            if param.has_key? :level
+              video.concat ":" + param[:level]
+            end
+          end
+        end
+        video
+      when String
+        param
+      else
+        NIL
+    end
+
+  end
+
   def self.api_string_to_sign(params_to_sign)
     params_to_sign.map{|k,v| [k.to_s, v.is_a?(Array) ? v.join(",") : v]}.reject{|k,v| v.nil? || v == ""}.sort_by(&:first).map{|k,v| "#{k}=#{v}"}.join("&")
   end
-  
+
   def self.api_sign_request(params_to_sign, api_secret)
     to_sign = api_string_to_sign(params_to_sign)
     Digest::SHA1.hexdigest("#{to_sign}#{api_secret}")
@@ -107,24 +213,24 @@ class Cloudinary::Utils
 
     type = options.delete(:type)
 
-    options[:fetch_format] ||= options.delete(:format) if type == :fetch 
+    options[:fetch_format] ||= options.delete(:format) if type == :fetch
     transformation = self.generate_transformation_string(options)
 
     resource_type = options.delete(:resource_type) || "image"
     version = options.delete(:version)
     format = options.delete(:format)
     cloud_name = config_option_consume(options, :cloud_name) || raise(CloudinaryException, "Must supply cloud_name in tag or in configuration")
-            
+
     secure = options.delete(:secure)
     ssl_detected = options.delete(:ssl_detected)
     secure = ssl_detected || Cloudinary.config.secure if secure.nil?
-    private_cdn = config_option_consume(options, :private_cdn) 
-    secure_distribution = config_option_consume(options, :secure_distribution) 
-    cname = config_option_consume(options, :cname) 
-    shorten = config_option_consume(options, :shorten) 
+    private_cdn = config_option_consume(options, :private_cdn)
+    secure_distribution = config_option_consume(options, :secure_distribution)
+    cname = config_option_consume(options, :cname)
+    shorten = config_option_consume(options, :shorten)
     force_remote = options.delete(:force_remote)
-    cdn_subdomain = config_option_consume(options, :cdn_subdomain) 
-    secure_cdn_subdomain = config_option_consume(options, :secure_cdn_subdomain) 
+    cdn_subdomain = config_option_consume(options, :cdn_subdomain)
+    secure_cdn_subdomain = config_option_consume(options, :secure_cdn_subdomain)
     sign_url = config_option_consume(options, :sign_url)
     secret = config_option_consume(options, :api_secret)
     sign_version = config_option_consume(options, :sign_version) # Deprecated behavior
@@ -136,33 +242,33 @@ class Cloudinary::Utils
     original_source = source
     return original_source if source.blank?
     if defined?(CarrierWave::Uploader::Base) && source.is_a?(CarrierWave::Uploader::Base)
-      source = format.blank? ? source.filename : source.full_public_id 
+      source = format.blank? ? source.filename : source.full_public_id
     end
     source = source.to_s
-    if !force_remote    
+    if !force_remote
       return original_source if (type.nil? || type == :asset) && source.match(%r(^https?:/)i)
-      if source.start_with?("/") 
+      if source.start_with?("/")
         if source.start_with?("/images/")
           source = source.sub(%r(/images/), '')
         else
           return original_source
         end
-      end 
+      end
       @metadata ||= defined?(Cloudinary::Static) ? Cloudinary::Static.metadata : {}
       if type == :asset && @metadata["images/#{source}"]
-        return original_source if !Cloudinary.config.static_image_support        
+        return original_source if !Cloudinary.config.static_image_support
         source = @metadata["images/#{source}"]["public_id"]
         source += File.extname(original_source) if !format
       elsif type == :asset
         return original_source # requested asset, but no metadata - probably local file. return.
       end
     end
-    
+
     resource_type, type = finalize_resource_type(resource_type, type, url_suffix, use_root_path, shorten)
     source, source_to_sign = finalize_source(source, format, url_suffix)
-    
-    version ||= 1 if source_to_sign.include?("/") and !source_to_sign.match(/^v[0-9]+/) and !source_to_sign.match(/^https?:\//)    
-    version &&= "v#{version}" 
+
+    version ||= 1 if source_to_sign.include?("/") and !source_to_sign.match(/^v[0-9]+/) and !source_to_sign.match(/^https?:\//)
+    version &&= "v#{version}"
 
     transformation = transformation.gsub(%r(([^:])//), '\1/')
     if sign_url
@@ -180,19 +286,19 @@ class Cloudinary::Utils
       source = smart_escape(source)
       source_to_sign = source
     else
-      source = smart_escape(URI.decode(source)) 
+      source = smart_escape(URI.decode(source))
       source_to_sign = source
       unless url_suffix.blank?
         raise(CloudinaryException, "url_suffix should not include . or /") if url_suffix.match(%r([\./]))
-        source = "#{source}/#{url_suffix}" 
+        source = "#{source}/#{url_suffix}"
       end
       if !format.blank?
-        source = "#{source}.#{format}" 
-        source_to_sign = "#{source_to_sign}.#{format}" 
+        source = "#{source}.#{format}"
+        source_to_sign = "#{source_to_sign}.#{format}"
       end
     end
     [source, source_to_sign]
-  end    
+  end
 
   def self.finalize_resource_type(resource_type, type, url_suffix, use_root_path, shorten)
     type ||= :upload
@@ -200,7 +306,7 @@ class Cloudinary::Utils
       if resource_type.to_s == "image" && type.to_s == "upload"
         resource_type = "images"
         type = nil
-      elsif resource_type.to_s == "raw" && type.to_s == "upload" 
+      elsif resource_type.to_s == "raw" && type.to_s == "upload"
         resource_type = "files"
         type = nil
       else
@@ -220,12 +326,12 @@ class Cloudinary::Utils
       type = nil
     end
     [resource_type, type]
-  end    
-  
+  end
+
   # cdn_subdomain and secure_cdn_subdomain
   # 1) Customers in shared distribution (e.g. res.cloudinary.com)
   #   if cdn_domain is true uses res-[1-5].cloudinary.com for both http and https. Setting secure_cdn_subdomain to false disables this for https.
-  # 2) Customers with private cdn 
+  # 2) Customers with private cdn
   #   if cdn_domain is true uses cloudname-res-[1-5].cloudinary.com for http
   #   if secure_cdn_domain is true uses cloudname-res-[1-5].cloudinary.com for https (please contact support if you require this)
   # 3) Customers with cname
@@ -252,7 +358,7 @@ class Cloudinary::Utils
       prefix = "http://#{subdomain}#{cname}"
     else
       host = [private_cdn ? "#{cloud_name}-" : "", "res", cdn_subdomain ? "-#{(Zlib::crc32(source) % 5) + 1}" : "", ".cloudinary.com"].join
-      prefix = "http://#{host}"        
+      prefix = "http://#{host}"
     end
     prefix += "/#{cloud_name}" if shared_domain
 
@@ -274,23 +380,23 @@ class Cloudinary::Utils
     params[:api_key] = api_key
     params
   end
-  
+
   def self.private_download_url(public_id, format, options = {})
     cloudinary_params = sign_request({
-        :timestamp=>Time.now.to_i, 
-        :public_id=>public_id, 
-        :format=>format, 
+        :timestamp=>Time.now.to_i,
+        :public_id=>public_id,
+        :format=>format,
         :type=>options[:type],
-        :attachment=>options[:attachment], 
+        :attachment=>options[:attachment],
         :expires_at=>options[:expires_at] && options[:expires_at].to_i
       }, options)
-    
-    return Cloudinary::Utils.cloudinary_api_url("download", options) + "?" + cloudinary_params.to_query 
+
+    return Cloudinary::Utils.cloudinary_api_url("download", options) + "?" + cloudinary_params.to_query
   end
 
   def self.zip_download_url(tag, options = {})
     cloudinary_params = sign_request({:timestamp=>Time.now.to_i, :tag=>tag, :transformation=>generate_transformation_string(options)}, options)
-    return Cloudinary::Utils.cloudinary_api_url("download_tag.zip", options) + "?" + cloudinary_params.to_query 
+    return Cloudinary::Utils.cloudinary_api_url("download_tag.zip", options) + "?" + cloudinary_params.to_query
   end
 
   def self.signed_download_url(public_id, options = {})
@@ -303,7 +409,7 @@ class Cloudinary::Utils
     expires_at = options[:expires_at] || (Time.now+3600)
     signer.sign(url, :ending => expires_at)
   end
-  
+
   def self.cloudinary_url(public_id, options = {})
     if options[:type].to_s == 'authenticated' && !options[:sign_url]
       result = signed_download_url(public_id, options)
@@ -318,16 +424,16 @@ class Cloudinary::Utils
     ext = path.extname
     md5 = Digest::MD5.hexdigest(data)
     public_id = "#{path.basename(ext)}-#{md5}"
-    "#{public_id}#{ext}"    
+    "#{public_id}#{ext}"
   end
-  
-  # Based on CGI::unescape. In addition does not escape / : 
+
+  # Based on CGI::unescape. In addition does not escape / :
   def self.smart_escape(string)
     string.gsub(/([^a-zA-Z0-9_.\-\/:]+)/) do
       '%' + $1.unpack('H2' * $1.bytesize).join('%').upcase
     end
   end
-  
+
   def self.random_public_id
     sr = defined?(ActiveSupport::SecureRandom) ? ActiveSupport::SecureRandom : SecureRandom
     sr.base64(20).downcase.gsub(/[^a-z0-9]/, "").sub(/^[0-9]+/, '')[0,20]
@@ -336,7 +442,7 @@ class Cloudinary::Utils
   def self.signed_preloaded_image(result)
     "#{result["resource_type"]}/#{result["type"] || "upload"}/v#{result["version"]}/#{[result["public_id"], result["format"]].reject(&:blank?).join(".")}##{result["signature"]}"
   end
-  
+
   @@json_decode = false
   def self.json_decode(str)
     if !@@json_decode
@@ -347,7 +453,7 @@ class Cloudinary::Utils
         begin
           require 'active_support/json'
         rescue LoadError
-          raise LoadError, "Please add the json gem or active_support to your Gemfile"            
+          raise LoadError, "Please add the json gem or active_support to your Gemfile"
         end
       end
     end
@@ -361,7 +467,7 @@ class Cloudinary::Utils
       else [array]
     end
   end
-    
+
   def self.encode_hash(hash)
     case hash
       when Hash then hash.map{|k,v| "#{k}=#{v}"}.join("|")
@@ -369,7 +475,7 @@ class Cloudinary::Utils
       else hash
     end
   end
-  
+
   def self.encode_double_array(array)
     array = build_array(array)
     if array.length > 0 && array[0].is_a?(Array)
@@ -378,24 +484,24 @@ class Cloudinary::Utils
       return array.join(",")
     end
   end
-  
-  IMAGE_FORMATS = %w(bmp png tif tiff jpg jpeg gif pdf ico eps jpc jp2 psd) 
-  
+
+  IMAGE_FORMATS = %w(bmp png tif tiff jpg jpeg gif pdf ico eps jpc jp2 psd)
+
   def self.supported_image_format?(format)
     format = format.to_s.downcase
     extension = format =~ /\./ ? format.split('.').last : format
     IMAGE_FORMATS.include?(extension)
   end
-  
+
   def self.resource_type_for_format(format)
     self.supported_image_format?(format) ? 'image' : 'raw'
   end
-  
-  def self.config_option_consume(options, option_name, default_value = nil)    
+
+  def self.config_option_consume(options, option_name, default_value = nil)
     return options.delete(option_name) if options.include?(option_name)
-    return Cloudinary.config.send(option_name) || default_value    
+    return Cloudinary.config.send(option_name) || default_value
   end
-  
+
   def self.as_bool(value)
     case value
     when nil then nil
@@ -408,7 +514,7 @@ class Cloudinary::Utils
       raise "Invalid boolean value #{value} of type #{value.class}"
     end
   end
-  
+
   def self.as_safe_bool(value)
     case as_bool(value)
     when nil then nil
@@ -416,7 +522,7 @@ class Cloudinary::Utils
     when FalseClass then 0
     end
   end
-  
+
   def self.safe_blank?(value)
     value.nil? || value == "" || value == []
   end

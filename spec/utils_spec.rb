@@ -250,6 +250,75 @@ describe Cloudinary::Utils do
     end
   end
 
+  describe "video resource" do
+    it 'should support video codec string' do
+      test_cloudinary_url("video_id", {:video_codec => 'auto'}, "http://res.cloudinary.com/test123/image/upload/vc_auto/video_id", {})
+    end
+    it 'should support video codec structure' do
+      test_cloudinary_url("video_id", {:video_codec => {:codec => 'h264', :profile => 'basic', :level => '3.1'}}, 
+                          "http://res.cloudinary.com/test123/image/upload/vc_h264:basic:3.1/video_id", {})
+    end
+    it 'should support audio codec string' do
+      test_cloudinary_url("video_id", {:audio_codec => 'acc'}, "http://res.cloudinary.com/test123/image/upload/ac_acc/video_id", {})
+    end
+    it 'should support bit_rate' do
+      test_cloudinary_url("video_id", {:bit_rate => 2048}, "http://res.cloudinary.com/test123/image/upload/br_2048/video_id", {})
+    end
+    it 'should support bit_rate' do
+      test_cloudinary_url("video_id", {:bit_rate => '44k'}, "http://res.cloudinary.com/test123/image/upload/br_44k/video_id", {})
+    end
+    it 'should support bit_rate' do
+      test_cloudinary_url("video_id", {:bit_rate => '1m'}, "http://res.cloudinary.com/test123/image/upload/br_1m/video_id", {})
+    end
+    it 'should support sampling frequency' do
+      test_cloudinary_url("video_id", {:sampling_frequency => 44100}, "http://res.cloudinary.com/test123/image/upload/sf_44100/video_id", {})
+    end
+
+    {:so => :start_offset, :eo => :end_offset, :du => :duration}.each do |short, long|
+      it "should support #{long} with decimal seconds " do
+        test_cloudinary_url("video_id", { long => 2.63}, "http://res.cloudinary.com/test123/image/upload/#{short}_2.63/video_id", {})
+        test_cloudinary_url("video_id", { long => '2.63'}, "http://res.cloudinary.com/test123/image/upload/#{short}_2.63/video_id", {})
+      end
+      it "should support #{long} with seconds in ms" do
+
+        test_cloudinary_url("video_id", { long => '630ms'}, "http://res.cloudinary.com/test123/image/upload/#{short}_630ms/video_id", {})
+      end
+      it "should support #{long} with percents of the video length" do
+        test_cloudinary_url("video_id", { long => '35p'}, "http://res.cloudinary.com/test123/image/upload/#{short}_35p/video_id", {})
+      end
+      it "should support #{long} with percents of the video length" do
+        test_cloudinary_url("video_id", { long => '35%'}, "http://res.cloudinary.com/test123/image/upload/#{short}_35p/video_id", {})
+      end
+    end
+
+
+    [
+        ['string range',       'so_2.66,eo_3.21', '2.66..3.21'  ],
+        ['string time range',       'so_2:26,eo_3:21', '2:26..3:21'  ],
+        ['array',              'so_2.66,eo_3.21', [2.66, 3.21]  ],
+        ['range of floats',    'so_2.66,eo_3.21', 2.66..3.21    ],
+        ['array of % strings', 'so_35p,eo_70p',   %w(35% 70%)   ],
+        ['array of p strings', 'so_35p,eo_70p',   %w(35p 70p)   ],
+        ['array of ms strings', 'so_35ms,eo_70ms', %w(35ms 70ms) ]
+    ].each do |test|
+      name, url_param, range = test
+      context "range" do
+        options = {:offset => range}
+
+        subject { Cloudinary::Utils.cloudinary_url("video_id", options) }
+        
+        it "should support offset range in format #{name}" do
+          expect { subject }.to change { options }.to({})
+          transformation = /([^\/]*)\/video_id$/.match(subject)[1]
+          # we can't rely on the order of the parameters
+          # so we split and compare elements
+          expect(url_param.split(',') - transformation.split(',')).to eq([])
+        end
+      end
+    end
+
+
+  end
   it "should use ssl_detected if secure is not given as parameter and not set to true in configuration" do    
     test_cloudinary_url("test", {:ssl_detected=>true}, "https://res.cloudinary.com/test123/image/upload/test", {})
   end 

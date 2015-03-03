@@ -1,4 +1,6 @@
 require 'digest/md5'
+require 'cloudinary/video_helper'
+
 module CloudinaryHelper
   CL_BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
 
@@ -236,12 +238,26 @@ module CloudinaryHelper
         include ActionView::Helpers::AssetTagHelper
       end
       if defined?(Rails::version) && !Rails.version.start_with?('2') && Cloudinary.config.enhance_image_tag
-        alias_method_chain :image_tag, :cloudinary
-        alias_method_chain :image_path, :cloudinary
+        alias_method_chain :image_tag, :cloudinary # defines image_tag_without_cloudinary
+        alias_method_chain :image_path, :cloudinary # defines image_path_without_cloudinary
       else
         alias_method :image_tag_without_cloudinary, :image_tag
         alias_method :image_path_without_cloudinary, :image_path
       end
+
+      if !method_defined?(:video_tag)
+        include ActionView::Helpers::AssetTagHelper
+      end
+
+      if defined?(Rails::version) && !Rails.version.start_with?('2') && Cloudinary.config.enhance_image_tag
+        alias_method_chain :video_tag, :cloudinary # defines video_tag_without_cloudinary
+        alias_method_chain :video_path, :cloudinary # defines video_path_without_cloudinary
+      else
+        alias_method :video_tag_without_cloudinary, :video_tag
+        alias_method :video_path_without_cloudinary, :video_path
+      end
+
+      
     end
   end
 
@@ -291,7 +307,7 @@ if defined? ActionView::Helpers::AssetUrlHelper
 
     def path_to_asset(source, options={})
       options ||= {}
-      if Cloudinary.config.enhance_image_tag && options[:type] == :image
+      if Cloudinary.config.enhance_image_tag &&   [:image, :video].include?( options[:type])
         source = Cloudinary::Utils.cloudinary_url(source, options.merge(:type=>:asset))
       end
       original_path_to_asset(source, options)
