@@ -1,5 +1,4 @@
 require 'digest/md5'
-
 require 'cloudinary/video_helper'
 
 module CloudinaryHelper

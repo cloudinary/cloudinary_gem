@@ -26,7 +26,6 @@ RSpec.describe CloudinaryHelper do
     let(:test_tag) { TestTag.new( helper.cl_image_upload_tag('image_id', options)) }
 
     it "allow multiple upload" do
-      # options[:multiple] = true
       expect(test_tag['data-cloudinary-field']).to eq('image_id[]')
       expect(test_tag['multiple']).to eq('multiple')
     end

@@ -18,7 +18,8 @@ class Cloudinary::Utils
     options.keys.each do |key|
       options[(key.to_sym rescue key)] = options.delete(key)
     end
-    responsive_width = config_option_consume(options, :responsive_width)
+    
+    responsive_width = config_option_consume(options, :responsive_width) 
     size = options.delete(:size)
     options[:width], options[:height] = size.split("x") if size
     width = options[:width]
@@ -108,7 +109,7 @@ class Cloudinary::Utils
       :y  => :y,
       :z  => :zoom
     }.each do
-    |param, option|
+      |param, option|
       params[param] = options.delete(option)
     end
 
