@@ -22,14 +22,6 @@ def valid_tag(tag)
   parser.parse[0]
 end
 
-def attributes(tag)
-  valid_tag(tag)[3]
-end
-
-def children(tag)
-  valid_tag(tag)[4..-1]
-end
-
 class TagHelper
   attr_accessor :name, :attributes, :children
   def initialize(element)

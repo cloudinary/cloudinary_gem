@@ -109,12 +109,10 @@ class Cloudinary::Utils
   OFFSET_NUMBER_PATTERN = "([0-9]*\\.[0-9]+|[0-9]+)"
   OFFSET_TIME_PATTERN = "([0-9]*\\.[0-9]+|[0-9]+)(ms)?"
   PERCENT_SIGN_PATTERN = "[\\%pP]"
-  # OFFSET_PERCENT_PATTERN = "#{OFFSET_NUMBER_PATTERN}(#{PERCENT_SIGN_PATTERN})"
+
   OFFSET_ANY_PATTERN = "(#{OFFSET_NUMBER_PATTERN})(#{PERCENT_SIGN_PATTERN}|ms)?"
   OFFSET_ANY_RANGE_PATTERN = "#{OFFSET_ANY_PATTERN}\.\.#{OFFSET_ANY_PATTERN}"
   
-  # OFFSET_RANGE_RE = /#{OFFSET_NUMBER_PATTERN}\.\.#{OFFSET_NUMBER_PATTERN}/
-  # OFFSET_PERCENT_RANGE_RE = /#{OFFSET_PERCENT_PATTERN}\.\.#{OFFSET_PERCENT_PATTERN}/
   OFFSET_ANY_RANGE_RE = /#{OFFSET_ANY_RANGE_PATTERN}/
 
   def self.split_range(range)
@@ -130,7 +128,8 @@ class Cloudinary::Utils
     end
   end
 
-  # @param [String] value a decimal value which may have a 'p' or '%' postfix. E.g. '35%', '0.4p'
+  # Normalize an offset value
+  # @param [String] value a decimal value which may have a 'p', '%' or 'ms' postfix. E.g. '35%', '0.4p'
   # @return [Object|String] a normalized String of the input value if possible otherwise the value itself
   def self.norm_range_value(value)
 
@@ -149,24 +148,6 @@ class Cloudinary::Utils
 
 
     end
-    #
-    # if value.is_a? String
-    #   if (offset = /#{OFFSET_ANY_PATTERN}/.match value)
-    #     number = offset[2].include?('.') ? offset[2].to_f : offset[2].to_i
-    #     sign = case true
-    #       when %w(% p P).include?( offset[3])
-    #         'p'
-    #       when offset[3] == 'ms'
-    #         'ms'
-    #       else
-    #         ''
-    #     end
-    #     value = "#{number}#{sign}"
-    #   elsif (offset = /\d{1,2}(:\d\d){0,2}(\.\d{1,3}(ms)?)/.match value)
-    #     value
-    #   end
-    #
-    # end
     value
   end
 

@@ -14,7 +14,7 @@ describe 'video helper' do
     subject(:tag) { TagHelper.new helper.cl_video_tag(sources, options) }
 
     context 'basic options' do
-      let(:options) {{:cloud_name => "amir", :html_height => "100px", :html_width => "200px"}}
+      let(:options) {{:cloud_name => "test", :html_height => "100px", :html_width => "200px"}}
       let(:sources) { "movie.mp4"}
       it "should create a basic tag" do
         expect(tag.name).to eq("video")
@@ -23,7 +23,7 @@ describe 'video helper' do
         subject {tag.attributes}
         it { is_expected.to include "height" => "100px"}
         it { is_expected.to include "width" => "200px"}
-        it { is_expected.to include "src" => "http://res.cloudinary.com/amir/image/upload/movie.mp4"}
+        it { is_expected.to include "src" => "http://res.cloudinary.com/test/image/upload/movie.mp4"}
       end
       
       
@@ -31,7 +31,7 @@ describe 'video helper' do
     
     context 'multiple sources' do
 
-      let(:options) {{:cloud_name => "amir", :html_height => "100px"}}
+      let(:options) {{:cloud_name => "test", :html_height => "100px"}}
       let(:sources) {["movie.mp4", "movie.webm"]}
       it "should create a tag with multiple resources" do
         expect(tag.children.length).to eq(2)
@@ -48,7 +48,7 @@ describe 'video helper' do
       end
     end
     context 'transformations' do
-      let(:options) {{:cloud_name => "amir", 
+      let(:options) {{:cloud_name => "test", 
                       :html_height => "100px", 
                       :html_width => "200px",
                       :video_codec => {
