@@ -60,7 +60,7 @@ module CloudinaryHelper
     if block_given?
       yield(source,tag_options)
     else
-      tag('div',tag_options)
+      tag('div', tag_options)
     end
   end
 
