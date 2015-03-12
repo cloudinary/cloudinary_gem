@@ -45,7 +45,7 @@ module CloudinaryHelper
     if source
       image_tag_without_cloudinary(source, options)
     else
-      content_tag 'img', nil, options
+      tag 'img', options
     end
   end
 

@@ -40,7 +40,7 @@ RSpec.describe CloudinaryHelper do
     context "responsive_width" do
       let(:options) { {responsive_width: true, cloud_name: "test"} }
       it "should use data-src for responsive_width" do
-        img_tag = html_tag_matcher 'img'
+        img_tag = html_self_closing_tag_matcher 'img'
         expect(input).to match img_tag
         expect(input).to include('class="cld-responsive"')
         expect(input).to include( 'data-src="http://res.cloudinary.com/test/image/upload/c_limit,w_auto/sample.jpg"')
@@ -50,7 +50,7 @@ RSpec.describe CloudinaryHelper do
     context "dpr_auto" do
       let(:options) { {dpr: :auto, cloud_name: "test"} }
       it "should use data-src for dpr auto" do
-        img_tag = html_tag_matcher 'img'
+        img_tag = html_self_closing_tag_matcher 'img'
         expect(input).to match(img_tag)
         expect(input).to include('data-src="http://res.cloudinary.com/test/image/upload/dpr_auto/sample.jpg"')
         expect(input).to include('class="cld-hidpi"')

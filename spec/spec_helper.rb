@@ -8,6 +8,6 @@ end
 # Create a regexp with the given tag name.
 # @param [String or Symbol] tag tag name (e.g. `img`)
 # @return [Regexp] the regular expression to match the tag
-def html_tag_matcher( tag)
-  /<#{tag}([\s]+[-[:word:]]+[\s]*\=\s*\"[^\"]*\")*\s*>.*<\s*\/#{tag}\s*>/
+def html_self_closing_tag_matcher(tag)
+  /<#{tag}([\s]+[-[:word:]]+[\s]*\=\s*\"[^\"]*\")*\s*\s*\/>*./
 end
