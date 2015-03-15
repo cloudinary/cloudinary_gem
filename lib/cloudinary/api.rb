@@ -187,11 +187,12 @@ class Cloudinary::Api
     cloud_name = options[:cloud_name] || Cloudinary.config.cloud_name || raise("Must supply cloud_name")
     api_key = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
     api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
+    timeout = options[:timeout] || Cloudinary.config.timeout || 60
     api_url = [cloudinary, "v1_1", cloud_name, uri].join("/")
     # Add authentication
     api_url.sub!(%r(^(https?://)), "\\1#{api_key}:#{api_secret}@")
     
-    RestClient::Request.execute(:method => method, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=>60, :headers => {"User-Agent" => Cloudinary::USER_AGENT}) do
+    RestClient::Request.execute(:method => method, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=> timeout, :headers => {"User-Agent" => Cloudinary::USER_AGENT}) do
       |response, request, tmpresult|
       return Response.new(response) if response.code == 200
       exception_class = case response.code

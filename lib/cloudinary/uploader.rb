@@ -165,6 +165,8 @@ class Cloudinary::Uploader
         :public_id=> public_id,
         :callback=> options[:callback],
         :eager=>build_eager(options[:eager]),
+        :eager_notification_url=>options[:eager_notification_url],
+        :eager_async=>Cloudinary::Utils.as_safe_bool(options[:eager_async]),
         :headers=>build_custom_headers(options[:headers]),
         :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
         :face_coordinates => options[:face_coordinates] && Cloudinary::Utils.encode_double_array(options[:face_coordinates])  
@@ -271,13 +273,14 @@ class Cloudinary::Uploader
       params[:signature] = Cloudinary::Utils.api_sign_request(params.reject{|k,v| non_signable.include?(k)}, api_secret)
       params[:api_key] = api_key
     end
+    timeout = options[:timeout] || Cloudinary.config.timeout || 60
 
     result = nil
     
     api_url = Cloudinary::Utils.cloudinary_api_url(action, options)
     headers = {"User-Agent" => Cloudinary::USER_AGENT}
     headers['Content-Range'] = options[:content_range] if options[:content_range]
-    RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=>60, :headers => headers) do
+    RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=> timeout, :headers => headers) do
       |response, request, tmpresult|
       raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" if ![200,400,401,403,404,500].include?(response.code)
       begin
