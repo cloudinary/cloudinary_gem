@@ -14,23 +14,23 @@ class Cloudinary::Utils
     if options.is_a?(Array)
       return options.map{|base_transformation| generate_transformation_string(base_transformation.clone)}.join("/")
     end
-    # Symbolize keys
+    # Symbolize keys and remove blanks
     options.keys.each do |key|
-      options[key.to_sym] = options.delete(key) if key.is_a?(String)
+      value = options.delete(key)
+      options[(key.to_sym rescue key)] = value unless value.nil?
     end
-
     responsive_width = config_option_consume(options, :responsive_width)
     size = options.delete(:size)
     options[:width], options[:height] = size.split("x") if size
     width = options[:width]
     width = width.to_s if width.is_a?(Symbol)
     height = options[:height]
-    has_layer = !options[:overlay].blank? || !options[:underlay].blank?
+    has_layer = options[:overlay].present? || options[:underlay].present?
 
     crop = options.delete(:crop)
     angle = build_array(options.delete(:angle)).join(".")
 
-    no_html_sizes = has_layer || !angle.blank? || crop.to_s == "fit" || crop.to_s == "limit" || crop.to_s == "lfill"
+    no_html_sizes = has_layer || angle.present? || crop.to_s == "fit" || crop.to_s == "limit" || crop.to_s == "lfill"
     options.delete(:width) if width && (width.to_f < 1 || no_html_sizes || width == "auto" || responsive_width)
     options.delete(:height) if height && (height.to_f < 1 || no_html_sizes || responsive_width)
 
@@ -70,24 +70,54 @@ class Cloudinary::Utils
       options[:start_offset], options[:end_offset] = split_range options.delete(:offset)
     end
 
-    params = {:w=>width, :h=>height, :t=>named_transformation, :c=>crop, :b=>background, :e=>effect, :a=>angle, :bo=>border, :fl=>flags, :co=>color, :dpr=>dpr}
-    { :x=>:x, :y=>:y, :r=>:radius, :d=>:default_image, :g=>:gravity, :q=>:quality, :cs=>:color_space, :o=>:opacity,
-      :p=>:prefix, :l=>:overlay, :u=>:underlay, :f=>:fetch_format, :dn=>:density, :pg=>:page, :dl=>:delay,
-      :vc=>:video_codec, :so => :start_offset, :eo => :end_offset, :du => :duration,
-      :ac => :audio_codec, :br => :bit_rate, :sf => :sampling_frequency
+    params = {
+      :a   => angle,
+      :b   => background,
+      :bo  => border,
+      :c   => crop,
+      :co  => color,
+      :dpr => dpr,
+      :e   => effect,
+      :fl  => flags,
+      :h   => height,
+      :t   => named_transformation,
+      :w   => width
+    }
+    {
+      :ac => :audio_codec,
+      :br => :bit_rate,
+      :cs => :color_space,
+      :d  => :default_image,
+      :dl => :delay,
+      :dn => :density,
+      :du => :duration,
+      :eo => :end_offset,
+      :f  => :fetch_format,
+      :g  => :gravity,
+      :l  => :overlay,
+      :o  => :opacity,
+      :p  => :prefix,
+      :pg => :page,
+      :q  => :quality,
+      :r  => :radius,
+      :af => :audio_frequency,
+      :so => :start_offset,
+      :u  => :underlay,
+      :vc => :video_codec,
+      :vs => :video_sampling,
+      :x  => :x,
+      :y  => :y
     }.each do
-      |param, option|
+    |param, option|
       params[param] = options.delete(option)
     end
 
-
-    params[:vc] = process_video params[:vc] if params[:vc].present?
+    params[:vc] = process_video_params params[:vc] if params[:vc].present?
     [:so, :eo, :du].each do |range_value|
       params[range_value] = norm_range_value params[range_value] if params[range_value].present?
     end
 
-
-    transformation = params.reject{|k,v| v.blank?}.map{|k,v| [k.to_s, v]}.sort_by(&:first).map{|k,v| "#{k}_#{v}"}.join(",")
+    transformation = params.reject{|_k,v| v.blank?}.map{|k,v| "#{k}_#{v}"}.sort.join(",")
     raw_transformation = options.delete(:raw_transformation)
     transformation = [transformation, raw_transformation].reject(&:blank?).join(",")
     transformations = base_transformations << transformation
@@ -104,80 +134,6 @@ class Cloudinary::Utils
     end
 
     transformations.reject(&:blank?).join("/")
-  end
-
-  OFFSET_NUMBER_PATTERN = "([0-9]*\\.[0-9]+|[0-9]+)"
-  OFFSET_TIME_PATTERN = "([0-9]*\\.[0-9]+|[0-9]+)(ms)?"
-  PERCENT_SIGN_PATTERN = "[\\%pP]"
-
-  OFFSET_ANY_PATTERN = "(#{OFFSET_NUMBER_PATTERN})(#{PERCENT_SIGN_PATTERN}|ms)?"
-  OFFSET_ANY_RANGE_PATTERN = "#{OFFSET_ANY_PATTERN}\.\.#{OFFSET_ANY_PATTERN}"
-  
-  OFFSET_ANY_RANGE_RE = /#{OFFSET_ANY_RANGE_PATTERN}/
-
-  def self.split_range(range)
-    case range
-      when Range
-        [range.first, range.last]
-      when String
-        range.split ".." if OFFSET_ANY_RANGE_RE =~ range
-      when Array
-        [range.first, range.last]
-      else
-        NIL
-    end
-  end
-
-  # Normalize an offset value
-  # @param [String] value a decimal value which may have a 'p', '%' or 'ms' postfix. E.g. '35%', '0.4p'
-  # @return [Object|String] a normalized String of the input value if possible otherwise the value itself
-  def self.norm_range_value(value)
-
-    if value.is_a? String and (offset = /^#{OFFSET_ANY_PATTERN}$/.match value)
-        number = offset[2].include?('.') ? offset[2].to_f : offset[2].to_i
-        sign = case true
-          when %w(% p P).include?( offset[3])
-            'p'
-          when offset[3] == 'ms'
-            'ms'
-          else
-            ''
-        end
-        value = "#{number}#{sign}"
-
-
-
-    end
-    value
-  end
-
-  # A video codec parameter can be either a String or a Hash.
-  #
-  # @param [Object] param 'vc_<codec>[%3A<profile>%3A[<level>]]'
-  #                       or <tt>{ codec: 'h264', profile: 'basic', level: '3.1' }</tt>
-  # @return [String] <codec>:<profile>:[<level>]] if a Hash wsa provided or the param if a String was provided.
-  #                   Returns NIL if param is not a Hash or String
-  def self.process_video(param)
-
-    case param
-      when Hash
-        video = ""
-        if param.has_key? :codec
-          video = param[:codec]
-          if param.has_key? :profile
-            video.concat ":" + param[:profile]
-            if param.has_key? :level
-              video.concat ":" + param[:level]
-            end
-          end
-        end
-        video
-      when String
-        param
-      else
-        NIL
-    end
-
   end
 
   def self.api_string_to_sign(params_to_sign)
@@ -507,4 +463,75 @@ class Cloudinary::Utils
   def self.safe_blank?(value)
     value.nil? || value == "" || value == []
   end
+
+  private
+  def self.number_pattern(name='')
+    name += '_' if name.present? and name[-1] != '_'
+    "(?<#{name}integer>[0-9]*)\\.(?<#{name}fractional>[0-9]+)|(?<#{name}integer>[0-9]+)"
+  end
+  PERCENT_SIGN_PATTERN = "[\\%pP]"
+
+  def self.offset_any_pattern(name = '')
+    name += '_' if name.present? and name[-1] != '_'
+    "(?<#{name}number>#{number_pattern(name)})(?<#{name}sign>[%pP])?"
+  end
+
+  def self.offset_any_pattern_re
+    /(?<start>#{offset_any_pattern('start')})\.\.(?<end>#{offset_any_pattern('end')})/
+  end
+
+  # Split a range into the start and end values
+  def self.split_range(range) # :nodoc:
+    case range
+    when Range
+      [range.first, range.last]
+    when String
+      range.split ".." if offset_any_pattern_re =~ range
+    when Array
+      [range.first, range.last]
+    else
+      nil
+    end
+  end
+
+  # Normalize an offset value
+  # @param [String] value a decimal value which may have a 'p' or '%' postfix. E.g. '35%', '0.4p'
+  # @return [Object|String] a normalized String of the input value if possible otherwise the value itself
+  def self.norm_range_value(value) # :nodoc:
+
+    if value.is_a?(String) && (offset = /^#{offset_any_pattern}$/.match value)
+      sign   = offset[:sign].present? ? 'p' : ''
+      value  = "#{offset[:number]}#{sign}"
+    end
+    value
+  end
+
+  # A video codec parameter can be either a String or a Hash.
+  #
+  # @param [Object] param <code>vc_<codec>[ : <profile> : [<level>]]</code>
+  #                       or <code>{ codec: 'h264', profile: 'basic', level: '3.1' }</code>
+  # @return [String] <code><codec> : <profile> : [<level>]]</code> if a Hash was provided
+  #                   or the param if a String was provided.
+  #                   Returns NIL if param is not a Hash or String
+  def self.process_video_params(param)
+    case param
+    when Hash
+      video = ""
+      if param.has_key? :codec
+        video = param[:codec]
+        if param.has_key? :profile
+          video.concat ":" + param[:profile]
+          if param.has_key? :level
+            video.concat ":" + param[:level]
+          end
+        end
+      end
+      video
+    when String
+      param
+    else
+      nil
+    end
+  end
+
 end

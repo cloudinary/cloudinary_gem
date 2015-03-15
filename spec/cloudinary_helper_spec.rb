@@ -10,12 +10,9 @@ end
 
 RSpec.describe CloudinaryHelper do
   let(:helper) { helper_class.new }
-
-
+  let(:options) { {} }
   context "#cl_image_upload_tag" do
-    let(:options) { {} }
-    subject(:input) { helper.cl_image_upload_tag(:image_id, options) }
-
+    let(:options) {{:multiple => true}}
     before do
       if defined? allow
         allow(Cloudinary::Utils).to receive_messages :cloudinary_api_url => '', :sign_request => Hash.new
@@ -26,34 +23,33 @@ RSpec.describe CloudinaryHelper do
         helper.should_receive(:build_callback_url).and_return('')
       end
     end
+    let(:test_tag) { TestTag.new( helper.cl_image_upload_tag('image_id', options)) }
 
     it "allow multiple upload" do
-      options[:multiple] = true
-      expect(input).to include('data-cloudinary-field="image_id[]"')
-      expect(input).to include('multiple="multiple"')
+      # options[:multiple] = true
+      expect(test_tag['data-cloudinary-field']).to eq('image_id[]')
+      expect(test_tag['multiple']).to eq('multiple')
     end
   end
 
   context "#cl_image_tag" do
-    subject(:input) { helper.cl_image_tag('sample.jpg', options) }
+    let(:test_tag) { TestTag.new( helper.cl_image_tag('sample.jpg', options)) }
 
-    context "responsive_width" do
+    context ":responsive_width" do
       let(:options) { {responsive_width: true, cloud_name: "test"} }
       it "should use data-src for responsive_width" do
-        img_tag = html_tag_matcher 'img'
-        expect(input).to match img_tag
-        expect(input).to include('class="cld-responsive"')
-        expect(input).to include( 'data-src="http://res.cloudinary.com/test/image/upload/c_limit,w_auto/sample.jpg"')
+        expect(test_tag.name).to match( 'img')
+        expect(test_tag['class']).to eq("cld-responsive")
+        expect(test_tag['data-src']).to eq( "http://res.cloudinary.com/test/image/upload/c_limit,w_auto/sample.jpg")
       end
     end
 
-    context "dpr_auto" do
+    context ":dpr_auto" do
       let(:options) { {dpr: :auto, cloud_name: "test"} }
       it "should use data-src for dpr auto" do
-        img_tag = html_tag_matcher 'img'
-        expect(input).to match(img_tag)
-        expect(input).to include('data-src="http://res.cloudinary.com/test/image/upload/dpr_auto/sample.jpg"')
-        expect(input).to include('class="cld-hidpi"')
+        expect(test_tag.name).to match( 'img')
+        expect(test_tag['class']).to eq( 'cld-hidpi')
+        expect(test_tag['data-src']).to eq( "http://res.cloudinary.com/test/image/upload/dpr_auto/sample.jpg")
       end
     end
   end
