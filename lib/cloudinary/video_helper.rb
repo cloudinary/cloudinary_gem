@@ -1,5 +1,4 @@
 require 'active_support/core_ext/hash/keys'
-# DONE add timeout option
 
 module CloudinaryHelper
   include ActionView::Context
@@ -24,8 +23,7 @@ module CloudinaryHelper
   #   cl_video_tag("mymovie.webm", :source_types => [:webm, :mp4], :poster => {:effect => 'sepia'}) do
   #     content_tag( :span, "Cannot present video!")
   #   end
-  def cl_video_tag(source, options = {}, &block) # DONE revise signature and don't use rails
-    # DONE is type legit in video tag?
+  def cl_video_tag(source, options = {}, &block)
     video_attributes = [:autoplay,:controls,:loop,:muted,:poster, :preload]
     options = Hash[options].deep_symbolize_keys
 
@@ -61,9 +59,9 @@ module CloudinaryHelper
         content_tag('video', tag_options.merge(video_options)) do
           source_tags = source_types.map do |type|
             transformation = (source_transformation[type.to_sym] || {}).symbolize_keys
-            logger.debug tag_options.merge(transformation)
             cloudinary_tag("#{source}.#{type}", tag_options.merge(transformation)) do |url, _|
-              tag("source", :src => url, :type => "video/#{type}")
+              mime_type = "video/#{(type == 'ogv' ? 'ogg' : type)}"
+              tag("source", :src => url, :type => mime_type)
               # tag("source", :src => cl_video_path("#{source}.#{type}", options.merge(transformation)), :type => "video/#{type}")
             end
           end

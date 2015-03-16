@@ -166,5 +166,4 @@ describe Cloudinary::Utils do
       end
     end
   end
-  # DONE test resource type override 'image' or 'raw'
 end

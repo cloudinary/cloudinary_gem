@@ -173,32 +173,33 @@ describe Cloudinary::Api do
     expect(transformation).not_to be_blank  
     expect(transformation["allowed_for_strict"]).to eq(false)
   end
+  describe "named transformations" do
+    it "should allow creating named transformation" do
+      @api.create_transformation("api_test_transformation", "crop"=>"scale", "width"=>102)
+      transformation = @api.transformation("api_test_transformation")
+      expect(transformation).not_to be_blank
+      expect(transformation["allowed_for_strict"]).to eq(true)
+      expect(transformation["info"]).to eq(["crop"=>"scale", "width"=>102])
+      expect(transformation["used"]).to eq(false)
+    end
 
-  it "should allow creating named transformation" do
-    @api.create_transformation("api_test_transformation", "crop"=>"scale", "width"=>102)
-    transformation = @api.transformation("api_test_transformation")
-    expect(transformation).not_to be_blank  
-    expect(transformation["allowed_for_strict"]).to eq(true)
-    expect(transformation["info"]).to eq(["crop"=>"scale", "width"=>102])
-    expect(transformation["used"]).to eq(false)
+    it "should allow deleting named transformation" do
+      @api.create_transformation("api_test_transformation2", "crop"=>"scale", "width"=>103)
+      @api.transformation("api_test_transformation2")
+      @api.delete_transformation("api_test_transformation2")
+      expect{@api.transformation("api_test_transformation2")}.to raise_error(Cloudinary::Api::NotFound)
+    end
+
+    it "should allow unsafe update of named transformation" do
+      @api.create_transformation("api_test_transformation3", "crop"=>"scale", "width"=>102)
+      @api.update_transformation("api_test_transformation3", :unsafe_update=>{"crop"=>"scale", "width"=>103})
+      transformation = @api.transformation("api_test_transformation3")
+      expect(transformation).not_to be_blank
+      expect(transformation["info"]).to eq(["crop"=>"scale", "width"=>103])
+      expect(transformation["used"]).to eq(false)
+    end
+
   end
-
-  it "should allow deleting named transformation" do
-    @api.create_transformation("api_test_transformation2", "crop"=>"scale", "width"=>103)
-    @api.transformation("api_test_transformation2")
-    @api.delete_transformation("api_test_transformation2")
-    expect{@api.transformation("api_test_transformation2")}.to raise_error(Cloudinary::Api::NotFound)
-  end  
-
-  it "should allow unsafe update of named transformation" do
-    @api.create_transformation("api_test_transformation3", "crop"=>"scale", "width"=>102)
-    @api.update_transformation("api_test_transformation3", :unsafe_update=>{"crop"=>"scale", "width"=>103})
-    transformation = @api.transformation("api_test_transformation3")
-    expect(transformation).not_to be_blank  
-    expect(transformation["info"]).to eq(["crop"=>"scale", "width"=>103])
-    expect(transformation["used"]).to eq(false)
-  end
-
   it "should allow deleting implicit transformation" do
     @api.transformation("c_scale,w_100")
     @api.delete_transformation("c_scale,w_100")

@@ -19,15 +19,12 @@ describe CloudinaryHelper do
       config.api_secret          = "b"
     end
   end
-# DONE test Map of all video params: autoplay, loop, muted, controls, etc.
-# DONE test inferred width and height
   let(:helper) { (Class.new { include CloudinaryHelper }).new }
 
   describe 'cl_video_tag' do
     let(:basic_options) { { :cloud_name => "test123", :html_height => "100px", :html_width => "200px" } }
     let(:options) { basic_options }
     let(:test_tag) {
-      logger.debug helper.cl_video_tag("movie", options)
       TestTag.new helper.cl_video_tag("movie", options) }
     context "when options include video tag attributes" do
       let(:options) { basic_options.merge({ :autoplay => true,
@@ -76,15 +73,16 @@ describe CloudinaryHelper do
       end
 
       context 'when provided with multiple source types' do
-        let(:options) { basic_options.merge(:source_types => %w(mp4 webm)) }
+        let(:options) { basic_options.merge(:source_types => %w(mp4 webm ogv)) }
         it "should create a tag with multiple source tags" do
-          expect(test_tag.children.length).to eq(2)
+          expect(test_tag.children.length).to eq(3)
           expect(test_tag.children[0].name).to eq("source")
           expect(test_tag.children[1].name).to eq("source")
         end
         it "should order the source tags according to the order of the source_types" do
           expect(test_tag.children[0][:type]).to eq("video/mp4")
           expect(test_tag.children[1][:type]).to eq("video/webm")
+          expect(test_tag.children[2][:type]).to eq("video/ogg")
         end
       end
     end

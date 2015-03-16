@@ -70,7 +70,6 @@ module CloudinaryHelper
 
   # Works similarly to cl_image_tag, however just generates the URL of the image
   def cl_image_path(source, options = {})
-    logger.debug options
     options = options.clone
     url = cloudinary_url_internal(source, options)
     image_path_without_cloudinary(url)

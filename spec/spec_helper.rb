@@ -1,13 +1,6 @@
 require 'rspec'
 require 'rexml/parsers/ultralightparser'
 require 'rspec/version'
-require 'logger'
-
-def logger
-  @logger ||= @logger = Logger.new(STDOUT)
-  @logger.level= Logger.const_get(ENV['LOG_LEVEL'] || 'FATAL')
-  @logger
-end
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
@@ -82,7 +75,6 @@ end
 
 def test_cloudinary_url(public_id, options, expected_url, expected_options)
   url = Cloudinary::Utils.cloudinary_url(public_id, options)
-  logger.debug( url)
   expect(url).to eq(expected_url)
   expect(options).to eq(expected_options)
   url

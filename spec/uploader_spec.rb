@@ -173,7 +173,7 @@ describe Cloudinary::Uploader do
   describe ":timeout" do
     before do
       @timeout = Cloudinary.config.timeout
-      Cloudinary.config.timeout = 1
+      Cloudinary.config.timeout = 0.01
     end
     after do
       Cloudinary.config.timeout = @timeout
