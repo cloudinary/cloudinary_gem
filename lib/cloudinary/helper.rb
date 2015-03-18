@@ -32,7 +32,7 @@ module CloudinaryHelper
       if source
         image_tag_without_cloudinary(source, options)
       else
-        content_tag 'img', nil, options
+        tag 'img', options
       end
     end
 
@@ -257,30 +257,7 @@ module CloudinaryHelper
         alias_method :image_tag_without_cloudinary, :image_tag
         alias_method :image_path_without_cloudinary, :image_path
       end
-
-      if !method_defined?(:video_tag)
-        include ActionView::Helpers::AssetTagHelper
-      end
-
-      if defined?(Rails::version) && !Rails.version.start_with?('2') && Cloudinary.config.enhance_image_tag
-        alias_method_chain :video_tag, :cloudinary # defines video_tag_without_cloudinary
-        alias_method_chain :video_path, :cloudinary # defines video_path_without_cloudinary
-      else
-        alias_method :video_tag_without_cloudinary, :video_tag
-        alias_method :video_path_without_cloudinary, :video_path
-      end
-
-
     end
-  end
-
-  # Cleanup the provided options object and return a new options object to be used in an HTML tag
-  # @param [Hash] cloudinary_options a hash that includes cloudinary options
-  # @return [Hash] options that can be used with an HTML tag helper
-  def options_for_tag(cloudinary_options)
-    tag_options = cloudinary_options.dup
-    cl_image_tag( '', tag_options)
-    tag_options
   end
 
   private
@@ -301,7 +278,9 @@ module CloudinaryHelper
 
   def build_callback_url(options)
     callback_path = options.delete(:callback_cors) || Cloudinary.config.callback_cors || "/cloudinary_cors.html"
-    if !callback_path.match(/^https?:\/\//)
+    if callback_path.match(/^https?:\/\//)
+      callback_path
+    else
       callback_url = request.scheme + "://"
       callback_url << request.host
       if request.scheme == "https" && request.port != 443 ||
@@ -310,7 +289,6 @@ module CloudinaryHelper
       end
       callback_url << callback_path
     end
-    callback_url
   end
 end
 
@@ -329,7 +307,7 @@ if defined? ActionView::Helpers::AssetUrlHelper
 
     def path_to_asset(source, options={})
       options ||= {}
-      if Cloudinary.config.enhance_image_tag &&   [:image, :video].include?( options[:type])
+      if Cloudinary.config.enhance_image_tag && options[:type] == :image
         source = Cloudinary::Utils.cloudinary_url(source, options.merge(:type=>:asset))
       end
       original_path_to_asset(source, options)

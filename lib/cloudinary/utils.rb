@@ -14,10 +14,9 @@ class Cloudinary::Utils
     if options.is_a?(Array)
       return options.map{|base_transformation| generate_transformation_string(base_transformation.clone)}.join("/")
     end
-    # Symbolize keys and remove blanks
+    # Symbolize keys
     options.keys.each do |key|
-      value = options.delete(key)
-      options[(key.to_sym rescue key)] = value unless value.nil?
+      options[(key.to_sym rescue key)] = options.delete(key)
     end
     responsive_width = config_option_consume(options, :responsive_width)
     size = options.delete(:size)
@@ -106,7 +105,8 @@ class Cloudinary::Utils
       :vc => :video_codec,
       :vs => :video_sampling,
       :x  => :x,
-      :y  => :y
+      :y  => :y,
+      :z  => :zoom
     }.each do
     |param, option|
       params[param] = options.delete(option)
@@ -473,7 +473,7 @@ class Cloudinary::Utils
 
   def self.offset_any_pattern(name = '')
     name += '_' if name.present? and name[-1] != '_'
-    "(?<#{name}number>#{number_pattern(name)})(?<#{name}sign>[%pP])?"
+    "(?<#{name}number>#{number_pattern(name)})(?<#{name}modifier>[%pP])?"
   end
 
   def self.offset_any_pattern_re
@@ -498,10 +498,10 @@ class Cloudinary::Utils
   # @param [String] value a decimal value which may have a 'p' or '%' postfix. E.g. '35%', '0.4p'
   # @return [Object|String] a normalized String of the input value if possible otherwise the value itself
   def self.norm_range_value(value) # :nodoc:
-
-    if value.is_a?(String) && (offset = /^#{offset_any_pattern}$/.match value)
-      sign   = offset[:sign].present? ? 'p' : ''
-      value  = "#{offset[:number]}#{sign}"
+    offset = /^#{offset_any_pattern}$/.match( value.to_s)
+    if offset
+      modifier   = offset[:modifier].present? ? 'p' : ''
+      value  = "#{offset[:number]}#{modifier}"
     end
     value
   end

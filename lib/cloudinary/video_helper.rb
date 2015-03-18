@@ -2,7 +2,6 @@ require 'active_support/core_ext/hash/keys'
 
 module CloudinaryHelper
   include ActionView::Context
-  include ActionView::Helpers::TagHelper
   DEFAULT_POSTER_OPTIONS = { :format => 'jpg', :resource_type => 'video' }
   DEFAULT_SOURCE_TYPES   = %w(webm mp4 ogv)
   DEFAULT_VIDEO_OPTIONS  = { :resource_type => 'video' }
@@ -24,6 +23,7 @@ module CloudinaryHelper
   #     content_tag( :span, "Cannot present video!")
   #   end
   def cl_video_tag(source, options = {}, &block)
+    source = strip_known_ext(source)
     video_attributes = [:autoplay,:controls,:loop,:muted,:poster, :preload]
     options = Hash[options].deep_symbolize_keys
 
@@ -62,7 +62,6 @@ module CloudinaryHelper
             cloudinary_tag("#{source}.#{type}", tag_options.merge(transformation)) do |url, _|
               mime_type = "video/#{(type == 'ogv' ? 'ogg' : type)}"
               tag("source", :src => url, :type => mime_type)
-              # tag("source", :src => cl_video_path("#{source}.#{type}", options.merge(transformation)), :type => "video/#{type}")
             end
           end
           source_tags.push(fallback.html_safe) unless fallback.blank?
@@ -96,11 +95,7 @@ module CloudinaryHelper
   protected
 
   def strip_known_ext(name)
-    has_known_ext?(name) ? name.split('.')[0..-2].join('.') : name
-  end
-
-  def has_known_ext?(name)
-    (/\.(#{DEFAULT_SOURCE_TYPES.join("|")})$/ =~ name).nil?
+    name.sub(/\.(#{DEFAULT_SOURCE_TYPES.join("|")})$/, '')
   end
 end
 
