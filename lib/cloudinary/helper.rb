@@ -263,7 +263,9 @@ module CloudinaryHelper
 
   def build_callback_url(options)
     callback_path = options.delete(:callback_cors) || Cloudinary.config.callback_cors || "/cloudinary_cors.html"
-    if !callback_path.match(/^https?:\/\//)
+    if callback_path.match(/^https?:\/\//)
+      callback_path
+    else
       callback_url = request.scheme + "://"
       callback_url << request.host
       if request.scheme == "https" && request.port != 443 ||
@@ -272,7 +274,6 @@ module CloudinaryHelper
       end
       callback_url << callback_path
     end
-    callback_url
   end
 end
 
