@@ -71,7 +71,7 @@ class Cloudinary::Uploader
       params = build_upload_params(options)
       if file.is_a?(Pathname)
         params[:file] = File.open(file, "rb")
-      elsif file.respond_to?(:read) || file =~ /^https?:|^s3:|^data:[^;]*;base64,([a-zA-Z0-9\/+\n=]+)$/
+      elsif file.respond_to?(:read) || file =~ /^ftp:|^https?:|^s3:|^data:[^;]*;base64,([a-zA-Z0-9\/+\n=]+)$/
         params[:file] = file
       else 
         params[:file] = File.open(file, "rb")
@@ -80,7 +80,7 @@ class Cloudinary::Uploader
     end              
   end
 
-  # Upload large raw files. Note that public_id should include an extension for best results.
+  # Upload large files. Note that public_id should include an extension for best results.
   def self.upload_large(file, public_id_or_options={}, old_options={})
     if public_id_or_options.is_a?(Hash)
       options = public_id_or_options
@@ -96,11 +96,13 @@ class Cloudinary::Uploader
       filename = "cloudinaryfile"
     end
     upload = upload_id = nil
-    index = 1
+    index = 0
+    chunk_size = options[:chunk_size] || 20_000_000
     while !file.eof?
-      buffer = file.read(20_000_000)
-      upload = upload_large_part(Cloudinary::Blob.new(buffer, :original_filename=>filename), options.merge(:public_id=>public_id, :upload_id=>upload_id, :part_number=>index, :final=>file.eof?))
-      upload_id = upload["upload_id"]
+      buffer = file.read(chunk_size)
+      current_loc = index*chunk_size
+      range = "bytes #{current_loc}-#{current_loc+buffer.size - 1}/#{file.size}"
+      upload = upload_large_part(Cloudinary::Blob.new(buffer, :original_filename=>filename), options.merge(:public_id=>public_id, :content_range=>range))
       public_id = upload["public_id"]      
       index += 1
     end
@@ -108,19 +110,11 @@ class Cloudinary::Uploader
   end
     
 
-  # Upload large raw files. Note that public_id should include an extension for best results.
+  # Upload large  files. Note that public_id should include an extension for best results.
   def self.upload_large_part(file, options={})
-    call_api("upload_large", options.merge(:resource_type=>:raw)) do    
-      params = {
-        :timestamp=>(options[:timestamp] || Time.now.to_i),
-        :type=>options[:type],
-        :public_id=>options[:public_id],
-        :backup=>options[:backup],
-        :final=>options[:final],
-        :part_number=>options[:part_number],
-        :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
-        :upload_id=>options[:upload_id]
-      }
+    options[:resource_type] ||= :raw
+    call_api("upload_chunked", options) do    
+      params = build_upload_params(options)
       if file.is_a?(Pathname) || !file.respond_to?(:read)
         params[:file] = File.open(file, "rb")
       else
@@ -171,6 +165,8 @@ class Cloudinary::Uploader
         :public_id=> public_id,
         :callback=> options[:callback],
         :eager=>build_eager(options[:eager]),
+        :eager_notification_url=>options[:eager_notification_url],
+        :eager_async=>Cloudinary::Utils.as_safe_bool(options[:eager_async]),
         :headers=>build_custom_headers(options[:headers]),
         :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
         :face_coordinates => options[:face_coordinates] && Cloudinary::Utils.encode_double_array(options[:face_coordinates])  
@@ -277,12 +273,14 @@ class Cloudinary::Uploader
       params[:signature] = Cloudinary::Utils.api_sign_request(params.reject{|k,v| non_signable.include?(k)}, api_secret)
       params[:api_key] = api_key
     end
+    timeout = options[:timeout] || Cloudinary.config.timeout || 60
 
     result = nil
     
     api_url = Cloudinary::Utils.cloudinary_api_url(action, options)
-    
-    RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=>60, :headers => {"User-Agent" => Cloudinary::USER_AGENT}) do
+    headers = {"User-Agent" => Cloudinary::USER_AGENT}
+    headers['Content-Range'] = options[:content_range] if options[:content_range]
+    RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=> timeout, :headers => headers) do
       |response, request, tmpresult|
       raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" if ![200,400,401,403,404,500].include?(response.code)
       begin

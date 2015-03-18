@@ -1,4 +1,7 @@
 require 'digest/md5'
+
+require 'cloudinary/video_helper'
+
 module CloudinaryHelper
   CL_BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
 
@@ -25,34 +28,46 @@ module CloudinaryHelper
   #
   # See documentation for more details and options: http://cloudinary.com/documentation/rails_image_manipulation
   def cl_image_tag(source, options = {})
-    options = options.clone
-    source = cloudinary_url_internal(source, options)
-    options[:width] = options.delete(:html_width) if options.include?(:html_width)
-    options[:height] = options.delete(:html_height) if options.include?(:html_height)
-    options[:size] = options.delete(:html_size) if options.include?(:html_size)
-    options[:border] = options.delete(:html_border) if options.include?(:html_border)
-    responsive_placeholder = Cloudinary::Utils.config_option_consume(options, :responsive_placeholder)
-    hidpi = options.delete(:hidpi)
-    responsive = options.delete(:responsive)
+    cloudinary_tag source, options do |source, options|
+      if source
+        image_tag_without_cloudinary(source, options)
+      else
+        tag 'img', options
+      end
+    end
+
+  end
+
+  def cloudinary_tag(source, options = {})
+    tag_options = options.clone
+    tag_options[:width] = tag_options.delete(:html_width) if tag_options.include?(:html_width)
+    tag_options[:height] = tag_options.delete(:html_height) if tag_options.include?(:html_height)
+    tag_options[:size] = tag_options.delete(:html_size) if tag_options.include?(:html_size)
+    tag_options[:border] = tag_options.delete(:html_border) if tag_options.include?(:html_border)
+    source = cloudinary_url_internal(source, tag_options)
+
+    responsive_placeholder = Cloudinary::Utils.config_option_consume(tag_options, :responsive_placeholder)
+    hidpi = tag_options.delete(:hidpi)
+    responsive = tag_options.delete(:responsive)
     if hidpi || responsive
-      options["data-src"] = source
+      tag_options["data-src"] = source
       source = nil
       extra_class = responsive ? "cld-responsive" : "cld-hidpi"
-      options[:class] = [options[:class], extra_class].compact.join(" ")
+      tag_options[:class] = [tag_options[:class], extra_class].compact.join(" ")
       responsive_placeholder = CL_BLANK if responsive_placeholder == "blank"
-      options[:src] = responsive_placeholder
+      tag_options[:src] = responsive_placeholder
     end
-    if source
-      image_tag_without_cloudinary(source, options)
+    if block_given?
+      yield(source,tag_options)
     else
-      tag 'img', options
+      tag('div',tag_options)
     end
   end
 
   def cl_blank
     CL_BLANK
   end
-  
+
   # Works similarly to cl_image_tag, however just generates the URL of the image
   def cl_image_path(source, options = {})
     options = options.clone
@@ -236,8 +251,8 @@ module CloudinaryHelper
         include ActionView::Helpers::AssetTagHelper
       end
       if defined?(Rails::version) && !Rails.version.start_with?('2') && Cloudinary.config.enhance_image_tag
-        alias_method_chain :image_tag, :cloudinary
-        alias_method_chain :image_path, :cloudinary
+        alias_method_chain :image_tag, :cloudinary # defines image_tag_without_cloudinary
+        alias_method_chain :image_path, :cloudinary # defines image_path_without_cloudinary
       else
         alias_method :image_tag_without_cloudinary, :image_tag
         alias_method :image_path_without_cloudinary, :image_path

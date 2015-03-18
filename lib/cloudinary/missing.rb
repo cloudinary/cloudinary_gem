@@ -1,20 +1,21 @@
-if !nil.respond_to?(:blank?)
+unless nil.respond_to?(:blank?)
   class Object
     def blank?
       respond_to?(:empty?) ? empty? : !self
     end
 
-    if not defined? Object::present?
-      # An object is present if it's not blank.
-      #
-      # @return [true, false]
-      def present?
-        !blank?
-      end
-    end
+    # An object is present if it's not blank.
+    #
+    # @return [true, false]
+    def present?
+      !blank?
+    end unless Object.instance_methods.include? :present?
 
+    def presence
+      self if present?
+    end  unless Object.instance_methods.include? :presence
   end
-  
+
   class NilClass #:nodoc:
     def blank?
       true
