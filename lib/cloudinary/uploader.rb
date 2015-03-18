@@ -60,7 +60,8 @@ class Cloudinary::Uploader
   end
 
   def self.destroy(public_id, options={})
-    call_api("destroy", options) do    
+    IggLogger.log("info", "Cloudinary::Uploader.destroy public_id = #{public_id} stacktrace: #{caller}")
+    call_api("destroy", options) do
       {
         :timestamp=>Time.now.to_i,
         :type=>options[:type],
