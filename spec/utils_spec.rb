@@ -367,9 +367,9 @@ describe Cloudinary::Utils do
   end
 
   it "should support responsive width" do
-    test_cloudinary_url("test", { :width => 100, :height => 100, :crop => :crop, :responsive_width => true }, "#{upload_path}/c_crop,h_100,w_100/c_limit,w_auto/test", { responsive: true })
+    test_cloudinary_url("test", { :width => 100, :height => 100, :crop => :crop, :responsive_width => true }, "#{upload_path}/c_crop,h_100,w_100/c_limit,w_auto/test", { :responsive => true })
     Cloudinary.config.responsive_width_transformation = {:width => :auto, :crop => :pad}
-    test_cloudinary_url("test", { :width => 100, :height => 100, :crop => :crop, :responsive_width => true }, "#{upload_path}/c_crop,h_100,w_100/c_pad,w_auto/test", { responsive: true })
+    test_cloudinary_url("test", { :width => 100, :height => 100, :crop => :crop, :responsive_width => true }, "#{upload_path}/c_crop,h_100,w_100/c_pad,w_auto/test", { :responsive => true })
   end
 
   it "should correctly encode double arrays" do

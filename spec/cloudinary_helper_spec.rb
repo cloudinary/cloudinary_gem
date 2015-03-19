@@ -36,7 +36,7 @@ RSpec.describe CloudinaryHelper do
     let(:test_tag) { TestTag.new( helper.cl_image_tag('sample.jpg', options)) }
 
     context ":responsive_width" do
-      let(:options) { {responsive_width: true, cloud_name: "test"} }
+      let(:options) { {:responsive_width => true, :cloud_name => "test"} }
       it "should use data-src for responsive_width" do
         expect(test_tag.name).to match( 'img')
         expect(test_tag['class']).to eq("cld-responsive")
@@ -45,7 +45,7 @@ RSpec.describe CloudinaryHelper do
     end
 
     context ":dpr_auto" do
-      let(:options) { {dpr: :auto, cloud_name: "test"} }
+      let(:options) { {:dpr => :auto, :cloud_name => "test"} }
       it "should use data-src for dpr auto" do
         expect(test_tag.name).to match( 'img')
         expect(test_tag['class']).to eq( 'cld-hidpi')

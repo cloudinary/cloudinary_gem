@@ -1,5 +1,6 @@
-require 'active_support/core_ext/hash/keys'
-
+if !Hash.respond_to?(:deep_symbolize_keys)
+  require 'cloudinary/active_support/core_ext/hash/keys'
+end
 module CloudinaryHelper
   include ActionView::Context
   DEFAULT_POSTER_OPTIONS = { :format => 'jpg', :resource_type => 'video' }
@@ -28,7 +29,7 @@ module CloudinaryHelper
     options = Hash[options].deep_symbolize_keys
 
     options[:source_types] ||= DEFAULT_SOURCE_TYPES
-
+    video_attributes.keep_if{ |key, _| options.has_key?(key)} # required prior to Rails 4.x
     video_options = options.extract!(*video_attributes)
     if video_options.has_key? :poster
       poster = video_options.delete(:poster)
@@ -58,7 +59,7 @@ module CloudinaryHelper
       cloudinary_tag(source, options) do |_, tag_options|
         content_tag('video', tag_options.merge(video_options)) do
           source_tags = source_types.map do |type|
-            transformation = (source_transformation[type.to_sym] || {}).symbolize_keys
+            transformation = source_transformation[type.to_sym] || {}
             cloudinary_tag("#{source}.#{type}", tag_options.merge(transformation)) do |url, _|
               mime_type = "video/#{(type == 'ogv' ? 'ogg' : type)}"
               tag("source", :src => url, :type => mime_type)
@@ -97,6 +98,26 @@ module CloudinaryHelper
   def strip_known_ext(name)
     name.sub(/\.(#{DEFAULT_SOURCE_TYPES.join("|")})$/, '')
   end
+
+  def safe_join(array, sep=$,)
+    sep = ERB::Util.unwrapped_html_escape(sep)
+    array.flatten.map! { |i| ERB::Util.unwrapped_html_escape(i) }.join(sep).html_safe
+  end unless method_defined?( :safe_join)
+
+  # HTML escapes strings but doesn't wrap them with an ActiveSupport::SafeBuffer.
+  # This method is not for public consumption! Seriously!
+  def unwrapped_html_escape(s) # :nodoc:
+    s = s.to_s
+    if s.html_safe?
+      s
+    else
+      s.gsub(HTML_ESCAPE_REGEXP, HTML_ESCAPE)
+    end
+  end unless method_defined?( :unwrapped_html_escape)
+
+  HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;', "'" => '&#39;' } unless defined?( HTML_ESCAPE)
+  HTML_ESCAPE_REGEXP = /[&"'><]/ unless defined?(HTML_ESCAPE_REGEXP)
+
 end
 
 

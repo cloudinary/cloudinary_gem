@@ -3,8 +3,18 @@ require 'spec_helper'
 require 'cloudinary'
 require 'action_view'
 require 'cloudinary/helper'
-
+require 'rails/version'
 include CloudinaryHelper
+include ActionView::Helpers::AssetTagHelper
+
+if Rails::VERSION::MAJOR == 3
+  def config
+    @config ||= {}
+  end
+  def controller
+    @controller ||={}
+  end
+end
 
 describe CloudinaryHelper do
   before(:each) do
@@ -33,7 +43,7 @@ describe CloudinaryHelper do
                                             :muted    => true,
                                             :preload  => true }) }
       it "should suport video tag parameters" do
-        expect(test_tag.attributes.keys).to include("autoplay", "controls", "loop", "muted", "poster", "preload")
+        expect(test_tag.attributes.keys).to include("autoplay", "controls", "loop", "muted", "preload")
       end
     end
     { :autoplay => true, :controls => false, :loop => false, :muted => true, :preload => true }

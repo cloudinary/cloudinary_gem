@@ -49,8 +49,8 @@ class TestTag
   end
 
   def method_missing(symbol, *args)
-    if m = /children_by_(?<name>\w+)/.match( symbol.to_s) and !args.empty?
-      @children.select{ |c| c[m[:name]] == args[0]}
+    if (m = /children_by_(\w+)/.match(symbol.to_s)) and !args.empty?
+      @children.select{ |c| c[m[1]] == args[0]}
     else
       super
     end
