@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'cloudinary'
 
 RSpec.configure do |c|
-  c.filter_run_including :large => false
+  c.filter_run_excluding :large => true
 end
 
 describe Cloudinary::Uploader do
