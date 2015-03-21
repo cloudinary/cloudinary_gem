@@ -466,19 +466,16 @@ class Cloudinary::Utils
   end
 
   private
-  def self.number_pattern(name='')
-    name += '_' if name.present? and name[-1] != '_'
-    "(?<#{name}integer>[0-9]*)\\.(?<#{name}fractional>[0-9]+)|(?<#{name}integer>[0-9]+)"
+  def self.number_pattern
+    "([0-9]*)\\.([0-9]+)|([0-9]+)"
   end
-  PERCENT_SIGN_PATTERN = "[\\%pP]"
 
-  def self.offset_any_pattern(name = '')
-    name += '_' if name.present? and name[-1] != '_'
-    "(?<#{name}number>#{number_pattern(name)})(?<#{name}modifier>[%pP])?"
+  def self.offset_any_pattern
+    "(#{number_pattern})([%pP])?"
   end
 
   def self.offset_any_pattern_re
-    /(?<start>#{offset_any_pattern('start')})\.\.(?<end>#{offset_any_pattern('end')})/
+    /((([0-9]*)\.([0-9]+)|([0-9]+))([%pP])?)\.\.((([0-9]*)\.([0-9]+)|([0-9]+))([%pP])?)/
   end
 
   # Split a range into the start and end values
@@ -501,8 +498,8 @@ class Cloudinary::Utils
   def self.norm_range_value(value) # :nodoc:
     offset = /^#{offset_any_pattern}$/.match( value.to_s)
     if offset
-      modifier   = offset[:modifier].present? ? 'p' : ''
-      value  = "#{offset[:number]}#{modifier}"
+      modifier   = offset[5].present? ? 'p' : ''
+      value  = "#{offset[1]}#{modifier}"
     end
     value
   end
