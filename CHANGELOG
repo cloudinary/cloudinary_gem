@@ -1,3 +1,16 @@
+= Version 1.0.83 - 2015-03-22
+  * Added Video Support
+    * `cl_video_tag` creates an HTML video tag with optionally inner `source` tags
+    * `cl_video_path` provides a url to the video resource
+    * `cl_video_thumbnail_tag` creates an `img` tag with a video thumbnail and
+    * `cl_video_thumbnail_path` provides a url to the video resource's thumbnail
+  * Added `:zoom` transformation parameter
+  * Applied Pull Requests:
+    * Fix image closing tags #144
+    * Fix callback path. #138
+  * Update Cloudinary's jQuery plugin to v1.0.22.
+  * Update .gitignore file
+
 = Version 1.0.82 - 2015-02-05
   * Solve problem with CarrierWave integration to newer versions on the mongoid and carrierwave-mongoid gems.
   * Enable root path for shared CDN: 
