@@ -191,7 +191,7 @@ module CloudinaryHelper
   def cl_image_upload(object_name, method, options={})
     cl_image_upload_tag("#{object_name}[#{method}]", options)
   end
-
+  alias_method :cl_upload, :cl_image_upload
   def cl_unsigned_image_upload(object_name, method, upload_preset, options={})
     cl_unsigned_image_upload_tag("#{object_name}[#{method}]", upload_preset, options)
   end
@@ -226,6 +226,7 @@ module CloudinaryHelper
     ).reject{|k,v| v.blank?}
     content_tag("input", nil, tag_options)
   end
+  alias_method :cl_upload_tag, :cl_image_upload_tag
 
   def cl_unsigned_image_upload_tag(field, upload_preset, options={})
     cl_image_upload_tag(field, options.merge(:unsigned => true, :upload_preset => upload_preset))
@@ -295,6 +296,7 @@ module Cloudinary::FormBuilder
   def cl_image_upload(method, options={})
     @template.cl_image_upload(@object_name, method, objectify_options(options))
   end
+  alias_method :cl_upload, :cl_image_upload
   def cl_unsigned_image_upload(method, upload_preset, options={})
     @template.cl_unsigned_image_upload(@object_name, method, upload_preset, objectify_options(options))
   end

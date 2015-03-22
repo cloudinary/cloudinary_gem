@@ -30,6 +30,25 @@ RSpec.describe CloudinaryHelper do
       expect(test_tag['multiple']).to eq('multiple')
     end
   end
+  context "#cl_upload_tag" do
+    let(:options) {{:multiple => true}}
+    before do
+      if defined? allow
+        allow(Cloudinary::Utils).to receive_messages :cloudinary_api_url => '', :sign_request => Hash.new
+        allow(helper).to receive(:build_callback_url).and_return('')
+      else
+        Cloudinary::Utils.should_receive(:cloudinary_api_url).and_return('')
+        Cloudinary::Utils.should_receive(:sign_request).and_return(Hash.new)
+        helper.should_receive(:build_callback_url).and_return('')
+      end
+    end
+    let(:test_tag) { TestTag.new( helper.cl_upload_tag('image_id', options)) }
+
+    it "allow multiple upload" do
+      expect(test_tag['data-cloudinary-field']).to eq('image_id[]')
+      expect(test_tag['multiple']).to eq('multiple')
+    end
+  end
 
   context "#cl_image_tag" do
     let(:test_tag) { TestTag.new( helper.cl_image_tag('sample.jpg', options)) }
