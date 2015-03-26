@@ -5,8 +5,6 @@ require 'action_view'
 require 'cloudinary/helper'
 require 'action_view/test_case'
 
-include CloudinaryHelper
-
 describe Cloudinary::Utils do
   before(:each) do
     Cloudinary.config do |config|
@@ -78,7 +76,7 @@ describe Cloudinary::Utils do
     end
 
     describe ":offset" do
-      subject { Cloudinary::Utils.cloudinary_url("video_id", options) }
+      let(:test_url) { Cloudinary::Utils.cloudinary_url("video_id", options) }
       [
         ['string range', 'so_2.66,eo_3.21', '2.66..3.21'],
         ['array', 'so_2.66,eo_3.21', [2.66, 3.21]],
@@ -91,8 +89,8 @@ describe Cloudinary::Utils do
         context "when provided with #{name} #{range}" do
           let(:options) { { :resource_type => 'video', :offset => range } }
           it "should produce a range transformation in the format of #{url_param}" do
-            expect { subject }.to change { options }.to({})
-            transformation = /([^\/]*)\/video_id$/.match(subject)[1]
+            expect { test_url }.to change { options }.to({})
+            transformation = /([^\/]*)\/video_id$/.match(test_url)[1]
             # we can't rely on the order of the parameters so we sort them before comparing
             expect(transformation.split(',').sort.reverse.join(',')).to eq(url_param)
           end
@@ -121,49 +119,5 @@ describe Cloudinary::Utils do
       end
     end
   end
-  describe 'cl_video_thumbnail_path' do
-    let(:source) { "movie_id" }
-    let(:options) { {} }
-    let(:path) { cl_video_thumbnail_path(source, options) }
-    it "should generate a cloudinary URI to the video thumbnail" do
-      expect(path).to eq("#{upload_path}/movie_id.jpg")
-    end
-  end
-  describe 'cl_video_thumbnail_tag' do
-    let(:source) { "movie_id" }
-    let(:options) { {} }
-    let(:result_tag) { TestTag.new(cl_video_thumbnail_tag(source, options)) }
-    describe ":resource_type" do
-      context "'video' (default)" do
-        let(:options) { { :resource_type => 'video' } }
-        it "should have a 'video/upload' path" do
-          expect(result_tag.name).to eq('img')
-          expect(result_tag[:src]).to include("video/upload")
-        end
-        it "should generate an img tag with file extension `jpg`" do
-          expect(result_tag[:src]).to end_with("movie_id.jpg")
-        end
-      end
-      context "'image'" do
-        let(:options) { { :resource_type => 'image' } }
-        it "should have a 'image/upload' path" do
-          expect(result_tag.name).to eq('img')
-          expect(result_tag[:src]).to include("image/upload")
-        end
-        it "should generate an img tag with file extension `jpg`" do
-          expect(result_tag[:src]).to end_with("movie_id.jpg")
-        end
-      end
-      context "'raw'" do
-        let(:options) { { :resource_type => 'raw' } }
-        it "should have a 'raw/upload' path" do
-          expect(result_tag.name).to eq('img')
-          expect(result_tag[:src]).to include("raw/upload")
-        end
-        it "should generate an img tag with file extension `jpg`" do
-          expect(result_tag[:src]).to end_with("movie_id.jpg")
-        end
-      end
-    end
-  end
+
 end

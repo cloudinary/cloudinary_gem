@@ -2,3 +2,8 @@ source 'https://rubygems.org'
 
 gem 'rails', '3.2.21'
 gem 'cloudinary', :path => "../.."
+
+group :test, :development do
+  gem "rspec", '>=2.11'
+  gem "rspec-rails"
+end

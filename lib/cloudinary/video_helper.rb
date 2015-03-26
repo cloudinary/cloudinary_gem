@@ -1,8 +1,9 @@
-if !Hash.respond_to?(:deep_symbolize_keys)
+unless Hash.respond_to?(:deep_symbolize_keys)
+  # required prior to Rails 4
   require 'cloudinary/active_support/core_ext/hash/keys'
 end
 module CloudinaryHelper
-  include ActionView::Context
+  include ActionView::Helpers::CaptureHelper
   DEFAULT_POSTER_OPTIONS = { :format => 'jpg', :resource_type => 'video' }
   DEFAULT_SOURCE_TYPES   = %w(webm mp4 ogv)
   DEFAULT_VIDEO_OPTIONS  = { :resource_type => 'video' }
@@ -56,11 +57,11 @@ module CloudinaryHelper
     fallback     = (capture(&block) if block_given?) || options.delete(:fallback_content)
 
     if source_types.size > 1
-      cloudinary_tag(source, options) do |_, tag_options|
+      cloudinary_tag(source, options) do |_source, tag_options|
         content_tag('video', tag_options.merge(video_options)) do
           source_tags = source_types.map do |type|
             transformation = source_transformation[type.to_sym] || {}
-            cloudinary_tag("#{source}.#{type}", tag_options.merge(transformation)) do |url, _|
+            cloudinary_tag("#{source}.#{type}", tag_options.merge(transformation)) do |url, _tag_options|
               mime_type = "video/#{(type == 'ogv' ? 'ogg' : type)}"
               tag("source", :src => url, :type => mime_type)
             end
@@ -72,7 +73,7 @@ module CloudinaryHelper
     else
       transformation      = source_transformation[source_types.first.to_sym] || {}
       video_options[:src] = cl_video_path("#{source}.#{source_types.first.to_sym}", transformation.merge(options))
-      cloudinary_tag(source, options) do |url, tag_options|
+      cloudinary_tag(source, options) do |_source, tag_options|
         content_tag('video', fallback, tag_options.merge(video_options))
       end
     end
@@ -98,25 +99,6 @@ module CloudinaryHelper
   def strip_known_ext(name)
     name.sub(/\.(#{DEFAULT_SOURCE_TYPES.join("|")})$/, '')
   end
-
-  def safe_join(array, sep=$,)
-    sep = ERB::Util.unwrapped_html_escape(sep)
-    array.flatten.map! { |i| ERB::Util.unwrapped_html_escape(i) }.join(sep).html_safe
-  end unless method_defined?( :safe_join)
-
-  # HTML escapes strings but doesn't wrap them with an ActiveSupport::SafeBuffer.
-  # This method is not for public consumption! Seriously!
-  def unwrapped_html_escape(s) # :nodoc:
-    s = s.to_s
-    if s.html_safe?
-      s
-    else
-      s.gsub(HTML_ESCAPE_REGEXP, HTML_ESCAPE)
-    end
-  end unless method_defined?( :unwrapped_html_escape)
-
-  HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;', "'" => '&#39;' } unless defined?( HTML_ESCAPE)
-  HTML_ESCAPE_REGEXP = /[&"'><]/ unless defined?(HTML_ESCAPE_REGEXP)
 
 end
 

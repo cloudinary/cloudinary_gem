@@ -4,8 +4,6 @@ require 'cloudinary'
 require 'action_view'
 require 'cloudinary/helper'
 require 'rails/version'
-include CloudinaryHelper
-include ActionView::Helpers::AssetTagHelper
 
 if Rails::VERSION::MAJOR == 3
   def config
@@ -15,7 +13,6 @@ if Rails::VERSION::MAJOR == 3
     @controller ||={}
   end
 end
-
 describe CloudinaryHelper do
   before(:each) do
     Cloudinary.config do |config|
@@ -29,24 +26,29 @@ describe CloudinaryHelper do
       config.api_secret          = "b"
     end
   end
-  let(:helper) { (Class.new { include CloudinaryHelper }).new }
+
+  let(:helper) {
+    # Test the helper in the context it runs in in production
+    ActionView::Base.send :include, CloudinaryHelper
+    ActionView::Base.new
+  }
+  let(:root_path) { "http://res.cloudinary.com/test123" }
+  let(:upload_path) { "#{root_path}/video/upload" }
 
   describe 'cl_video_tag' do
-    let(:basic_options) { { :cloud_name => "test123", :html_height => "100px", :html_width => "200px" } }
+    let(:basic_options) { { :cloud_name => "test123"} }
     let(:options) { basic_options }
-    let(:test_tag) {
-      TestTag.new helper.cl_video_tag("movie", options) }
+    let(:test_tag) { TestTag.new helper.cl_video_tag("movie", options) }
     context "when options include video tag attributes" do
       let(:options) { basic_options.merge({ :autoplay => true,
                                             :controls => true,
                                             :loop     => true,
                                             :muted    => true,
                                             :preload  => true }) }
-      it "should suport video tag parameters" do
+      it "should support video tag parameters" do
         expect(test_tag.attributes.keys).to include("autoplay", "controls", "loop", "muted", "preload")
       end
     end
-    { :autoplay => true, :controls => false, :loop => false, :muted => true, :preload => true }
 
     context 'when given transformations' do
       let(:options) {
@@ -54,6 +56,9 @@ describe CloudinaryHelper do
           :source_types => "mp4",
           :html_height  => "100",
           :html_width   => "200",
+          :crop         => :scale,
+          :height       => "200",
+          :width        => "400",
           :video_codec  => { :codec => 'h264' },
           :audio_codec  => 'acc',
           :start_offset => 3) }
@@ -62,6 +67,11 @@ describe CloudinaryHelper do
         expect(test_tag["src"]).to include("ac_acc")
         expect(test_tag["src"]).to include("vc_h264")
         expect(test_tag["src"]).to include("so_3")
+        expect(test_tag["src"]).to include("w_400")
+        expect(test_tag["src"]).to include("h_200")
+      end
+      it 'should have the correct tag height' do
+        expect(test_tag["height"]).to eq("100")
       end
     end
 
@@ -70,9 +80,7 @@ describe CloudinaryHelper do
         let(:options) { basic_options.merge(:source_types => "mp4") }
         it "should create a video tag" do
           expect(test_tag.name).to eq("video")
-          expect(test_tag.attributes).to include({ 'height' => "100px",
-                                                   'width'  => "200px",
-                                                   'src'    => "http://res.cloudinary.com/test123/video/upload/movie.mp4" })
+          expect(test_tag['src']).to eq( "#{upload_path}/movie.mp4")
         end
         it "should not have a `type` attribute" do
           expect(test_tag.attributes).not_to include("type")
@@ -100,7 +108,7 @@ describe CloudinaryHelper do
     describe ":poster" do
       context "when poster is not provided" do
         it "should default to jpg with the video transformation" do
-          expect(test_tag[:poster]).to eq(cl_video_thumbnail_path("movie", { :format => 'jpg' }))
+          expect(test_tag[:poster]).to eq(helper.cl_video_thumbnail_path("movie", { :format => 'jpg' }))
         end
       end
 
@@ -115,12 +123,12 @@ describe CloudinaryHelper do
       context "when poster is a hash" do
         let(:options) { basic_options.merge(:poster => { :gravity => "north" }) }
         it "should include a poster attribute with the given options" do
-          expect(test_tag[:poster]).to eq("http://res.cloudinary.com/test123/video/upload/g_north/movie.jpg")
+          expect(test_tag[:poster]).to eq("#{upload_path}/g_north/movie.jpg")
         end
         context "when a public id is provided" do
           let(:options) { basic_options.merge(:poster => { :public_id => 'myposter.jpg', :gravity => "north" }) }
           it "should include a poster attribute with an image path and the given options" do
-            expect(test_tag[:poster]).to eq("http://res.cloudinary.com/test123/image/upload/g_north/myposter.jpg")
+            expect(test_tag[:poster]).to eq("#{root_path}/image/upload/g_north/myposter.jpg")
           end
 
 
@@ -179,6 +187,57 @@ describe CloudinaryHelper do
           it "should not include a width and height attributes" do
             expect(test_tag.attributes.keys).not_to include("width", "height")
           end
+        end
+        context "when `:crop => 'limit'`" do
+          let(:options) { basic_options.merge(:crop => 'limit') }
+          it "should not include a width and height attributes" do
+            expect(test_tag.attributes.keys).not_to include("width", "height")
+          end
+        end
+      end
+    end
+  end
+  describe 'cl_video_thumbnail_path' do
+    let(:source) { "movie_id" }
+    let(:options) { {} }
+    let(:path) { helper.cl_video_thumbnail_path(source, options) }
+    it "should generate a cloudinary URI to the video thumbnail" do
+      expect(path).to eq("#{upload_path}/movie_id.jpg")
+    end
+  end
+  describe 'cl_video_thumbnail_tag' do
+    let(:source) { "movie_id" }
+    let(:options) { {} }
+    let(:result_tag) { TestTag.new(helper.cl_video_thumbnail_tag(source, options)) }
+    describe ":resource_type" do
+      context "'video' (default)" do
+        let(:options) { { :resource_type => 'video' } }
+        it "should have a 'video/upload' path" do
+          expect(result_tag.name).to eq('img')
+          expect(result_tag[:src]).to include("video/upload")
+        end
+        it "should generate an img tag with file extension `jpg`" do
+          expect(result_tag[:src]).to end_with("movie_id.jpg")
+        end
+      end
+      context "'image'" do
+        let(:options) { { :resource_type => 'image' } }
+        it "should have a 'image/upload' path" do
+          expect(result_tag.name).to eq('img')
+          expect(result_tag[:src]).to include("image/upload")
+        end
+        it "should generate an img tag with file extension `jpg`" do
+          expect(result_tag[:src]).to end_with("movie_id.jpg")
+        end
+      end
+      context "'raw'" do
+        let(:options) { { :resource_type => 'raw' } }
+        it "should have a 'raw/upload' path" do
+          expect(result_tag.name).to eq('img')
+          expect(result_tag[:src]).to include("raw/upload")
+        end
+        it "should generate an img tag with file extension `jpg`" do
+          expect(result_tag[:src]).to end_with("movie_id.jpg")
         end
       end
     end
