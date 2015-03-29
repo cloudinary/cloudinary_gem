@@ -96,6 +96,7 @@ describe CloudinaryHelper do
           expect(test_tag.children.length).to eq(3)
           expect(test_tag.children[0].name).to eq("source")
           expect(test_tag.children[1].name).to eq("source")
+          expect(test_tag.children.map{|c| c['src']}).to all( include("video/upload"))
         end
         it "should order the source tags according to the order of the source_types" do
           expect(test_tag.children[0][:type]).to eq("video/mp4")

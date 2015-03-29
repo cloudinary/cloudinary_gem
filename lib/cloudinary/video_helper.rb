@@ -27,7 +27,7 @@ module CloudinaryHelper
   def cl_video_tag(source, options = {}, &block)
     source = strip_known_ext(source)
     video_attributes = [:autoplay,:controls,:loop,:muted,:poster, :preload]
-    options = Hash[options].deep_symbolize_keys
+    options = DEFAULT_VIDEO_OPTIONS.merge(options).deep_symbolize_keys
 
     options[:source_types] ||= DEFAULT_SOURCE_TYPES
     video_attributes.keep_if{ |key, _| options.has_key?(key)} # required prior to Rails 4.x
@@ -61,7 +61,7 @@ module CloudinaryHelper
         content_tag('video', tag_options.merge(video_options)) do
           source_tags = source_types.map do |type|
             transformation = source_transformation[type.to_sym] || {}
-            cloudinary_tag("#{source}.#{type}", tag_options.merge(transformation)) do |url, _tag_options|
+            cloudinary_tag("#{source}.#{type}", options.merge(transformation)) do |url, _tag_options|
               mime_type = "video/#{(type == 'ogv' ? 'ogg' : type)}"
               tag("source", :src => url, :type => mime_type)
             end

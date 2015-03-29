@@ -1,4 +1,8 @@
-= Version 1.0.83 - 2015-03-22
+# Version 1.0.84 - 2015-03-29
+  * Fixed sources tag url.
+  * Added video thumbnail and video tags to the sample project.
+  * CHANGELOG renamed to CHANGELOG.md 
+# Version 1.0.83 - 2015-03-22
   * Added Video Support
     * `cl_video_tag` creates an HTML video tag with optionally inner `source` tags
     * `cl_video_path` provides a url to the video resource
@@ -6,25 +10,25 @@
     * `cl_video_thumbnail_path` provides a url to the video resource's thumbnail
   * Added `:zoom` transformation parameter
   * Applied Pull Requests:
-    * Fix image closing tags #144
-    * Fix callback path. #138
+    * Fix image closing tags  [#144](https://github.com/cloudinary/cloudinary_gem/issues/144)
+    * Fix callback path.  [#138](https://github.com/cloudinary/cloudinary_gem/issues/138)
   * Update Cloudinary's jQuery plugin to v1.0.22.
   * Update .gitignore file
 
-= Version 1.0.82 - 2015-02-05
+# Version 1.0.82 - 2015-02-05
   * Solve problem with CarrierWave integration to newer versions on the mongoid and carrierwave-mongoid gems.
   * Enable root path for shared CDN: 
     * Modified restriction in utils so that it doesn't fail for root path with shared CDN.
     * Added Object::present? predicate. Check if Object::present doesn't exist before defining it.
   * Checking for `defined?(Rails)` is not enough if we want to invoke `Rails.version` etc. It was changed to `defined? Rails::version`.
 
-= Version 1.0.81 - 2015-01-08
+# Version 1.0.81 - 2015-01-08
   * CarrierWave - support default_format if format is unknown, support arbitrary format for resource_type raw.
 
-= Version 1.0.80 - 2015-01-01
+# Version 1.0.80 - 2015-01-01
   * Support upload_chunked direct upload for large raw files.
 
-= Version 1.0.79 - 2014-12-11
+# Version 1.0.79 - 2014-12-11
   * Support folder listing API.
   * Add support for conditional processing in CarrierWave plugin.
   * Support tags in upload_large.
@@ -34,30 +38,30 @@
   * Support for new domain sharding syntax and secure domain sharding. Support for secure_cdn_subdomain flag.
   * Update Cloudinary's jQuery plugin to v1.0.21.
 
-= Version 1.0.78 - 2014-11-04
+# Version 1.0.78 - 2014-11-04
   * Add app_root method that handled Rails.root, which is a String in old Rails versions.
-  * Issue #127 - solve cyclical dependency in case cloudinary was included after Rails was initialized.
+  * Issue  [#127](https://github.com/cloudinary/cloudinary_gem/issues/127) - solve cyclical dependency in case cloudinary was included after Rails was initialized.
 
-= Version 1.0.77 - 2014-09-22
+# Version 1.0.77 - 2014-09-22
   * Update Cloudinary's jQuery plugin to v1.0.20.
   * Support invalidation in bulk deletion requests.
 
-= Version 1.0.76 - 2014-08-24
+# Version 1.0.76 - 2014-08-24
   * Added supported image types for rake cloudinary:sync_static.
 
-= Version 1.0.75 - 2014-07-30
+# Version 1.0.75 - 2014-07-30
   * Don't use Rails' image_tag for repsponsive/hidpi to prevent wrong alt and data URIs.
 
-= Version 1.0.74 - 2014-07-14
+# Version 1.0.74 - 2014-07-14
   * Support custom_coordinates in upload and update. Support coordinates in resource details.
   * Support delete_by_token for direct uploads.
   * Support shorthand blank for cl_image_tag with responsive/hidpi.
   * Correctly encode one-level double arrays.
-  * Support non-upload resources in signed_preloaded_image (Issue #117).
+  * Support non-upload resources in signed_preloaded_image (Issue  [#117](https://github.com/cloudinary/cloudinary_gem/issues/117)).
   * Support background removal upload and admin API parameter.
   * Update Cloudinary's jQuery plugin to v1.0.19.
 
-= Version 1.0.73 - 2014-06-30
+# Version 1.0.73 - 2014-06-30
   * Support dpr transformation parameter.
   * Support automatic dpr (for HiDPI) and automatic width (for responsive).
   * Accept timestamp parameter in upload method options.
@@ -67,24 +71,24 @@
   * Make api_key and api_secret optional in unsigned upload.
   * Support the case Rails is defined but Rails.root isn't.
 
-= Version 1.0.72 - 2014-04-15
+# Version 1.0.72 - 2014-04-15
   * Fixing broken sign_request.
 
-= Version 1.0.71 - 2014-04-15
+# Version 1.0.71 - 2014-04-15
   * Upload preset support.
   * Unsigned upload support.
   * phash upload parameter support.
   * Resource listing by start_at support.
   * Updating to jQuery plugin v1.0.14.
 
-= Version 1.0.70 - 2014-03-25
+# Version 1.0.70 - 2014-03-25
   * Support upload_large without public_id. 
   * Remove public_id from method parameters.
   * Backward compatibility for old upload_large API.
-  * Issue #95 - exception when using storage_type :private
+  * Issue  [#95](https://github.com/cloudinary/cloudinary_gem/issues/95) - exception when using storage_type :private
   * Updating to jQuery plugin v1.0.13.
 
-= Version 1.0.69 - 2014-02-25
+# Version 1.0.69 - 2014-02-25
   * Admin API update method.
   * Admin API listing by moderation kind and status.
   * Support moderation status in admin API listing.
@@ -93,12 +97,12 @@
   * Allow CloudinaryHelper to be included into standalone classes.
   * Added support for Sequel models using CarrierWave.
 
-= Version 1.0.68 - 2014-02-16
+# Version 1.0.68 - 2014-02-16
   * Support for uploading large raw files.
   * Correct support for image_tag and image_path override.
   * Add direction support to Admin API listings.
 
-= Version 1.0.67 - 2014-01-09
+# Version 1.0.67 - 2014-01-09
   * Support specifying face coordinates in upload API.
   * Support specifying context (currently alt and caption) in upload API and returning context in API.  
   * Support specifying allowed image formats in upload API.
@@ -106,118 +110,118 @@
   * Send User-Agent header with client library version in API request.  
   * Support for signed-URLs to override restricted dynamic URLs.    
 
-= Version 1.0.66 - 2013-11-14
+# Version 1.0.66 - 2013-11-14
   * Support overwrite flag in upload
   * Support tags flag in resources_by_tag
   * Support for deletion cursor and delete all
 
-= Version 1.0.65 - 2013-11-04
+# Version 1.0.65 - 2013-11-04
   * Support for unique_filename upload parameter
   * Support the color parameter
   * Support for uploading Pathname
   * Support for stored files
   * Updated Cloudinary's jQuery plugin to v1.0.11: Support color parameter
 
-= Version 1.0.64 - 2013-10-17
+# Version 1.0.64 - 2013-10-17
   * Extracted upload_tag_params and upload_url from image_upload_tag. Extracted common code to sign_request.
   * Updated Cloudinary's jQuery plugin to v1.0.10: Binding jQuery file upload events.
   * Support line_spacing text parameter.
   * Added code documentation for cl_image_tag.
 
-= Version 1.0.63 - 2013-08-07
+# Version 1.0.63 - 2013-08-07
   * Support folder parameter.
   * Escape non-http public_ids. 
   * Correct escaping of space and '-'.
 
-= Version 1.0.62 - 2013-07-30 
+# Version 1.0.62 - 2013-07-30 
   * Change secure urls to use *res.cloudinary.com.
   
-= Version 1.0.61 - 2013-07-18
+# Version 1.0.61 - 2013-07-18
   * Mongoid 4 compatibility fix.
   * Support raw data URI.
-  * Issue #81 - Error on bootstrap + rails under Rails 4.
+  * Issue  [#81](https://github.com/cloudinary/cloudinary_gem/issues/81) - Error on bootstrap + rails under Rails 4.
   * Support admin ping API.
   * Include updated jQuery plugin.
   
-= Version 1.0.60 - 2013-07-01
+# Version 1.0.60 - 2013-07-01
   * Upgrade to latest jQuery file upload.
   * Support whitelisted S3 URLs in upload.
   
-= Version 1.0.59 - 2013-06-13 
+# Version 1.0.59 - 2013-06-13 
   * Support discard_original_filename.
   * Support proxy parameter in upload.
 
-= Version 1.0.58 - 2013-05-16
+# Version 1.0.58 - 2013-05-16
   * cloudinary_url helper should protect options from modification.
   * Add jpc jp2 psd to list of support image formats.
   * Crop mode lfill support.
   
-= Version 1.0.57 - 2013-05-01
+# Version 1.0.57 - 2013-05-01
   * Allow my_public_id to be called from versions. 
   * Fix for giving :version parameters to url in version while overriding public_id.
 
-= Version 1.0.56 - 2013-04-24
+# Version 1.0.56 - 2013-04-24
   * Support for uploading raw files in direct upload with CarrierWave.
   * Support overriding stored version.
 
-= Version 1.0.55 - 2013-04-19 
+# Version 1.0.55 - 2013-04-19 
   * Support folders in PreloadedFile.
   * Allow cloudinary helpers to work directly with CarrierWave uploaders.
-  * Issue #70 - Return parsed error message for 401,403 and 404 error codes as well.
+  * Issue  [#70](https://github.com/cloudinary/cloudinary_gem/issues/70) - Return parsed error message for 401,403 and 404 error codes as well.
   * CarrierWave - allow returning format in dynamic methods.
 
-= Version 1.0.54 - 2013-04-05 
+# Version 1.0.54 - 2013-04-05 
   * Support auto-rename when public_id has random component.
 
-= Version 1.0.53 - 2013-04-04
+# Version 1.0.53 - 2013-04-04
   * Fix handling of non-fetch http urls.
   * Support attachment flag in private download links.
 
-= Version 1.0.52 - 2013-03-29 
+# Version 1.0.52 - 2013-03-29 
   * Support for unsafe transformation update (Admin API).
   
-= Version 1.0.51 - 2013-03-28 
-  * Fixing issue #66 - folder names are not respected in non-direct uploads.
-  * Fixing issue #65 - allow overwriting existing images when updating preloaded images.
+# Version 1.0.51 - 2013-03-28 
+  * Fixing issue  [#66](https://github.com/cloudinary/cloudinary_gem/issues/66) - folder names are not respected in non-direct uploads.
+  * Fixing issue  [#65](https://github.com/cloudinary/cloudinary_gem/issues/65) - allow overwriting existing images when updating preloaded images.
   * Support ERB in cloudinary.yml.
   
-= Version 1.0.50 - 2013-03-24 
+# Version 1.0.50 - 2013-03-24 
   * Support folders.
   * Short URLs.
   * Auto rename of preloaded resources in CarrierWave.
   
-= Version 1.0.49 - 2013-03-21
+# Version 1.0.49 - 2013-03-21
   * Support for renaming public_ids.
   * Safe handling of booleans to prevent issues with Firefox json deserialization.
   * Uploader tests.
 
-= Version 1.0.48 - 2013-03-20 
+# Version 1.0.48 - 2013-03-20 
   * Add missing require of rest_client.
   * Support for rails4 sass asset path integration.
   * Flag to prevent cloudinary from downloading remote urls directly.
-  * Issue #61 build_upload_params destructively updates options.
+  * Issue  [#61](https://github.com/cloudinary/cloudinary_gem/issues/61) build_upload_params destructively updates options.
   
-= Version 1.0.47 - 2013-03-14
+# Version 1.0.47 - 2013-03-14
   * Allow overriding config with nil/false.
   * Akamai CDN support.
 
-= Version 1.0.46 - 2013-03-10
+# Version 1.0.46 - 2013-03-10
   * Support for tags flag in resources listing API.
   * Initial partial support for Rails 4.
 
-= Version 1.0.45 - 2013-02-28 
+# Version 1.0.45 - 2013-02-28 
   * Ignore blank URI to support empty string in remote_image_url.
-  * Issue #48 - Allow carrier wave upload to be given to url/image methods.
+  * Issue  [#48](https://github.com/cloudinary/cloudinary_gem/issues/48) - Allow carrier wave upload to be given to url/image methods.
   * Support for explode and multi API. Support async and notification, Correctly delete raw resources uploaded via CarrierWave.
   
-= Version 1.0.44 - 2013-02-05
+# Version 1.0.44 - 2013-02-05
   * Support new usage API call. 
   * Support image_metadata in upload and API. 
   * Javascript index file for client side processing in jQuery File Upload. 
   * Support use_filename flag. 
   * Added license to the gems specification.
 
-= Version 1.0.43 - 2012-12-18 
+# Version 1.0.43 - 2012-12-18 
   * Support fallback to html border attribute.
   * Added Google+ Helpers.
   * Additional Helper Methods.
@@ -225,126 +229,126 @@
   * Allow giving pages flag to resource details API.
   * Support opacity flag.
   
-= Version 1.0.42 - 2012-11-14
+# Version 1.0.42 - 2012-11-14
   * Raise CloudinaryException instead of string everywhere.
   * Support expires_at in private download.
   * Support info flags directly on upload.
 
-= Version 1.0.41 - 2012-10-28 
+# Version 1.0.41 - 2012-10-28 
   * Allow Cloudinary.config_from_url to be called before Cloudinary.config.
   * Normalize file extensions in carrier wave upload.
   * Support keep_original in resource deletion. 
   * Support delete_resources_by_tag, Support for transformation flags.
 
-= Version 1.0.40 - 2012-10-10  
+# Version 1.0.40 - 2012-10-10  
   * Carrierwave - downcase wanted format.
   
-= Version 1.0.39 - 2012-10-08 
+# Version 1.0.39 - 2012-10-08 
   * Support max_results in resource drilldown.
   * Change delete_resources_by_prefix to match other signatures.
   * Add Cloudinary.config_from_url to use CLOUDINARY_URL even if not from env.
  
-= Version 1.0.38 - 2012-10-02 
+# Version 1.0.38 - 2012-10-02 
   * Support additional parameters (border, color space, delay).
   * Admin API enhancements.
   * Carrierwave improvments for authenticated imaged.
   * Allow URI to be used in cloudinary_url, minor fixes.
   
-= Version 1.0.37 - 2012-09-12
+# Version 1.0.37 - 2012-09-12
   * Support for customer headers. 
   * Support for type in tags. 
   * Support for tags in explicit.
 
-= Version 1.0.36 - 2012-09-09 
+# Version 1.0.36 - 2012-09-09 
   * Support storage type in CarrierWave.
   * Check if resource exists.
   * Public ID should never start with a digit
   * Authenticated resources fixes.
 
-= Version 1.0.35 - 2012-08-27
+# Version 1.0.35 - 2012-08-27
   * Fix migrator to support retrieve returning a URL.
 
-= Version 1.0.34 - 2012-08-27
+# Version 1.0.34 - 2012-08-27
   * Extract PreloadedFile for easy handling of files preloaded by the Cloudinary's jQuery library.
   * Don't pass width/height to html in case of fit/limit or angle are used.
 
-= Version 1.0.33 - 2012-08-05
+# Version 1.0.33 - 2012-08-05
   * Allow specifying angle as array. 
   * Allow specifying array of transformations directly. 
   * Allow using string keys in transformations. 
   * Support for Cloudinary new admin API. 
   * Support for signed authenticated URLs.
 
-= Version 1.0.32 - 2012-07-26 
+# Version 1.0.32 - 2012-07-26 
   * Fix typo in eager support for the explicit API.
   * Better handling of escaping in URL parameters.
   * Support passing transformation to all versions (process_all_versions). 
   * Support private mode (make_private).
 
-= Version 1.0.31 - 2013-07-18
+# Version 1.0.31 - 2013-07-18
   * Support configurable CNAME.
   * Support for explicitly creating remote resources.
 
-= Version 1.0.30 - 2012-07-12
+# Version 1.0.30 - 2012-07-12
   * Force order of including in javascript for asset pipeline.
   * Support for ZIP download link.
 
-= Version 1.0.29 - 2012-07-08
+# Version 1.0.29 - 2012-07-08
   * Page and density parameters.
   * data-uri upload support.
   * Allow CarrierWave enable_processing.
   * Default rake task to spec & ignore Gemfile.lock.
 
-= Version 1.0.28 - 2012-07-03
+# Version 1.0.28 - 2012-07-03
   * default_public_id for CarrrierWave and JS asset packaging
 
-= Version 1.0.27 - 2012-06-26
+# Version 1.0.27 - 2012-06-26
   * Underlay support.
   * Backup flag.
   * Private resource download link.
   * Secure flag fix.
   * cloud_name param in API calls.
 
-= Version 1.0.26 - 2012-06-08
+# Version 1.0.26 - 2012-06-08
   * Fix issue 13 - rails-admin conflict.
 
-= Version 1.0.25 - 2012-06-05  
+# Version 1.0.25 - 2012-06-05  
   * Issues 18 (mongoid) and 19 (mount_on).
 
-= Version 1.0.24 - 2012-05-17
+# Version 1.0.24 - 2012-05-17
   * Renaming effects parameter and add numberic effect parameter.
 
-= Version 1.0.23 - 2012-05-14
+# Version 1.0.23 - 2012-05-14
   * Support fetch format and effects parameters.
 
-= Version 1.0.21 - 2012-05-10
+# Version 1.0.21 - 2012-05-10
  * Custom dynamic CarrierWave process method support.
 
-= Version 1.0.21 - 2012-05-09 
+# Version 1.0.21 - 2012-05-09 
   * New paramters (angle, overlay).
   * Text creation.
   * Fix issue 16.
 
-= Version 1.0.20 - 2012-05-06 
+# Version 1.0.20 - 2012-05-06 
   * Heroku single environment variable.
 
-= Version 1.0.18 - 2012-05-02
+# Version 1.0.18 - 2012-05-02
   * Sanitize filename for carrierwave to allow special characters in public_id.
   * Allow preloaded image with empty format (for raw files).
 
-= Version 1.0.17 - 2012-04-28
+# Version 1.0.17 - 2012-04-28
   * Fix issue 12 - tags didn't work in newer versions of carrierwave. Validate tags are not used in versions.
 
-= Version 1.0.16 - 2012-04-25
+# Version 1.0.16 - 2012-04-25
   * Background color support.
   * Add full_public_id method for accessing versioned public_id. Handle unversioned public_ids from DB.
   * Removing options passed to image_path from cl_image_path.
   * Better handling of public_id from stored value.
   * Major CarrierWave plugin cleanup. Fix issue 10. Allow overriding public_id with dynamic public_id. Allow overriding delete_remote? to prevent deleting resources from Cloudinary.
-  * Fix issue #11 - nil input to image_tag throws exception.
+  * Fix issue  [#11](https://github.com/cloudinary/cloudinary_gem/issues/11) - nil input to image_tag throws exception.
   * Fix docs, fix sass require.
   
-= Version 1.0.15 - 2012-04-23
+# Version 1.0.15 - 2012-04-23
   * Avoiding id attributes on hidden fields.
   * Skip hidden tags for empty values.
   * cl_form_tag: avoiding id attributes on hidden fields.
@@ -354,55 +358,55 @@
   * Support cloudinary-url function in sass.
   * Cleaner depdency check for sass and sass-rails.
  
-= Version 1.0.14 - 2012-04-23
+# Version 1.0.14 - 2012-04-23
   * Remove depenedency on active support.
   * Allow non-Rails use of cloudinary.yml. 
   * Fix update of local url in carrir wave. 
   * Allow supplying DELETE_MISSING flag in static rake task. 
   * Disable recreate_versions! as it is not needed.
  
-= Version 1.0.13 - 2012-04-22
+# Version 1.0.13 - 2012-04-22
   * Default image support.
   
-= Version 1.0.12 - 2012-04-19
+# Version 1.0.12 - 2012-04-19
   * Fixing resize_to_pad to be resize_and_pad.
  
-= Version 1.0.11 - 2012-04-19
+# Version 1.0.11 - 2012-04-19
   * Better config initialization.
   * Fix bug when non-static resource is requested and a static resource existing with the same name.
   * Gravatar support.
  
-= Version 1.0.10 - 2012-04-18
+# Version 1.0.10 - 2012-04-18
   * Initial tests. Size option fix. 
   * Better rails dependency support.
   * First version of cloudinary_js integration including file upload.
  
-= Version 1.0.9 - 2012-04-16
+# Version 1.0.9 - 2012-04-16
   * Support chained transformations.
  
-= Version 1.0.8 - 2012-04-15
+# Version 1.0.8 - 2012-04-15
   * Support subdomain in CDN according to public id crc32.
  
-= Version 1.0.7 - 2012-04-12
-  * Issue #2: Adding support to Mongoid and fixing to_json issue.
+# Version 1.0.7 - 2012-04-12
+  * Issue  [#2](https://github.com/cloudinary/cloudinary_gem/issues/2): Adding support to Mongoid and fixing to_json issue.
  
-= Version 1.0.6 - 2012-04-11
+# Version 1.0.6 - 2012-04-11
   * Adding cl_form_tag and fixing old and non rails compatibliltiy issues.
  
-= Version 1.0.5 - 2012-04-10
+# Version 1.0.5 - 2012-04-10
   * Fixing radius parameter.
  
-= Version 1.0.4 - 2012-04-04
+# Version 1.0.4 - 2012-04-04
   * Static assets: progress printing in sync task, whitelist of image extensions.
  
-= Version 1.0.3 - 2012-04-02
+# Version 1.0.3 - 2012-04-02
   * Assets no longer include paths. Allow passing kind in upload and destroy.
   * Better defaults for type which allow working with fetch images.
   * Restore eager format fix.
   * Add radius support.
   * Fix default handling of local images in enhanced image_tag.  
  
-= Version 1.0.2 - 2012-04-02
+# Version 1.0.2 - 2012-04-02
   * Support for passing x & y parameters to crop.
   * fetch_image_tag and escaping support.
   * Static file support.
@@ -410,11 +414,11 @@
   * Handle case of file going into trash and back into folder before delete.
   * Readded migrator. Reduce concurrency for old versions of ruby.
  
-= Version 1.0.1 - 2012-03-12
+# Version 1.0.1 - 2012-03-12
   * Replace Array() with safer method.
   * Support passing format as part of the eager transformation.
  
-= Version 1.0.0 - 2012-02-22
+# Version 1.0.0 - 2012-02-22
   * Initial public version.
 
   
