@@ -2,6 +2,7 @@
   * Fixed sources tag url.
   * Added video thumbnail and video tags to the sample project.
   * CHANGELOG renamed to CHANGELOG.md 
+
 # Version 1.0.83 - 2015-03-22
   * Added Video Support
     * `cl_video_tag` creates an HTML video tag with optionally inner `source` tags
