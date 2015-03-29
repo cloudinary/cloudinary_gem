@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency "aws_cf_signer"
-  s.add_development_dependency "rspec", '>=2.11'
+  s.add_development_dependency "rspec", '>=3.2'
   s.add_development_dependency "rspec-rails"
 
   if RUBY_VERSION > "1.9"
