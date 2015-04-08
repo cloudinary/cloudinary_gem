@@ -26,7 +26,7 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
       # This is the toplevel, need to upload the actual file.
       params = uploader.transformation.dup
       params[:return_error] = true
-      params[:format] = uploader.format
+      params[:format] = uploader.requested_format
       params[:public_id] = uploader.my_public_id
       uploader.versions.values.each(&:tags) # Validate no tags in versions
       params[:tags] = uploader.tags if uploader.tags
