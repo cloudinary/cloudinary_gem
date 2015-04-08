@@ -154,7 +154,7 @@ class Cloudinary::Utils
     options[:fetch_format] ||= options.delete(:format) if type == :fetch
     transformation = self.generate_transformation_string(options)
 
-    resource_type = options.delete(:resource_type) || "image"
+    resource_type = options.delete(:resource_type)
     version = options.delete(:version)
     format = options.delete(:format)
     cloud_name = config_option_consume(options, :cloud_name) || raise(CloudinaryException, "Must supply cloud_name in tag or in configuration")
@@ -180,8 +180,11 @@ class Cloudinary::Utils
     original_source = source
     return original_source if source.blank?
     if defined?(CarrierWave::Uploader::Base) && source.is_a?(CarrierWave::Uploader::Base)
+      resource_type ||= source.resource_type
+      type ||= source.storage_type
       source = format.blank? ? source.filename : source.full_public_id
     end
+    resource_type ||= "image"
     source = source.to_s
     if !force_remote
       return original_source if (type.nil? || type == :asset) && source.match(%r(^https?:/)i)
