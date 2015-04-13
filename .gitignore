@@ -3,9 +3,9 @@
 /.config
 capybara-*.html
 .rspec
-log/
-db/*.sqlite3
-db/*.sqlite3-journal
+/log
+/db/*.sqlite3
+/db/*.sqlite3-journal
 /public/system
 /coverage/
 /InstalledFiles
@@ -14,7 +14,7 @@ db/*.sqlite3-journal
 /test/tmp/
 /spec/tmp
 /test/version_tmp/
-tmp/
+/tmp
 **.orig
 rerun.txt
 pickle-email-*.html
@@ -49,7 +49,7 @@ Gemfile.lock
 .rvmrc
 
 # if using bower-rails ignore default bower_components path bower.json files
-vendor/assets/bower_components
+/vendor/assets/bower_components
 *.bowerrc
 bower.json
 
