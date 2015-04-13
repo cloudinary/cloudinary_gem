@@ -532,4 +532,20 @@ class Cloudinary::Utils
     end
   end
 
+  def self.deep_symbolize_keys(object)
+    case object
+    when Hash
+      result = {}
+      object.each do |key, value|
+        key = key.to_sym rescue key
+        result[key] = deep_symbolize_keys(value)
+      end
+      result
+    when Array
+      object.map{|e| deep_symbolize_keys(e)}
+    else
+      object
+    end
+  end
+
 end

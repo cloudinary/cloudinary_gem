@@ -1,1 +1,0 @@
-Files in this folder are taken from Rails 4.

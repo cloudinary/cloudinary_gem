@@ -113,7 +113,7 @@ class Cloudinary::Uploader
   # Upload large  files. Note that public_id should include an extension for best results.
   def self.upload_large_part(file, options={})
     options[:resource_type] ||= :raw
-    call_api("upload_chunked", options) do    
+    call_api("upload", options) do    
       params = build_upload_params(options)
       if file.is_a?(Pathname) || !file.respond_to?(:read)
         params[:file] = File.open(file, "rb")

@@ -1,7 +1,3 @@
-unless Hash.respond_to?(:deep_symbolize_keys)
-  # required prior to Rails 4
-  require 'cloudinary/active_support/core_ext/hash/keys'
-end
 module CloudinaryHelper
   include ActionView::Helpers::CaptureHelper
   DEFAULT_POSTER_OPTIONS = { :format => 'jpg', :resource_type => 'video' }
@@ -27,7 +23,7 @@ module CloudinaryHelper
   def cl_video_tag(source, options = {}, &block)
     source = strip_known_ext(source)
     video_attributes = [:autoplay,:controls,:loop,:muted,:poster, :preload]
-    options = DEFAULT_VIDEO_OPTIONS.merge(options).deep_symbolize_keys
+    options = Cloudinary::Utils.deep_symbolize_keys(DEFAULT_VIDEO_OPTIONS.merge(options))
 
     options[:source_types] ||= DEFAULT_SOURCE_TYPES
     video_attributes.keep_if{ |key, _| options.has_key?(key)} # required prior to Rails 4.x

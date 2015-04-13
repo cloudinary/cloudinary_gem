@@ -1,3 +1,7 @@
+# Version 1.0.85 - 2015-04-08
+  * Remove symoblize_keys intrusive implementation.  
+  * Use upload API endpoint instead of upload_chunked.
+
 # Version 1.0.84 - 2015-03-29
   * Fixed sources tag url.
   * Added video thumbnail and video tags to the sample project.
