@@ -135,6 +135,11 @@ module Cloudinary::CarrierWave
   def auto_rename_preloaded?
     true
   end
+
+  # Use extended identifier format that includes resource type and storage type.
+  def use_extended_identifier?
+    true
+  end
   
   class CloudinaryFile
     attr_reader :identifier, :public_id, :filename, :format, :version, :storage_type, :resource_type

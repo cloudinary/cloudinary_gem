@@ -58,9 +58,12 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
   # update the identifier in a way that does not trigger hooks again or else
   # you'll get stuck in a loop.
   def store_cloudinary_identifier(version, filename, resource_type=nil, type=nil)
-    resource_type ||= uploader.resource_type || "image"
-    type ||= uploader.storage_type || "upload"
-    name = "#{resource_type}/#{type}/v#{version}/#{filename}"
+    name = "v#{version}/#{filename}"
+    if uploader.use_extended_identifier?
+      resource_type ||= uploader.resource_type || "image"
+      type ||= uploader.storage_type || "upload"
+      name = "#{resource_type}/#{type}/#{name}"
+    end
     model_class = uploader.model.class
     column = uploader.model.send(:_mounter, uploader.mounted_as).send(:serialization_column)
     if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)

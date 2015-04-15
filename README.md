@@ -149,6 +149,9 @@ You can also specify your own public ID:
 
 ### CarrierWave Integration
 
+**Note:** Starting from version 1.1.0 the CarrierWave database format has changed to include the resource type and storage type. The intergation
+is backward compatible with the previous format. To use the old format override use_extended_identifier? on the Uploader and return false.
+
 Cloudinary's Ruby GEM includes an optional plugin for [CarrierWave](https://github.com/jnicklas/carrierwave). If you already use CarrierWave, simply include `Cloudinary::CarrierWave` to switch to cloud storage and image processing in the cloud. 
 
     class PictureUploader < CarrierWave::Uploader::Base    
