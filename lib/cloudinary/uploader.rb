@@ -125,6 +125,7 @@ class Cloudinary::Uploader
   end
 
   def self.destroy(public_id, options={})
+    return if !Cloudinary.config.enable_processing
     call_api("destroy", options) do    
       {
         :timestamp=>(options[:timestamp] || Time.now.to_i),
