@@ -105,7 +105,7 @@ module Cloudinary::CarrierWave
         end
       else
         if args.blank?
-          send(name).each do
+          Array(send(name)).each do
             |attr, value|
             set_or_yell(@transformation, attr, value)
           end
