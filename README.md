@@ -12,13 +12,13 @@ Cloudinary provides URL and HTTP based APIs that can be easily integrated with a
 For Ruby on Rails, Cloudinary provides a GEM for simplifying the integration even further.
 
 ## Getting started guide
-![](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png)  **Take a look at our [Getting started guide of Ruby on Rails](http://cloudinary.com/documentation/rails_integration#getting_started_guide)**.
+![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png)  **Take a look at our [Getting started guide of Ruby on Rails](http://cloudinary.com/documentation/rails_integration#getting_started_guide)**.
 
 ## Setup ######################################################################
 
 To install the Cloudinary Ruby GEM, run:
 
-	$ gem install cloudinary
+    $ gem install cloudinary
 
 If you use Rails 3.x or higher, edit your `Gemfile`, add the following line and run `bundle install`
 
@@ -117,7 +117,7 @@ Same goes for Twitter:
 
     twitter_name_profile_image_tag("billclinton.jpg")
 
-![](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](http://cloudinary.com/documentation/rails_image_manipulation) for more information about displaying and transforming images in Rails**.                                         
+![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](http://cloudinary.com/documentation/rails_image_manipulation) for more information about displaying and transforming images in Rails**.                                         
 
 
 
@@ -144,13 +144,13 @@ You can also specify your own public ID:
     http://res.cloudinary.com/demo/image/upload/sample_remote.jpg
 
 
-![](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](http://cloudinary.com/documentation/rails_image_upload) for plenty more options of uploading to the cloud from your Ruby code or directly from the browser**.
+![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](http://cloudinary.com/documentation/rails_image_upload) for plenty more options of uploading to the cloud from your Ruby code or directly from the browser**.
 
 
 ### CarrierWave Integration
 
-**Note:** Starting from version 1.1.0 the CarrierWave database format has changed to include the resource type and storage type. The intergation
-is backward compatible with the previous format. To use the old format override use_extended_identifier? on the Uploader and return false.
+**Note:** Starting from version 1.1.0 the CarrierWave database format has changed to include the resource type and storage type. The new functionality
+is backward compatible with the previous format. To use the old format override `use_extended_identifier?` in the Uploader and return `false`.
 
 Cloudinary's Ruby GEM includes an optional plugin for [CarrierWave](https://github.com/jnicklas/carrierwave). If you already use CarrierWave, simply include `Cloudinary::CarrierWave` to switch to cloud storage and image processing in the cloud. 
 
@@ -159,7 +159,7 @@ Cloudinary's Ruby GEM includes an optional plugin for [CarrierWave](https://gith
         ...  
     end
 
-![](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **For more details on CarrierWave integration see [our documentation](http://cloudinary.com/documentation/rails_carrierwave)**.
+![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **For more details on CarrierWave integration see [our documentation](http://cloudinary.com/documentation/rails_carrierwave)**.
 
 We also published an interesting blog post about [Ruby on Rails image uploads with CarrierWave and Cloudinary](http://cloudinary.com/blog/ruby_on_rails_image_uploads_with_carrierwave_and_cloudinary).
 
