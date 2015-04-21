@@ -1,3 +1,16 @@
+# Version 1.1.0 - 2015-04-21
+  * Pull request #136 - Update `process.rb` to ensure name value is an array.
+  * CarrierWave
+    * Store `resource_type` and `type` (aka `storage_type`) in carrierwave column for better support of non-image resource types and non-upload types
+    * only pass format to Cloudinary when explicitly requested
+    * Support disabling new extended identifier format
+  * Use upload endpoint instead of upload_chunked
+  * Remove `symoblize_keys` monkey patching
+  * Update Rspec dependency.
+  * Fix markup in the readme file.
+  * Add `.gitignore` to each sample project. Add files required for testing.
+  * Fix changelog format (missing newline)
+
 # Version 1.0.85 - 2015-04-08
   * Remove symoblize_keys intrusive implementation.  
   * Use upload API endpoint instead of upload_chunked.
