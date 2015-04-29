@@ -5,7 +5,7 @@ require 'action_view'
 require 'cloudinary/helper'
 require 'rails/version'
 
-if Rails::VERSION::MAJOR == 3
+if ::Rails::VERSION::MAJOR < 4
   def config
     @config ||= {}
   end
