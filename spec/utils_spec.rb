@@ -24,12 +24,12 @@ describe Cloudinary::Utils do
   it "should allow overriding cloud_name in options" do
     test_cloudinary_url("test", {:cloud_name=>"test321"}, "http://res.cloudinary.com/test321/image/upload/test", {})
   end
-  
-  it "should use default secure distribution if secure=true" do    
+
+  it "should use default secure distribution if secure=true" do
     test_cloudinary_url("test", {:secure=>true}, "https://res.cloudinary.com/test123/image/upload/test", {})
   end
 
-  it "should allow overriding secure distribution if secure=true" do    
+  it "should allow overriding secure distribution if secure=true" do
     test_cloudinary_url("test", {:secure=>true, :secure_distribution=>"something.else.com"}, "https://something.else.com/test123/image/upload/test", {})
   end
 
@@ -81,7 +81,7 @@ describe Cloudinary::Utils do
     expect{Cloudinary::Utils.cloudinary_url("test", {:url_suffix=>"hello.world", :private_cdn=>true})}.to raise_error(CloudinaryException)
   end
 
-  it "should support url_suffix for private_cdn" do    
+  it "should support url_suffix for private_cdn" do
     test_cloudinary_url("test", {:url_suffix=>"hello", :private_cdn=>true}, "http://test123-res.cloudinary.com/images/test/hello", {})
     test_cloudinary_url("test", {:url_suffix=>"hello", :angle=>0, :private_cdn=>true}, "http://test123-res.cloudinary.com/images/a_0/test/hello", {})
   end
@@ -98,7 +98,7 @@ describe Cloudinary::Utils do
     test_cloudinary_url("test", {:url_suffix=>"hello", :private_cdn=>true, :format=>"jpg", :angle=>0, :sign_url=>true}, "http://test123-res.cloudinary.com/images/#{expected_signture}/a_0/test/hello.jpg", {})
   end
 
-  it "should support url_suffix for raw uploads" do    
+  it "should support url_suffix for raw uploads" do
     test_cloudinary_url("test", {:url_suffix=>"hello", :private_cdn=>true, :resource_type=>:raw}, "http://test123-res.cloudinary.com/files/test/hello", {})
   end
 
@@ -140,11 +140,11 @@ describe Cloudinary::Utils do
   it "should not pass width and height to html in case angle was used" do
     test_cloudinary_url("test", { :width => 100, :height => 100, :crop => :scale, :angle => :auto }, "#{upload_path}/a_auto,c_scale,h_100,w_100/test", {})
   end
-    
+
   it "should use x, y, radius, prefix, gravity and quality from options" do
     test_cloudinary_url("test", { :x => 1, :y => 2, :radius => 3, :gravity => :center, :quality => 0.4, :prefix => "a" }, "#{upload_path}/g_center,p_a,q_0.4,r_3,x_1,y_2/test", {})
   end
-  
+
   it "should support named tranformation" do
     test_cloudinary_url("test", { :transformation => "blip" }, "#{upload_path}/t_blip/test", {})
   end
@@ -161,7 +161,7 @@ describe Cloudinary::Utils do
     test_cloudinary_url("test", { :transformation => [{ :x => 100, :y => 100, :width => 200, :crop => :fill }, { :radius => 10 }], :crop => :crop, :width => 100 }, "#{upload_path}/c_fill,w_200,x_100,y_100/r_10/c_crop,w_100/test", { :width => 100 })
   end
 
-  it "should support array of tranformations" do    
+  it "should support array of tranformations" do
     result = Cloudinary::Utils.generate_transformation_string([{:x=>100, :y=>100, :width=>200, :crop=>:fill}, {:radius=>10}])
     expect(result).to eq("c_fill,w_200,x_100,y_100/r_10")
   end
@@ -190,25 +190,25 @@ describe Cloudinary::Utils do
 
   it "should use allow absolute links to /images" do
     test_cloudinary_url("/images/test", {}, "#{upload_path}/test", {})
-  end 
+  end
 
   it "should use ignore absolute links not to /images" do
     test_cloudinary_url("/js/test", {}, "/js/test", {})
-  end 
+  end
 
   it "should escape fetch urls" do
     test_cloudinary_url("http://blah.com/hello?a=b", { :type => :fetch }, "#{root_path}/image/fetch/http://blah.com/hello%3Fa%3Db", {})
-  end 
+  end
 
   it "should should escape http urls" do
     test_cloudinary_url("http://www.youtube.com/watch?v=d9NF2edxy-M", { :type => :youtube }, "#{root_path}/image/youtube/http://www.youtube.com/watch%3Fv%3Dd9NF2edxy-M", {})
-  end 
+  end
 
   it "should support background" do
     test_cloudinary_url("test", { :background => "red" }, "#{upload_path}/b_red/test", {})
     test_cloudinary_url("test", { :background => "#112233" }, "#{upload_path}/b_rgb:112233/test", {})
   end
-  
+
   it "should support default_image" do
     test_cloudinary_url("test", { :default_image => "default" }, "#{upload_path}/d_default/test", {})
   end
@@ -217,11 +217,11 @@ describe Cloudinary::Utils do
     test_cloudinary_url("test", { :angle => "55" }, "#{upload_path}/a_55/test", {})
     test_cloudinary_url("test", { :angle => ["auto", "55"] }, "#{upload_path}/a_auto.55/test", {})
   end
-  
+
   it "should support format for fetch urls" do
     test_cloudinary_url("http://cloudinary.com/images/logo.png", { :format => "jpg", :type => :fetch }, "#{root_path}/image/fetch/f_jpg/http://cloudinary.com/images/logo.png", {})
   end
-  
+
   it "should support effect" do
     test_cloudinary_url("test", { :effect => "sepia" }, "#{upload_path}/e_sepia/test", {})
   end
@@ -238,26 +238,26 @@ describe Cloudinary::Utils do
     it "should support #{param}" do
       test_cloudinary_url("test", { param => "text:hello" }, "#{upload_path}/#{letter}_text:hello/test", {})
     end
-    
+
     it "should not pass width/height to html for #{param}" do
       test_cloudinary_url("test", { param => "text:hello", :height => 100, :width => 100 }, "#{upload_path}/h_100,#{letter}_text:hello,w_100/test", {})
     end
   end
 
 
-  it "should use ssl_detected if secure is not given as parameter and not set to true in configuration" do    
+  it "should use ssl_detected if secure is not given as parameter and not set to true in configuration" do
     test_cloudinary_url("test", {:ssl_detected=>true}, "https://res.cloudinary.com/test123/image/upload/test", {})
-  end 
+  end
 
-  it "should use secure if given over ssl_detected and configuration" do    
+  it "should use secure if given over ssl_detected and configuration" do
     Cloudinary.config.secure = true
     test_cloudinary_url("test", { :ssl_detected => true, :secure => false }, "#{upload_path}/test", {})
-  end 
+  end
 
-  it "should use secure: true from configuration over ssl_detected" do    
+  it "should use secure: true from configuration over ssl_detected" do
     Cloudinary.config.secure = true
     test_cloudinary_url("test", {:ssl_detected=>false}, "https://res.cloudinary.com/test123/image/upload/test", {})
-  end 
+  end
 
   it "should support extenal cname" do
     test_cloudinary_url("test", {:cname=>"hello.com"}, "http://hello.com/test123/image/upload/test", {})
@@ -266,7 +266,7 @@ describe Cloudinary::Utils do
   it "should support extenal cname with cdn_subdomain on" do
     test_cloudinary_url("test", {:cname=>"hello.com", :cdn_subdomain=>true}, "http://a2.hello.com/test123/image/upload/test", {})
   end
-  
+
   it "should support cdn_subdomain with secure on if using shared_domain" do
     test_cloudinary_url("test", {:secure=>true, :cdn_subdomain=>true}, "https://res-2.cloudinary.com/test123/image/upload/test", {})
   end
@@ -282,14 +282,14 @@ describe Cloudinary::Utils do
   it "should support string param" do
     test_cloudinary_url("test", { "effect" => { "sepia" => 10 } }, "#{upload_path}/e_sepia:10/test", {})
   end
-  
+
   it "should support border" do
     test_cloudinary_url("test", { "border" => { :width => 5 } }, "#{upload_path}/bo_5px_solid_black/test", {})
     test_cloudinary_url("test", { "border" => { :width => 5, :color => "#ffaabbdd" } }, "#{upload_path}/bo_5px_solid_rgb:ffaabbdd/test", {})
     test_cloudinary_url("test", { "border" => "1px_solid_blue" }, "#{upload_path}/bo_1px_solid_blue/test", {})
     test_cloudinary_url("test", { "border" => "2" }, "#{upload_path}/test", { :border => "2" })
   end
-  
+
   it "should support flags" do
     test_cloudinary_url("test", { "flags" => "abc" }, "#{upload_path}/fl_abc/test", {})
     test_cloudinary_url("test", { "flags" => ["abc", "def"] }, "#{upload_path}/fl_abc.def/test", {})
@@ -302,17 +302,17 @@ describe Cloudinary::Utils do
   end
 
   it "build_upload_params canonize booleans" do
-    options = {:backup=>true, :use_filename=>false, :colors=>"true", :exif=>"false", :colors=>:true, 
+    options = {:backup=>true, :use_filename=>false, :colors=>"true", :exif=>"false", :colors=>:true,
                :image_metadata=>:false, :invalidate=>1, :eager_async=>"1"}
     params = Cloudinary::Uploader.build_upload_params(options)
-    expect(Cloudinary::Api.only(params, *options.keys)).to eq(
-      :backup=>1, :use_filename=>0, :colors=>1, :exif=>0, :colors=>1, 
+    expect(Cloudinary::Api.send(:only, params, *options.keys)).to eq(
+      :backup=>1, :use_filename=>0, :colors=>1, :exif=>0, :colors=>1,
                :image_metadata=>0, :invalidate=>1, :eager_async=>1
     )
     expect(Cloudinary::Uploader.build_upload_params(:backup=>nil)[:backup]).to be_nil
     expect(Cloudinary::Uploader.build_upload_params({})[:backup]).to be_nil
   end
-  
+
   it "should add version if public_id contains /" do
     test_cloudinary_url("folder/test", {}, "#{upload_path}/v1/folder/test", {})
     test_cloudinary_url("folder/test", { :version => 123 }, "#{upload_path}/v123/folder/test", {})
@@ -325,13 +325,13 @@ describe Cloudinary::Utils do
   it "should allow to shorted image/upload urls" do
     test_cloudinary_url("test", { :shorten => true }, "#{root_path}/iu/test", {})
   end
-  
+
   it "should allow to use folders in PreloadedFile" do
     signature = Cloudinary::Utils.api_sign_request({:public_id=>"folder/file", :version=>"1234"}, Cloudinary.config.api_secret)
     preloaded = Cloudinary::PreloadedFile.new("image/upload/v1234/folder/file.jpg#" + signature)
     expect(preloaded).to be_valid
   end
-  
+
   it "should escape public_ids" do
     [
       ["a b", "a%20b"],
@@ -343,9 +343,9 @@ describe Cloudinary::Utils do
     ].each do
       |source, target|
       expect(Cloudinary::Utils.cloudinary_url(source)).to eq("#{upload_path}/#{target}")
-    end      
+    end
   end
-  
+
   it "should correctly sign URLs", :signed => true do
     test_cloudinary_url("image.jpg", { :version => 1234, :transformation => { :crop => "crop", :width => 10, :height => 20 }, :sign_url => true }, "#{upload_path}/s--Ai4Znfl3--/c_crop,h_20,w_10/v1234/image.jpg", {})
     test_cloudinary_url("image.jpg", { :version => 1234, :sign_url => true }, "#{upload_path}/s----SjmNDA--/v1234/image.jpg", {})
@@ -360,7 +360,7 @@ describe Cloudinary::Utils do
     test_cloudinary_url("image.jpg", { :transformation => { :crop => "crop", :width => 10, :height => 20 }, :sign_url => true, :sign_version => true }, "#{upload_path}/s--Ai4Znfl3--/c_crop,h_20,w_10/image.jpg", {})
     test_cloudinary_url("http://google.com/path/to/image.png", { :type => "fetch", :version => 1234, :sign_url => true, :sign_version => true }, "#{root_path}/image/fetch/s--_GAUclyB--/v1234/http://google.com/path/to/image.png", {})
   end
-  
+
   it "should correctly sign_request" do
     params = Cloudinary::Utils.sign_request({:public_id=>"folder/file", :version=>"1234"})
     expect(params).to eq(:public_id=>"folder/file", :version=>"1234", :signature=>"7a3349cbb373e4812118d625047ede50b90e7b67", :api_key=>"1234")
