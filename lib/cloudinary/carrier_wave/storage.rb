@@ -75,8 +75,6 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
         model_class.update_all({column=>name}, {primary_key=>uploader.model.send(primary_key)})
       end
       uploader.model.send :write_attribute, column, name
-    elsif defined?(Neo4j::VERSION) && Neo4j::VERSION.split(".").first.to_i >= 5
-        uploader.model.set(column, name)
     elsif defined?(Mongoid::Document) && uploader.model.is_a?(Mongoid::Document)
       # Mongoid support
       if Mongoid::VERSION.split(".").first.to_i >= 4
@@ -86,6 +84,8 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
       else
         uploader.model.set(column, name)
       end
+    elsif defined?(Neo4j::VERSION) && Neo4j::VERSION.split(".").first.to_i >= 5
+        uploader.model.set(column, name)
     elsif defined?(Sequel::Model) && uploader.model.is_a?(Sequel::Model)
       # Sequel support
       uploader.model.this.update(column => name)

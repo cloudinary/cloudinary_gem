@@ -175,17 +175,14 @@ Cloudinary's Ruby GEM includes an optional plugin for [CarrierWave](https://gith
 
 We also published an interesting blog post about [Ruby on Rails image uploads with CarrierWave and Cloudinary](http://cloudinary.com/blog/ruby_on_rails_image_uploads_with_carrierwave_and_cloudinary).
 
+## Neo4j integration
+
+Starting from version 1.1.1 Cloudinary's Ruby GEM supports the use of carrierwave with Neo4j.
+
 ### Samples
 
 You can find our simple and ready-to-use samples projects, along with documentation in the [samples folder](https://github.com/cloudinary/cloudinary_gem/tree/master/samples). 
 Please consult with the [README file](https://github.com/cloudinary/cloudinary_gem/blob/master/samples/README.md), for usage and explanations.
-
-Cloudinary for Neo4j
-====================
-
-This versione has a little enhancement to allow carrierwave to run without errors while the underlying database is Neo4j,
-a Graph DB.
-
 
 ## Additional resources ##########################################################
 
