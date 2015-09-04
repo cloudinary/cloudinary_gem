@@ -84,6 +84,8 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
       else
         uploader.model.set(column, name)
       end
+    elsif defined?(Neo4j::VERSION) && Neo4j::VERSION.split(".").first.to_i >= 5
+        uploader.model.set(column, name)
     elsif defined?(Sequel::Model) && uploader.model.is_a?(Sequel::Model)
       # Sequel support
       uploader.model.this.update(column => name)
