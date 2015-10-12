@@ -20,8 +20,18 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_dependency "rest-client"
   s.add_dependency "aws_cf_signer"
-  s.add_development_dependency "rspec"
-  s.add_development_dependency "actionpack"
+  s.add_development_dependency "rspec", '>=3.2'
+  s.add_development_dependency "rspec-rails"
+
+  if RUBY_VERSION > "1.9"
+    s.add_dependency "rest-client"
+    s.add_development_dependency "actionpack"
+    s.add_development_dependency "simplecov"
+  else
+    s.add_dependency "i18n", "<0.7.0"
+    s.add_dependency "rest-client", "<=1.6.8"
+    s.add_development_dependency "actionpack", "~>3.2.0"
+  end
+
 end

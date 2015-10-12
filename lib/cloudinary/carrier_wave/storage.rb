@@ -11,11 +11,11 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
           @stored_version = file.version
           uploader.rename(nil, true)
         else
-          store_cloudinary_identifier(file.version, file.filename)
+          store_cloudinary_identifier(file.version, file.filename, file.resource_type, file.type)
         end
-        return
+        return # Nothing to do
       when Cloudinary::CarrierWave::CloudinaryFile, Cloudinary::CarrierWave::StoredFile
-        return nil # Nothing to do
+        return # Nothing to do
       when Cloudinary::CarrierWave::RemoteFile
         data = file.uri.to_s
       else
@@ -26,7 +26,7 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
       # This is the toplevel, need to upload the actual file.
       params = uploader.transformation.dup
       params[:return_error] = true
-      params[:format] = uploader.format
+      params[:format] = uploader.requested_format
       params[:public_id] = uploader.my_public_id
       uploader.versions.values.each(&:tags) # Validate no tags in versions
       params[:tags] = uploader.tags if uploader.tags
@@ -35,7 +35,6 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
       params[:type]=uploader.class.storage_type
 
       params[:resource_type] ||= :auto
-
       uploader.metadata = Cloudinary::Uploader.upload(data, params)
       if uploader.metadata["error"]
         raise Cloudinary::CarrierWave::UploadError.new(uploader.metadata["error"]["message"], uploader.metadata["error"]["http_code"])
@@ -43,7 +42,7 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
 
       if uploader.metadata["version"]
         filename = [uploader.metadata["public_id"], uploader.metadata["format"]].reject(&:blank?).join(".")
-        store_cloudinary_identifier(uploader.metadata["version"], filename)
+        store_cloudinary_identifier(uploader.metadata["version"], filename, uploader.metadata["resource_type"], uploader.metadata["type"])
       end
       # Will throw an exception on error
     else
@@ -53,41 +52,40 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     nil
   end
 
-  # @deprecated For backward compatibility
-  def store_cloudinary_version(version)
-    if identifier.match(%r(^(v[0-9]+)/(.*)))
-      filename = $2
-    else
-      filename = identifier
-    end
-
-    store_cloudinary_identifier(version, filename)
-  end
-
   # Updates the model mounter identifier with version information.
   #
   # Carrierwave uses hooks when integrating with ORMs so it's important to
   # update the identifier in a way that does not trigger hooks again or else
   # you'll get stuck in a loop.
-  def store_cloudinary_identifier(version, filename)
+  def store_cloudinary_identifier(version, filename, resource_type=nil, type=nil)
     name = "v#{version}/#{filename}"
+    if uploader.use_extended_identifier?
+      resource_type ||= uploader.resource_type || "image"
+      type ||= uploader.storage_type || "upload"
+      name = "#{resource_type}/#{type}/#{name}"
+    end
     model_class = uploader.model.class
     column = uploader.model.send(:_mounter, uploader.mounted_as).send(:serialization_column)
     if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)
       primary_key = model_class.primary_key.to_sym
-      if Rails.version >= "3.0"
+      if defined?(::ActiveRecord::VERSION::MAJOR) && ::ActiveRecord::VERSION::MAJOR > 2
         model_class.where(primary_key=>uploader.model.send(primary_key)).update_all(column=>name)
       else
+        # Removed since active record version 3.0.0
         model_class.update_all({column=>name}, {primary_key=>uploader.model.send(primary_key)})
       end
       uploader.model.send :write_attribute, column, name
     elsif defined?(Mongoid::Document) && uploader.model.is_a?(Mongoid::Document)
       # Mongoid support
       if Mongoid::VERSION.split(".").first.to_i >= 4
-        uploader.model.set(:"#{column}" => name)
+        column = column.to_sym
+        uploader.model.write_attribute(column, name)
+        uploader.model.set(column => name)
       else
         uploader.model.set(column, name)
       end
+    elsif defined?(Neo4j::VERSION) && Neo4j::VERSION.split(".").first.to_i >= 5
+        uploader.model.set(column, name)
     elsif defined?(Sequel::Model) && uploader.model.is_a?(Sequel::Model)
       # Sequel support
       uploader.model.this.update(column => name)
