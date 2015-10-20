@@ -221,8 +221,8 @@ module CloudinaryHelper
       :"data-url"=>cl_upload_url(options),
       :"data-form-data"=>cl_upload_tag_params(options),
       :"data-cloudinary-field"=>field,
+      :"data-max-chunk-size"=>options[:chunk_size]
       :"class" => [html_options[:class], "cloudinary-fileupload"].flatten.compact.join(' ')
-      :"data-max-chunk-size"=>options[:chunk_size],
     ).reject{|k,v| v.blank?}
     content_tag("input", nil, tag_options)
   end
