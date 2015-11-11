@@ -9,16 +9,25 @@ class Cloudinary::Utils
   SHARED_CDN = Cloudinary::SHARED_CDN
   DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {:width => :auto, :crop => :limit}
 
+  def self.symbolize_keys!(h)
+    if (h.respond_to? :keys) && (h.respond_to? :delete)
+      h.keys.each do |key|
+        value = h.delete(key)
+        value = symbolize_keys!(value) if !value.nil? && (value.is_a? Hash)
+        h[(key.to_sym rescue key)] = value
+      end
+    end
+    h
+  end
+
   # Warning: options are being destructively updated!
   def self.generate_transformation_string(options={})
     if options.is_a?(Array)
       return options.map{|base_transformation| generate_transformation_string(base_transformation.clone)}.join("/")
     end
     # Symbolize keys
-    options.keys.each do |key|
-      options[(key.to_sym rescue key)] = options.delete(key)
-    end
-    
+    options = symbolize_keys!(options)
+
     responsive_width = config_option_consume(options, :responsive_width) 
     size = options.delete(:size)
     options[:width], options[:height] = size.split("x") if size
@@ -70,6 +79,9 @@ class Cloudinary::Utils
       options[:start_offset], options[:end_offset] = split_range options.delete(:offset)
     end
 
+    overlay = process_layer(options.delete(:overlay), "overlay")
+    underlay = process_layer(options.delete(:underlay), "underlay")
+
     params = {
       :a   => angle,
       :b   => background,
@@ -80,7 +92,9 @@ class Cloudinary::Utils
       :e   => effect,
       :fl  => flags,
       :h   => height,
+      :l  => overlay,
       :t   => named_transformation,
+      :u  => underlay,
       :w   => width
     }
     {
@@ -94,7 +108,6 @@ class Cloudinary::Utils
       :eo => :end_offset,
       :f  => :fetch_format,
       :g  => :gravity,
-      :l  => :overlay,
       :o  => :opacity,
       :p  => :prefix,
       :pg => :page,
@@ -102,7 +115,6 @@ class Cloudinary::Utils
       :r  => :radius,
       :af => :audio_frequency,
       :so => :start_offset,
-      :u  => :underlay,
       :vc => :video_codec,
       :vs => :video_sampling,
       :x  => :x,
@@ -135,6 +147,80 @@ class Cloudinary::Utils
     end
 
     transformations.reject(&:blank?).join("/")
+  end
+  def self.process_layer(layer, layer_parameter)
+    if layer.is_a? Hash
+      resource_type = layer[:resource_type] || "image"
+      type          = layer[:type] || "upload"
+      text          = layer[:text]
+      text_style    = nil
+      public_id     = layer[:public_id]
+      format        = layer[:format]
+      components    = []
+
+      unless public_id.nil?
+        public_id = public_id.gsub("/", ":")
+        public_id = "#{public_id}.#{format}" unless format.nil?
+      end
+
+      if text.nil? && resource_type != "text"
+        if public_id.nil?
+          raise(CloudinaryException, "Must supply public_id for resource_type layer_parameter")
+        end
+        if resource_type == "subtitles"
+          text_style = text_style(layer, layer_parameter)
+        end
+
+      else
+        resource_type = "text"
+        type          = nil
+        # // type is ignored for text layers
+        text_style    = text_style(layer, layer_parameter)
+        unless text.nil?
+          unless public_id.nil? ^ text_style.nil?
+            raise(CloudinaryException, "Must supply either style parameters or a public_id when providing text parameter in a text #{layer_parameter}")
+          end
+          text = smart_escape(text)
+          text = text.gsub("%2C", "%E2%80%9A")
+          text.gsub("/", "%E2%81%84")
+        end
+      end
+      components.push(resource_type) if resource_type != "image"
+      components.push(type) if type != "upload"
+      components.push(text_style)
+      components.push(public_id)
+      components.push(text)
+      layer = components.reject(&:blank?).join(":")
+    end
+    layer
+  end
+
+
+  LAYER_KEYWORD_PARAMS ={
+    :font_weight     => "normal",
+    :font_style      => "normal",
+    :text_decoration => "none",
+    :text_align      => nil,
+    :stroke          => "none"
+  }
+  def self.text_style(layer, layer_parameter)
+    font_family = layer[:font_family]
+    font_size   = layer[:font_size]
+    keywords    = []
+    LAYER_KEYWORD_PARAMS.each do |attr, default_value|
+      attr_value = layer[attr] || default_value
+      keywords.push(attr_value) unless attr_value == default_value
+    end
+    letter_spacing = layer[:letter_spacing]
+    keywords.push("letter_spacing_#{letter_spacing}") unless letter_spacing.nil?
+    if !font_size.nil? || !font_family.nil? || !keywords.empty?
+      raise(CloudinaryException, "Must supply font_family for text in #{layer_parameter}") if font_family.nil?
+      raise(CloudinaryException, "Must supply font_size for text in #{layer_parameter}") if font_size.nil?
+      keywords.unshift(font_size)
+      keywords.unshift(font_family)
+      keywords.reject(&:blank?).join("_")
+    end
+
   end
 
   def self.api_string_to_sign(params_to_sign)
@@ -218,7 +304,7 @@ class Cloudinary::Utils
     end
 
     prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
-    source = [prefix, resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
+      source = [prefix, resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
   end
 
   def self.finalize_source(source, format, url_suffix)
