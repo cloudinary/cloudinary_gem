@@ -13,7 +13,6 @@ class Cloudinary::Utils
     if (h.respond_to? :keys) && (h.respond_to? :delete)
       h.keys.each do |key|
         value = h.delete(key)
-        value = symbolize_keys!(value) if !value.nil? && (value.is_a? Hash)
         h[(key.to_sym rescue key)] = value
       end
     end
@@ -150,6 +149,7 @@ class Cloudinary::Utils
   end
   def self.process_layer(layer, layer_parameter)
     if layer.is_a? Hash
+      layer = symbolize_keys! layer.clone
       resource_type = layer[:resource_type] || "image"
       type          = layer[:type] || "upload"
       text          = layer[:text]
@@ -180,9 +180,7 @@ class Cloudinary::Utils
           unless public_id.nil? ^ text_style.nil?
             raise(CloudinaryException, "Must supply either style parameters or a public_id when providing text parameter in a text #{layer_parameter}")
           end
-          text = smart_escape(text)
-          text = text.gsub("%2C", "%E2%80%9A")
-          text.gsub("/", "%E2%81%84")
+          text = smart_escape smart_escape text
         end
       end
       components.push(resource_type) if resource_type != "image"

@@ -245,20 +245,24 @@ describe Cloudinary::Utils do
         ["private", { "public_id" => "logo", "type" => "private" }, "private:logo"],
         ["format", { "public_id" => "logo", "format" => "png" }, "logo.png"],
         ["video", { "resource_type" => "video", "public_id" => "cat" }, "video:cat"],
-        ["text", { "public_id" => "logo", "text" => "Hello World, Nice to meet you?" }, "text:logo:Hello%20World%E2%80%9A%20Nice%20to%20meet%20you%3F"],
-        ["text with font family and size", { "text" => "Hello World, Nice to meet you?", "font_family" => "Arial", "font_size" => "18" }, "text:Arial_18:Hello%20World%E2%80%9A%20Nice%20to%20meet%20you%3F"],
-        ["text with style", { "text" => "Hello World, Nice to meet you?", "font_family" => "Arial", "font_size" => "18", "font_weight" => "bold", "font_style" => "italic", "letter_spacing" => 4 }, "text:Arial_18_bold_italic_letter_spacing_4:Hello%20World%E2%80%9A%20Nice%20to%20meet%20you%3F"],
+        # ["text",  "text:logo:Hello%20World%E2%80%9A%20Nice%20to%20meet%20you%3F", "text:logo:Hello%20World%E2%80%9A%20Nice%20to%20meet%20you%3F" ],
+        # ["text", { "public_id" => "logo", "text" => "Hello World, Nice to meet you?" }, "text:logo:Hello%2520World%252C%2520Nice%2520to%2520meet%2520you%253F" ],
+        ["text with font family and size", { "text" => "Hello World, Nice to meet you?", "font_family" => "Arial", "font_size" => "18" }, "text:Arial_18:Hello%2520World%252C%2520Nice%2520to%2520meet%2520you%253F"],
+        ["text with style", { "text" => "Hello World, Nice to meet you?", "font_family" => "Arial", "font_size" => "18", "font_weight" => "bold", "font_style" => "italic", "letter_spacing" => 4 }, "text:Arial_18_bold_italic_letter_spacing_4:Hello%2520World%252C%2520Nice%2520to%2520meet%2520you%253F"],
         ["subtitles", { "resource_type" => "subtitles", "public_id" => "sample_sub_en.srt" }, "subtitles:sample_sub_en.srt"],
         ["subtitles with font family and size", { "resource_type" => "subtitles", "public_id" => "sample_sub_he.srt", "font_family" => "Arial", "font_size" => "40" }, "subtitles:Arial_40:sample_sub_he.srt"]
       ]}
       it "should support #{param}" do
         layers_options.each do |name, options, result|
-          test_cloudinary_url("test", { param => options }, "#{upload_path}/#{letter}_#{result}/test", {})
+          expect(["test", { param => options }]).to produce_url( "#{upload_path}/#{letter}_#{result}/test") .and empty_options
         end
       end
 
       it "should not pass width/height to html for #{param}" do
-        test_cloudinary_url("test", { param => "text:hello", :height => 100, :width => 100 }, "#{upload_path}/h_100,#{letter}_text:hello,w_100/test", {})
+        expect(["test", { param => "text:hello", :height => 100, :width => 100 }])
+          .to produce_url( "#{upload_path}/h_100,#{letter}_text:hello,w_100/test")
+          .and empty_options
+
       end
     end
   end
