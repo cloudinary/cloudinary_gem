@@ -80,4 +80,38 @@ def test_cloudinary_url(public_id, options, expected_url, expected_options)
   url
 end
 
+RSpec::Matchers.define :produce_url do |expected_url|
+  match do |params|
+    public_id, options              = params
+    url = Cloudinary::Utils.cloudinary_url(public_id, options.clone)
+    @actual = url
+    values_match? expected_url, @actual
+  end
+  description do
+    "be #{expected_url}"
+  end
+  diffable
+end
+
+RSpec::Matchers.define :mutate_options_to do |expected_options|
+  match do |params|
+    public_id, options = params
+    options = options.clone
+    url = Cloudinary::Utils.cloudinary_url(public_id, options)
+    @actual = options
+    values_match? expected_options, @actual
+  end
+  diffable
+end
+
+RSpec::Matchers.define :empty_options do
+  match do |params|
+    public_id, options = params
+    options = options.clone
+    Cloudinary::Utils.cloudinary_url(public_id, options)
+    options.empty?
+  end
+end
+
+
 TEST_IMAGE_URL = "http://cloudinary.com/images/old_logo.png"
