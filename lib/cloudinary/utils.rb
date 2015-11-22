@@ -180,7 +180,8 @@ class Cloudinary::Utils
           unless public_id.nil? ^ text_style.nil?
             raise(CloudinaryException, "Must supply either style parameters or a public_id when providing text parameter in a text #{layer_parameter}")
           end
-          text = smart_escape smart_escape text
+          parser = URI::Parser.new( :RESERVED => "") # don't ignore reserved characters when escaping
+          2.times {text = parser.escape(text)}
         end
       end
       components.push(resource_type) if resource_type != "image"
@@ -298,6 +299,10 @@ class Cloudinary::Utils
     transformation = transformation.gsub(%r(([^:])//), '\1/')
     if sign_url
       to_sign = [transformation, sign_version && version, source_to_sign].reject(&:blank?).join("/")
+      i = 0
+      while !to_sign.equal?(CGI.unescape(to_sign)) && (i+=1) <10
+        to_sign = CGI.unescape(to_sign)
+      end
       signature = 's--' + Base64.urlsafe_encode64(Digest::SHA1.digest(to_sign + secret))[0,8] + '--'
     end
 

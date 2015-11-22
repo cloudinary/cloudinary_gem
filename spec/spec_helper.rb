@@ -83,13 +83,12 @@ end
 
 RSpec::Matchers.define :produce_url do |expected_url|
   match do |params|
-    public_id, options              = params
-    url = Cloudinary::Utils.cloudinary_url(public_id, options.clone)
-    @actual = url
+    public_id, options = params
+    @actual = Cloudinary::Utils.cloudinary_url(public_id, options.clone)
     values_match? expected_url, @actual
   end
   description do
-    "be #{expected_url}"
+    "match #{expected_url}"
   end
   diffable
 end
