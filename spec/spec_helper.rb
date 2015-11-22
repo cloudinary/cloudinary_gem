@@ -1,6 +1,7 @@
 require 'rspec'
 require 'rexml/parsers/ultralightparser'
 require 'rspec/version'
+require 'rest_client'
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
@@ -112,6 +113,22 @@ RSpec::Matchers.define :empty_options do
     options.empty?
   end
 end
+
+# Verify that the given URL can be served by Cloudinary by fetching the resource from the server
+RSpec::Matchers.define :be_served_by_cloudinary do
+  match do |url|
+    code = "no response"
+    begin
+      response = RestClient.get url
+      code = response.code
+    rescue => e
+      code = e.respond_to?( :response) ? e.response.code : e
+    end
+    @actual = url
+    values_match? 200, code
+  end
+end
+
 
 
 TEST_IMAGE_URL = "http://cloudinary.com/images/old_logo.png"
