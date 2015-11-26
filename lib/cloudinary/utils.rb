@@ -9,23 +9,13 @@ class Cloudinary::Utils
   SHARED_CDN = Cloudinary::SHARED_CDN
   DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {:width => :auto, :crop => :limit}
 
-  def self.symbolize_keys!(h)
-    if (h.respond_to? :keys) && (h.respond_to? :delete)
-      h.keys.each do |key|
-        value = h.delete(key)
-        h[(key.to_sym rescue key)] = value
-      end
-    end
-    h
-  end
-
   # Warning: options are being destructively updated!
   def self.generate_transformation_string(options={})
     if options.is_a?(Array)
       return options.map{|base_transformation| generate_transformation_string(base_transformation.clone)}.join("/")
     end
-    # Symbolize keys
-    options = symbolize_keys!(options)
+
+    symbolize_keys!(options)
 
     responsive_width = config_option_consume(options, :responsive_width) 
     size = options.delete(:size)
@@ -78,8 +68,8 @@ class Cloudinary::Utils
       options[:start_offset], options[:end_offset] = split_range options.delete(:offset)
     end
 
-    overlay = process_layer(options.delete(:overlay), "overlay")
-    underlay = process_layer(options.delete(:underlay), "underlay")
+    overlay = process_layer(options.delete(:overlay))
+    underlay = process_layer(options.delete(:underlay))
 
     params = {
       :a   => angle,
@@ -147,53 +137,58 @@ class Cloudinary::Utils
 
     transformations.reject(&:blank?).join("/")
   end
-  def self.process_layer(layer, layer_parameter)
-    if layer.is_a? Hash
-      layer = symbolize_keys! layer.clone
-      resource_type = layer[:resource_type] || "image"
-      type          = layer[:type] || "upload"
-      text          = layer[:text]
-      text_style    = nil
-      public_id     = layer[:public_id]
-      format        = layer[:format]
-      components    = []
 
-      unless public_id.nil?
-        public_id = public_id.gsub("/", ":")
-        public_id = "#{public_id}.#{format}" unless format.nil?
-      end
+  # Parse layer options
+  # @return [string] layer transformation string
+  # @private
+  def self.process_layer(layer)
+     if layer.is_a? Hash
+       layer = symbolize_keys layer
+       layer.delete_if { |k, v| v.nil? }
+       public_id     = layer[:public_id]
+       format        = layer[:format]
+       resource_type = layer.fetch(:resource_type, 'image').to_s
+       type          = layer.fetch(:type, 'upload').to_s
+       text          = layer[:text]
+       text_style    = nil
+       components    = []
 
-      if text.nil? && resource_type != "text"
-        if public_id.nil?
-          raise(CloudinaryException, "Must supply public_id for resource_type layer_parameter")
-        end
-        if resource_type == "subtitles"
-          text_style = text_style(layer, layer_parameter)
-        end
+       unless public_id.blank?
+         public_id = public_id.gsub("/", ":")
+         public_id = "#{public_id}.#{format}" unless format.nil?
+       end
 
-      else
-        resource_type = "text"
-        type          = nil
-        # // type is ignored for text layers
-        text_style    = text_style(layer, layer_parameter)
-        unless text.nil?
-          unless public_id.nil? ^ text_style.nil?
-            raise(CloudinaryException, "Must supply either style parameters or a public_id when providing text parameter in a text #{layer_parameter}")
-          end
-          parser = URI::Parser.new( :RESERVED => "") # don't ignore reserved characters when escaping
-          2.times {text = parser.escape(text)}
-        end
-      end
-      components.push(resource_type) if resource_type != "image"
-      components.push(type) if type != "upload"
-      components.push(text_style)
-      components.push(public_id)
-      components.push(text)
-      layer = components.reject(&:blank?).join(":")
-    end
-    layer
+       if text.blank? && resource_type != "text"
+         if public_id.blank?
+           raise(CloudinaryException, "Must supply public_id for resource_type layer_parameter")
+         end
+         if resource_type == "subtitles"
+           text_style = text_style(layer)
+         end
+
+       else
+         resource_type = "text"
+         type          = nil
+         # // type is ignored for text layers
+         text_style    = text_style(layer)
+         unless text.blank?
+           unless public_id.blank? ^ text_style.blank?
+             raise(CloudinaryException, "Must supply either style parameters or a public_id when providing text parameter in a text overlay/underlay")
+           end
+           parser = URI::Parser.new(:RESERVED => "") # don't ignore reserved characters when escaping
+           2.times { text = parser.escape(text) }
+         end
+       end
+       components.push(resource_type) if resource_type != "image"
+       components.push(type) if type != "upload"
+       components.push(text_style)
+       components.push(public_id)
+       components.push(text)
+       layer = components.reject(&:blank?).join(":")
+     end
+     layer
   end
-
+  private_class_method :process_layer
 
   LAYER_KEYWORD_PARAMS ={
     :font_weight     => "normal",
@@ -202,7 +197,8 @@ class Cloudinary::Utils
     :text_align      => nil,
     :stroke          => "none"
   }
-  def self.text_style(layer, layer_parameter)
+
+  def self.text_style(layer)
     font_family = layer[:font_family]
     font_size   = layer[:font_size]
     keywords    = []
@@ -211,15 +207,14 @@ class Cloudinary::Utils
       keywords.push(attr_value) unless attr_value == default_value
     end
     letter_spacing = layer[:letter_spacing]
-    keywords.push("letter_spacing_#{letter_spacing}") unless letter_spacing.nil?
-    if !font_size.nil? || !font_family.nil? || !keywords.empty?
-      raise(CloudinaryException, "Must supply font_family for text in #{layer_parameter}") if font_family.nil?
-      raise(CloudinaryException, "Must supply font_size for text in #{layer_parameter}") if font_size.nil?
+    keywords.push("letter_spacing_#{letter_spacing}") unless letter_spacing.blank?
+    if !font_size.blank? || !font_family.blank? || !keywords.empty?
+      raise(CloudinaryException, "Must supply font_family for text in overlay/underlay") if font_family.blank?
+      raise(CloudinaryException, "Must supply font_size for text in overlay/underlay") if font_size.blank?
       keywords.unshift(font_size)
       keywords.unshift(font_family)
       keywords.reject(&:blank?).join("_")
     end
-
   end
 
   def self.api_string_to_sign(params_to_sign)
@@ -236,7 +231,7 @@ class Cloudinary::Utils
 
     type = options.delete(:type)
 
-    options[:fetch_format] ||= options.delete(:format) if type == :fetch
+    options[:fetch_format] ||= options.delete(:format) if type == "fetch"
     transformation = self.generate_transformation_string(options)
 
     resource_type = options.delete(:resource_type)
@@ -272,7 +267,7 @@ class Cloudinary::Utils
     resource_type ||= "image"
     source = source.to_s
     if !force_remote
-      return original_source if (type.nil? || type == :asset) && source.match(%r(^https?:/)i)
+      return original_source if (type.nil? || type == "asset") && source.match(%r(^https?:/)i)
       if source.start_with?("/")
         if source.start_with?("/images/")
           source = source.sub(%r(/images/), '')
@@ -281,11 +276,11 @@ class Cloudinary::Utils
         end
       end
       @metadata ||= defined?(Cloudinary::Static) ? Cloudinary::Static.metadata : {}
-      if type == :asset && @metadata["images/#{source}"]
+      if type == "asset" && @metadata["images/#{source}"]
         return original_source if !Cloudinary.config.static_image_support
         source = @metadata["images/#{source}"]["public_id"]
         source += File.extname(original_source) if !format
-      elsif type == :asset
+      elsif type == "asset"
         return original_source # requested asset, but no metadata - probably local file. return.
       end
     end
@@ -300,8 +295,9 @@ class Cloudinary::Utils
     if sign_url
       to_sign = [transformation, sign_version && version, source_to_sign].reject(&:blank?).join("/")
       i = 0
-      while !to_sign.equal?(CGI.unescape(to_sign)) && (i+=1) <10
+      while to_sign != CGI.unescape(to_sign) && i <10
         to_sign = CGI.unescape(to_sign)
+        i = i + 1
       end
       signature = 's--' + Base64.urlsafe_encode64(Digest::SHA1.digest(to_sign + secret))[0,8] + '--'
     end
@@ -331,7 +327,7 @@ class Cloudinary::Utils
   end
 
   def self.finalize_resource_type(resource_type, type, url_suffix, use_root_path, shorten)
-    type ||= :upload
+    type ||= "upload"
     if !url_suffix.blank?
       if resource_type.to_s == "image" && type.to_s == "upload"
         resource_type = "images"
@@ -557,18 +553,60 @@ class Cloudinary::Utils
     value.nil? || value == "" || value == []
   end
 
+  def self.symbolize_keys(h)
+    new_h = Hash.new
+    if (h.respond_to? :keys) && (h.respond_to? :delete)
+      h.keys.each do |key|
+        new_h[(key.to_sym rescue key)] = h[key]
+      end
+    end
+    new_h
+  end
+
+
+  def self.symbolize_keys!(h)
+    if (h.respond_to? :keys) && (h.respond_to? :delete)
+      h.keys.each do |key|
+        value = h.delete(key)
+        h[(key.to_sym rescue key)] = value
+      end
+    end
+    h
+  end
+
+
+  def self.deep_symbolize_keys(object)
+    case object
+    when Hash
+      result = {}
+      object.each do |key, value|
+        key = key.to_sym rescue key
+        result[key] = deep_symbolize_keys(value)
+      end
+      result
+    when Array
+      object.map{|e| deep_symbolize_keys(e)}
+    else
+      object
+    end
+  end
+
   private
+
   def self.number_pattern
     "([0-9]*)\\.([0-9]+)|([0-9]+)"
   end
+  private_class_method :number_pattern
 
   def self.offset_any_pattern
     "(#{number_pattern})([%pP])?"
   end
+  private_class_method :offset_any_pattern
 
   def self.offset_any_pattern_re
     /((([0-9]*)\.([0-9]+)|([0-9]+))([%pP])?)\.\.((([0-9]*)\.([0-9]+)|([0-9]+))([%pP])?)/
   end
+  private_class_method :offset_any_pattern_re
 
   # Split a range into the start and end values
   def self.split_range(range) # :nodoc:
@@ -583,11 +621,13 @@ class Cloudinary::Utils
       nil
     end
   end
+  private_class_method :split_range
 
   # Normalize an offset value
   # @param [String] value a decimal value which may have a 'p' or '%' postfix. E.g. '35%', '0.4p'
   # @return [Object|String] a normalized String of the input value if possible otherwise the value itself
-  def self.norm_range_value(value) # :nodoc:
+  # @private
+   def self.norm_range_value(value) # :nodoc:
     offset = /^#{offset_any_pattern}$/.match( value.to_s)
     if offset
       modifier   = offset[5].present? ? 'p' : ''
@@ -595,6 +635,7 @@ class Cloudinary::Utils
     end
     value
   end
+  private_class_method :norm_range_value
 
   # A video codec parameter can be either a String or a Hash.
   #
@@ -603,6 +644,7 @@ class Cloudinary::Utils
   # @return [String] <code><codec> : <profile> : [<level>]]</code> if a Hash was provided
   #                   or the param if a String was provided.
   #                   Returns NIL if param is not a Hash or String
+  # @private
   def self.process_video_params(param)
     case param
     when Hash
@@ -623,21 +665,6 @@ class Cloudinary::Utils
       nil
     end
   end
-
-  def self.deep_symbolize_keys(object)
-    case object
-    when Hash
-      result = {}
-      object.each do |key, value|
-        key = key.to_sym rescue key
-        result[key] = deep_symbolize_keys(value)
-      end
-      result
-    when Array
-      object.map{|e| deep_symbolize_keys(e)}
-    else
-      object
-    end
-  end
+  private_class_method :process_video_params
 
 end
