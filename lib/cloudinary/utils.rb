@@ -144,11 +144,10 @@ class Cloudinary::Utils
   def self.process_layer(layer)
      if layer.is_a? Hash
        layer = symbolize_keys layer
-       layer.delete_if { |k, v| v.nil? }
        public_id     = layer[:public_id]
        format        = layer[:format]
-       resource_type = layer.fetch(:resource_type, 'image').to_s
-       type          = layer.fetch(:type, 'upload').to_s
+       resource_type = layer[:resource_type] || "image"
+       type          = layer[:type] || "upload"
        text          = layer[:text]
        text_style    = nil
        components    = []
@@ -231,7 +230,7 @@ class Cloudinary::Utils
 
     type = options.delete(:type)
 
-    options[:fetch_format] ||= options.delete(:format) if type == "fetch"
+    options[:fetch_format] ||= options.delete(:format) if type.to_s == "fetch"
     transformation = self.generate_transformation_string(options)
 
     resource_type = options.delete(:resource_type)
@@ -264,6 +263,7 @@ class Cloudinary::Utils
       type ||= source.storage_type
       source = format.blank? ? source.filename : source.full_public_id
     end
+    type = type.to_s unless type.nil?
     resource_type ||= "image"
     source = source.to_s
     if !force_remote
@@ -327,7 +327,7 @@ class Cloudinary::Utils
   end
 
   def self.finalize_resource_type(resource_type, type, url_suffix, use_root_path, shorten)
-    type ||= "upload"
+    type ||= :upload
     if !url_suffix.blank?
       if resource_type.to_s == "image" && type.to_s == "upload"
         resource_type = "images"
