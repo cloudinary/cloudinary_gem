@@ -1,6 +1,10 @@
 require 'rspec'
 require 'rexml/parsers/ultralightparser'
 require 'rspec/version'
+require 'rest_client'
+
+TEST_IMAGE_URL = "http://cloudinary.com/images/old_logo.png"
+TEST_TAG = 'cloudinary_gem_test'
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
@@ -73,11 +77,66 @@ class TestTag
   end
 end
 
-def test_cloudinary_url(public_id, options, expected_url, expected_options)
-  url = Cloudinary::Utils.cloudinary_url(public_id, options)
-  expect(url).to eq(expected_url)
-  expect(options).to eq(expected_options)
-  url
+RSpec::Matchers.define :produce_url do |expected_url|
+  match do |params|
+    public_id, options = params
+    actual_options = options.clone
+    @url = Cloudinary::Utils.cloudinary_url(public_id, actual_options)
+    values_match? expected_url, @url
+  end
+  failure_message do |actual|
+    "expected #{actual} to\nproduce: #{expected_url}\nbut got: #{@url}"
+  end
 end
 
-TEST_IMAGE_URL = "http://cloudinary.com/images/old_logo.png"
+RSpec::Matchers.define :mutate_options_to do |expected_options|
+  match do |params|
+    public_id, options = params
+    options = options.clone
+    Cloudinary::Utils.cloudinary_url(public_id, options)
+    @actual = options
+    values_match? expected_options, @actual
+  end
+end
+
+RSpec::Matchers.define :empty_options do
+  match do |params|
+    public_id, options = params
+    options = options.clone
+    Cloudinary::Utils.cloudinary_url(public_id, options)
+    options.empty?
+  end
+end
+
+# Verify that the given URL can be served by Cloudinary by fetching the resource from the server
+RSpec::Matchers.define :be_served_by_cloudinary do
+  match do |url|
+    if url.is_a? Array
+      url = Cloudinary::Utils.cloudinary_url( url[0], url[1])
+    end
+    code = 0
+    @url = url
+    RestClient.get @url do |response, request, result|
+      @result = result
+      code = response.code
+    end
+    values_match? 200, code
+  end
+
+  failure_message do |actual|
+    if @result
+      "Couldn't serve #{actual}. #{@result["status"]}: #{@result["x-cld-error"]}"
+    else
+      "Couldn't serve #{actual}."
+    end
+  end
+  failure_message_when_negated do |actual|
+    if @result
+      "Expected #{@url} not to be served by cloudinary. #{@result["status"]}: #{@result["x-cld-error"]}"
+    else
+      "Expected #{@url} not to be served by cloudinary."
+    end
+
+  end
+end
+
