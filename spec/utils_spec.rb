@@ -2,12 +2,7 @@ require 'spec_helper'
 require 'cloudinary'
 
 describe Cloudinary::Utils do
-  let (:test_image) {
-    Cloudinary::Uploader.upload "http://res.cloudinary.com/demo/image/upload/sample.jpg",
-                                                 :public_id => 'test_image',
-                                                 :overwrite => true,
-                                                 :tags => 'test'
-  }
+
   before :each do
     Cloudinary.config do |config|
       # config.cloud_name = "demo"
@@ -331,6 +326,65 @@ describe Cloudinary::Utils do
       .and empty_options
   end
 
+  shared_examples "a signed url" do |specific_options = {}, specific_transformation = ""|
+    let(:expected_transformation) do
+      # %w[c_crop h_20 w_10].concat(specific_transformation.split(',')).sort().join(',')
+      (specific_transformation.blank? || specific_transformation.match(/\/$/)) ? specific_transformation : "#{specific_transformation}/"
+    end
+    let! (:private_image) do
+      Cloudinary::Uploader.upload "http://res.cloudinary.com/demo/image/upload/sample.jpg",
+                                  :type => 'private',
+                                  :tags => 'test'
+    end
+    let(:options) {{ :version => private_image['version'], :sign_url => true, :type => :private }.merge(specific_options)}
+    let(:private_path) { "#{root_path}/image/private" }
+
+    it "should not serve resource with the wrong signature" do
+      expect(private_image["url"].sub(/(?:s--)(\w+)(?:--)/) {|s| s.succ})
+        .not_to be_served_by_cloudinary
+    end
+
+    it "should correctly sign URL with version" do
+      expect(["#{private_image['public_id']}.jpg", options])
+        .to produce_url(%r"#{private_path}/s--[\w-]+--/#{expected_transformation}v#{private_image['version']}/#{private_image['public_id']}.jpg")
+              .and empty_options
+                     .and be_served_by_cloudinary
+    end
+    it "should correctly sign URL with transformation and version" do
+      options[:transformation] = { :crop => "crop", :width => 10, :height => 20 }
+      expect(["#{private_image['public_id']}.jpg", options])
+        .to produce_url(%r"#{private_path}/s--[\w-]+--/c_crop,h_20,w_10/#{expected_transformation}v#{private_image['version']}/#{private_image['public_id']}.jpg")
+              .and empty_options
+                     .and be_served_by_cloudinary
+    end
+    it "should correctly sign URL with transformation" do
+      options[:transformation] = { :crop => "crop", :width => 10, :height => 20 }
+      expect(["#{private_image['public_id']}.jpg", options])
+        .to produce_url(%r"#{private_path}/s--[\w-]+--/c_crop,h_20,w_10/#{expected_transformation}v#{private_image['version']}/#{private_image['public_id']}.jpg")
+              .and empty_options
+                     .and be_served_by_cloudinary
+    end
+    it "should correctly sign authenticated URL" do
+      options[:transformation] = { :crop => "crop", :width => 10, :height => 20 }
+      options[:type] = :authenticated
+      private_image = Cloudinary::Uploader.upload "http://res.cloudinary.com/demo/image/upload/sample.jpg",
+                                                  :tags => 'test', :type => :authenticated
+      options[:version] = private_image['version']
+      expect(["#{private_image['public_id']}.jpg", options])
+        .to produce_url(%r"#{root_path}/image/authenticated/s--[\w-]+--/c_crop,h_20,w_10/#{expected_transformation}v#{private_image['version']}/#{private_image['public_id']}.jpg")
+              .and empty_options
+      # .and be_served_by_cloudinary
+    end
+    it "should correctly sign fetch URL" do
+      options[:type] = :fetch
+      expect(["http://res.cloudinary.com/demo/sample.png", options])
+        .to produce_url(%r"^#{root_path}/image/fetch/s--[\w-]+--/v[^/]+/#{expected_transformation}http://res.cloudinary.com/demo/sample.png$")
+              .and empty_options
+                     .and be_served_by_cloudinary
+    end
+
+  end
+
 
   { 'overlay' => :l, :underlay => :u }.each do |param, letter|
     describe param do
@@ -347,7 +401,6 @@ describe Cloudinary::Utils do
       it "should support #{param}" do
         layers_options.each do |name, options, result|
           expect(["test", { param => options }]).to produce_url( "#{upload_path}/#{letter}_#{result}/test") .and empty_options
-          # expect( "#{upload_path}/#{letter}_#{result}/test" ).to be_served_by_cloudinary
         end
       end
 
@@ -389,7 +442,7 @@ describe Cloudinary::Utils do
     # end
 
     { 'overlay' => 'l', 'underlay' => 'u' }.each do |param, short|
-      describe param do
+      describe param, :if => false do
         let(:root_path) { "http://res.cloudinary.com/#{cloud_name}" }
         # [name, options, result]
         layers_options=   [
@@ -405,6 +458,11 @@ describe Cloudinary::Utils do
           it "should support #{name}" do
             expect(["sample", { param => options }]).to produce_url("#{upload_path}/#{short}_#{result}/sample").and empty_options
             expect("#{upload_path}/#{short}_#{result}/sample").to be_served_by_cloudinary
+          end
+          unless options.is_a? String
+            op = Hash.new
+            op[param] = options
+            it_behaves_like "a signed url",  op, "#{short}_#{result}"
           end
         end
 
@@ -505,12 +563,17 @@ describe Cloudinary::Utils do
   end
 
   it "build_upload_params canonize booleans" do
-    options = {:backup=>true, :use_filename=>false, :colors=>"true", :exif=>"false", :colors=>:true, 
-               :image_metadata=>:false, :invalidate=>1, :eager_async=>"1"}
+    options = {:backup=>true, :use_filename=>false, :colors=>:true,
+               :image_metadata=>:false, :invalidate=>1}
     params = Cloudinary::Uploader.build_upload_params(options)
     expect(Cloudinary::Api.only(params, *options.keys)).to eq(
-      :backup=>1, :use_filename=>0, :colors=>1, :exif=>0, :colors=>1, 
-               :image_metadata=>0, :invalidate=>1, :eager_async=>1
+      :backup=>1, :use_filename=>0, :colors=>1,
+               :image_metadata=>0, :invalidate=>1
+    )
+    options = {:colors=>"true", :exif=>"false", :eager_async=>"1"}
+    params = Cloudinary::Uploader.build_upload_params(options)
+    expect(Cloudinary::Api.only(params, *options.keys)).to eq(
+      :exif=>0, :colors=>1,  :eager_async=>1
     )
     expect(Cloudinary::Uploader.build_upload_params(:backup=>nil)[:backup]).to be_nil
     expect(Cloudinary::Uploader.build_upload_params({})[:backup]).to be_nil
@@ -553,69 +616,15 @@ describe Cloudinary::Utils do
     end      
   end
 
-  describe "sign_url", :signed => true do
-    before :each do
-      @image_to_sign = Cloudinary::Uploader.upload "http://res.cloudinary.com/demo/image/upload/sample.jpg",
-                                                   :tags => 'test'
-    end
-    
-    it "should correctly sign without tranformation" do
-      expect(["#{@image_to_sign['public_id']}.jpg", { :version => @image_to_sign['version'], :sign_url => true }])
-        .to produce_url(%r"#{upload_path}/s--[\w-]+--/v#{@image_to_sign['version']}/#{@image_to_sign['public_id']}.jpg")
-        .and empty_options
-    end
-    it "should correctly sign URL with transformation and version" do
-      expect(["#{@image_to_sign['public_id']}.jpg", { :version => @image_to_sign['version'], :transformation => { :crop => "crop", :width => 10, :height => 20 }, :sign_url => true }])
-        .to produce_url( %r"#{upload_path}/s--[\w-]+--/c_crop,h_20,w_10/v#{@image_to_sign['version']}/#{@image_to_sign['public_id']}.jpg")
-        .and empty_options
-    end
-    it "should correctly sign URL with transformation" do
-      expect(["#{@image_to_sign['public_id']}.jpg", { :transformation => { :crop => "crop", :width => 10, :height => 20 }, :sign_url => true }])
-        .to produce_url( %r"#{upload_path}/s--[\w-]+--/c_crop,h_20,w_10/#{@image_to_sign['public_id']}.jpg")
-        .and empty_options
-    end
-    it "should correctly sign authenticated URL" do
-      @image_to_sign = Cloudinary::Uploader.upload "http://res.cloudinary.com/demo/image/upload/sample.jpg",
-                                                   :tags => 'test', :type => :authenticated
-      expect(["#{@image_to_sign['public_id']}.jpg", { :transformation => { :crop => "crop", :width => 10, :height => 20 }, :type => :authenticated, :sign_url => true }])
-        .to produce_url( %r"#{root_path}/image/authenticated/s--[\w-]+--/c_crop,h_20,w_10/#{@image_to_sign['public_id']}.jpg")
-        .and empty_options
-    end
-    it "should correctly sign fetch URL" do
-      expect(["http://google.com/path/to/image.png", { :type => "fetch", :version => 1234, :sign_url => true }])
-        .to produce_url(%r"^#{root_path}/image/fetch/s--[\w-]+--/v1234/http://google.com/path/to/image.png$")
-        .and empty_options
-    end
+
+  describe ":sign_url" do
+    it_behaves_like "a signed url"
   end
 
-  describe "sign_version", :signed => true do
-    before :each do
-      @image_to_sign = Cloudinary::Uploader.upload "http://res.cloudinary.com/demo/image/upload/sample.jpg",
-                                                   :tags => 'test'
-    end
-
-    it "should correctly sign URL with version" do
-      expect(["#{test_image['public_id']}.jpg",{ :version => test_image['version'], :sign_url => true, :sign_version => true }])
-        .to produce_url(%r"#{upload_path}/s--[\w-]+--/v#{test_image['version']}/#{test_image['public_id']}.jpg")
-        .and empty_options
-    end
-    it "should correctly sign URL with version and tranformation" do
-      expect(["#{test_image['public_id']}.jpg",{ :version => test_image['version'], :transformation => { :crop => "crop", :width => 10, :height => 20 }, :sign_url => true, :sign_version => true }])
-        .to produce_url(%r"#{upload_path}/s--[\w-]+--/c_crop,h_20,w_10/v#{test_image['version']}/#{test_image['public_id']}.jpg")
-        .and empty_options
-    end
-    it "should correctly sign URL with transformation" do
-      expect(["#{test_image['public_id']}.jpg",{ :transformation => { :crop => "crop", :width => 10, :height => 20 }, :sign_url => true, :sign_version => true }])
-        .to produce_url(%r"#{upload_path}/s--[\w-]+--/c_crop,h_20,w_10/#{test_image['public_id']}.jpg")
-        .and empty_options
-    end
-    it "should correctly sign fetch URL" do
-      expect(["http://google.com/path/to/image.png",{ :type => "fetch", :version => 1234, :sign_url => true, :sign_version => true }])
-        .to produce_url(%r"#{root_path}/image/fetch/s--[\w-]+--/v1234/http://google.com/path/to/image.png")
-        .and empty_options
-    end
+  describe ":sign_version (deprecated)" do
+    it_behaves_like "a signed url", :sign_version => true
   end
-  
+
   it "should correctly sign_request" do
     params = Cloudinary::Utils.sign_request({
       :cloud_name => "demo",

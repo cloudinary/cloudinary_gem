@@ -84,8 +84,9 @@ end
 RSpec::Matchers.define :produce_url do |expected_url|
   match do |params|
     public_id, options = params
-    @actual = Cloudinary::Utils.cloudinary_url(public_id, options.clone)
-    values_match? expected_url, @actual
+    actual_options = options.clone
+    @actual = Cloudinary::Utils.cloudinary_url(public_id, actual_options)
+    values_match? [expected_url, options], [@actual, options]
   end
   description do
     "match #{expected_url}"
@@ -101,7 +102,6 @@ RSpec::Matchers.define :mutate_options_to do |expected_options|
     @actual = options
     values_match? expected_options, @actual
   end
-  diffable
 end
 
 RSpec::Matchers.define :empty_options do
@@ -116,18 +116,33 @@ end
 # Verify that the given URL can be served by Cloudinary by fetching the resource from the server
 RSpec::Matchers.define :be_served_by_cloudinary do
   match do |url|
-    code = "no response"
-    begin
-      response = RestClient.get url
-      code = response.code
-    rescue => e
-      code = e.respond_to?( :response) ? e.response.code : e
+    if url.is_a? Array
+      url = Cloudinary::Utils.cloudinary_url( url[0], url[1])
     end
-    @actual = url
+    code = 0
+    @url = url
+    RestClient.get @url do |response, request, result|
+      @result = result
+      code = response.code
+    end
     values_match? 200, code
   end
+
+  failure_message do |actual|
+    if @result
+      "Couldn't serve #{actual}. #{@result["status"]}: #{@result["x-cld-error"]}"
+    else
+      "Couldn't serve #{actual}."
+    end
+  end
+  failure_message_when_negated do |actual|
+    if @result
+      "Expected #{@url} not to be served by cloudinary. #{@result["status"]}: #{@result["x-cld-error"]}"
+    else
+      "Expected #{@url} not to be served by cloudinary."
+    end
+
+  end
 end
-
-
 
 TEST_IMAGE_URL = "http://cloudinary.com/images/old_logo.png"
