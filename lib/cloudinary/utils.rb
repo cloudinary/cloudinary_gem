@@ -174,8 +174,8 @@ class Cloudinary::Utils
            unless public_id.blank? ^ text_style.blank?
              raise(CloudinaryException, "Must supply either style parameters or a public_id when providing text parameter in a text overlay/underlay")
            end
-           parser = URI::Parser.new(:RESERVED => "") # don't ignore reserved characters when escaping
-           2.times { text = parser.escape(text) }
+           text = smart_escape smart_escape(text, %r"([,/])")
+
          end
        end
        components.push(resource_type) if resource_type != "image"
@@ -454,8 +454,8 @@ class Cloudinary::Utils
   end
 
   # Based on CGI::unescape. In addition does not escape / :
-  def self.smart_escape(string)
-    string.gsub(/([^a-zA-Z0-9_.\-\/:]+)/) do
+  def self.smart_escape(string, unsafe = /([^a-zA-Z0-9_.\-\/:]+)/)
+    string.gsub(unsafe) do
       '%' + $1.unpack('H2' * $1.bytesize).join('%').upcase
     end
   end
@@ -555,7 +555,7 @@ class Cloudinary::Utils
 
   def self.symbolize_keys(h)
     new_h = Hash.new
-    if (h.respond_to? :keys) && (h.respond_to? :delete)
+    if (h.respond_to? :keys)
       h.keys.each do |key|
         new_h[(key.to_sym rescue key)] = h[key]
       end
@@ -627,7 +627,7 @@ class Cloudinary::Utils
   # @param [String] value a decimal value which may have a 'p' or '%' postfix. E.g. '35%', '0.4p'
   # @return [Object|String] a normalized String of the input value if possible otherwise the value itself
   # @private
-   def self.norm_range_value(value) # :nodoc:
+  def self.norm_range_value(value) # :nodoc:
     offset = /^#{offset_any_pattern}$/.match( value.to_s)
     if offset
       modifier   = offset[5].present? ? 'p' : ''
