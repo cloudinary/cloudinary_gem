@@ -24,53 +24,85 @@ describe Cloudinary::Utils do
   describe "cloudinary_url" do
     context ":video_codec" do
       it 'should support a string value' do
-        test_cloudinary_url("video_id", { :resource_type => 'video', :video_codec => 'auto' }, "#{upload_path}/vc_auto/video_id", {})
+        expect(["video_id", { :resource_type => 'video', :video_codec => 'auto' }])
+          .to produce_url("#{upload_path}/vc_auto/video_id")
+                .and empty_options
       end
       it 'should support a hash value' do
-        test_cloudinary_url("video_id", { :resource_type => 'video', :video_codec => { :codec => 'h264', :profile => 'basic', :level => '3.1' } },
-                            "#{upload_path}/vc_h264:basic:3.1/video_id", {})
+        expect(["video_id", {
+          :resource_type => 'video',
+          :video_codec   => {
+            :codec   => 'h264',
+            :profile => 'basic',
+            :level   => '3.1'
+          }
+        }])
+          .to produce_url("#{upload_path}/vc_h264:basic:3.1/video_id")
+                .and empty_options
       end
     end
     context ":audio_codec" do
       it 'should support a string value' do
-        test_cloudinary_url("video_id", { :resource_type => 'video', :audio_codec => 'acc' }, "#{upload_path}/ac_acc/video_id", {})
+        expect(["video_id", { :resource_type => 'video', :audio_codec => 'acc' }])
+          .to produce_url("#{upload_path}/ac_acc/video_id")
+                .and empty_options
       end
     end
     context ":bit_rate" do
       it 'should support an integer value' do
-        test_cloudinary_url("video_id", { :resource_type => 'video', :bit_rate => 2048 }, "#{upload_path}/br_2048/video_id", {})
+        expect(["video_id", { :resource_type => 'video', :bit_rate => 2048 }])
+          .to produce_url("#{upload_path}/br_2048/video_id")
+                .and empty_options
       end
       it 'should support "<integer>k" ' do
-        test_cloudinary_url("video_id", { :resource_type => 'video', :bit_rate => '44k' }, "#{upload_path}/br_44k/video_id", {})
+        expect(["video_id", { :resource_type => 'video', :bit_rate => '44k' }])
+          .to produce_url("#{upload_path}/br_44k/video_id")
+                .and empty_options
       end
       it 'should support "<integer>m"' do
-        test_cloudinary_url("video_id", { :resource_type => 'video', :bit_rate => '1m' }, "#{upload_path}/br_1m/video_id", {})
+        expect(["video_id", { :resource_type => 'video', :bit_rate => '1m' }])
+          .to produce_url("#{upload_path}/br_1m/video_id")
+                .and empty_options
       end
     end
     context ":audio_frequency" do
       it 'should support an integer value' do
-        test_cloudinary_url("video_id", { :resource_type => 'video', :audio_frequency => 44100 }, "#{upload_path}/af_44100/video_id", {})
+        expect(["video_id", { :resource_type => 'video', :audio_frequency => 44100 }])
+          .to produce_url("#{upload_path}/af_44100/video_id")
+                .and empty_options
       end
     end
     context ":video_sampling" do
       it "should support an integer value" do
-        test_cloudinary_url("video_id", { :resource_type => 'video', :video_sampling => 20 }, "#{upload_path}/vs_20/video_id", {})
+        expect(["video_id", { :resource_type => 'video', :video_sampling => 20 }])
+          .to produce_url("#{upload_path}/vs_20/video_id")
+                .and empty_options
       end
       it "should support an string value in the a form of \"<float>s\"" do
-        test_cloudinary_url("video_id", { :resource_type => 'video', :video_sampling => "2.3s" }, "#{upload_path}/vs_2.3s/video_id", {})
+        expect(["video_id", { :resource_type => 'video', :video_sampling => "2.3s" }])
+          .to produce_url("#{upload_path}/vs_2.3s/video_id")
+                .and empty_options
       end
     end
     { :so => :start_offset, :eo => :end_offset, :du => :duration }.each do |short, long|
       context ":#{long}" do
         it "should support decimal seconds " do
-          test_cloudinary_url("video_id", { :resource_type => 'video', long => 2.63 }, "#{upload_path}/#{short}_2.63/video_id", {})
-          test_cloudinary_url("video_id", { :resource_type => 'video', long => '2.63' }, "#{upload_path}/#{short}_2.63/video_id", {})
+          expect(["video_id", { :resource_type => 'video', long => 2.63 }])
+            .to produce_url("#{upload_path}/#{short}_2.63/video_id")
+                  .and empty_options
+          expect(["video_id", { :resource_type => 'video', long => '2.63' }])
+            .to produce_url("#{upload_path}/#{short}_2.63/video_id")
+                  .and empty_options
         end
         it 'should support percents of the video length as "<number>p"' do
-          test_cloudinary_url("video_id", { :resource_type => 'video', long => '35p' }, "#{upload_path}/#{short}_35p/video_id", {})
+          expect(["video_id", { :resource_type => 'video', long => '35p' }])
+            .to produce_url("#{upload_path}/#{short}_35p/video_id")
+                  .and empty_options
         end
         it 'should support percents of the video length as "<number>%"' do
-          test_cloudinary_url("video_id", { :resource_type => 'video', long => '35%' }, "#{upload_path}/#{short}_35p/video_id", {})
+          expect(["video_id", { :resource_type => 'video', long => '35%' }])
+            .to produce_url("#{upload_path}/#{short}_35p/video_id")
+                  .and empty_options
         end
       end
     end
@@ -101,20 +133,29 @@ describe Cloudinary::Utils do
 
       { :overlay => :l, :underlay => :u }.each do |param, letter|
         it "should support #{param}" do
-          test_cloudinary_url("test", { :resource_type => 'video', param => "text:hello" }, "#{upload_path}/#{letter}_text:hello/test", {})
+          expect(["test", { :resource_type => 'video', param => "text:hello" }])
+            .to produce_url("#{upload_path}/#{letter}_text:hello/test")
+                  .and empty_options
         end
 
         it "should not pass width/height to html for #{param}" do
-          test_cloudinary_url("test", { :resource_type => 'video', param => "text:hello", :height => 100, :width => 100 }, "#{upload_path}/h_100,#{letter}_text:hello,w_100/test", {})
+          expect(["test", { :resource_type => 'video', param => "text:hello", :height => 100, :width => 100 }])
+            .to produce_url("#{upload_path}/h_100,#{letter}_text:hello,w_100/test")
+                  .and empty_options
         end
       end
       it "should produce the transformation string" do
-        test_cloudinary_url("test", { :resource_type => 'video', :background => "#112233" }, "#{upload_path}/b_rgb:112233/test", {})
-        test_cloudinary_url("test", { :resource_type => 'video',
-                                      :x             => 1, :y => 2, :radius => 3,
-                                      :gravity       => :center,
-                                      :quality       => 0.4,
-                                      :prefix        => "a" }, "#{upload_path}/g_center,p_a,q_0.4,r_3,x_1,y_2/test", {})
+        expect(["test", { :resource_type => 'video', :background => "#112233" }])
+          .to produce_url("#{upload_path}/b_rgb:112233/test")
+                .and empty_options
+        expect(["test", {
+          :resource_type => 'video',
+          :x             => 1, :y => 2, :radius => 3,
+          :gravity       => :center,
+          :quality       => 0.4,
+          :prefix        => "a" }])
+          .to produce_url("#{upload_path}/g_center,p_a,q_0.4,r_3,x_1,y_2/test")
+                .and empty_options
 
       end
     end

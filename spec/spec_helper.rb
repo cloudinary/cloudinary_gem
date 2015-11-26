@@ -3,6 +3,9 @@ require 'rexml/parsers/ultralightparser'
 require 'rspec/version'
 require 'rest_client'
 
+TEST_IMAGE_URL = "http://cloudinary.com/images/old_logo.png"
+TEST_TAG = 'cloudinary_gem_test'
+
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
   unless RSpec::Version::STRING.match( /^3/)
@@ -74,31 +77,23 @@ class TestTag
   end
 end
 
-def test_cloudinary_url(public_id, options, expected_url, expected_options)
-  url = Cloudinary::Utils.cloudinary_url(public_id, options)
-  expect(url).to eq(expected_url)
-  expect(options).to eq(expected_options)
-  url
-end
-
 RSpec::Matchers.define :produce_url do |expected_url|
   match do |params|
     public_id, options = params
     actual_options = options.clone
-    @actual = Cloudinary::Utils.cloudinary_url(public_id, actual_options)
-    values_match? [expected_url, options], [@actual, options]
+    @url = Cloudinary::Utils.cloudinary_url(public_id, actual_options)
+    values_match? expected_url, @url
   end
-  description do
-    "match #{expected_url}"
+  failure_message do |actual|
+    "expected #{actual} to\nproduce: #{expected_url}\nbut got: #{@url}"
   end
-  diffable
 end
 
 RSpec::Matchers.define :mutate_options_to do |expected_options|
   match do |params|
     public_id, options = params
     options = options.clone
-    url = Cloudinary::Utils.cloudinary_url(public_id, options)
+    Cloudinary::Utils.cloudinary_url(public_id, options)
     @actual = options
     values_match? expected_options, @actual
   end
@@ -145,4 +140,3 @@ RSpec::Matchers.define :be_served_by_cloudinary do
   end
 end
 
-TEST_IMAGE_URL = "http://cloudinary.com/images/old_logo.png"
