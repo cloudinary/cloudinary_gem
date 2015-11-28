@@ -3,6 +3,7 @@ require 'digest/sha1'
 require 'zlib'
 require 'uri'
 require 'aws_cf_signer'
+require 'json'
 
 class Cloudinary::Utils
   # @deprecated Use Cloudinary::SHARED_CDN
@@ -224,6 +225,24 @@ class Cloudinary::Utils
     to_sign = api_string_to_sign(params_to_sign)
     Digest::SHA1.hexdigest("#{to_sign}#{api_secret}")
   end
+
+  def self.generate_responsive_breakpoints_string(breakpoints)
+    return nil if breakpoints.nil?
+    breakpoints = breakpoints.clone
+    if !breakpoints.is_a?(Array)
+      breakpoints = [breakpoints]
+    end
+
+    breakpoints.each do |breakpoint_settings|
+      if !breakpoint_settings.nil?
+        transformation =  breakpoint_settings.delete(:transformation) || breakpoint_settings.delete("transformation")
+        if transformation
+          breakpoint_settings[:transformation] = Cloudinary::Utils.generate_transformation_string(transformation.clone)
+        end 
+      end  
+    end 
+    return breakpoints.to_json
+  end   
 
   # Warning: options are being destructively updated!
   def self.unsigned_download_url(source, options = {})

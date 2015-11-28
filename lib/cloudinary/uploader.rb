@@ -13,7 +13,7 @@ class Cloudinary::Uploader
       [Cloudinary::Utils.generate_transformation_string(transformation), format].compact.join("/")
     end.join("|")
   end
-  
+
   def self.build_upload_params(options)
     #symbolize keys
     options = options.clone
@@ -57,10 +57,30 @@ class Cloudinary::Uploader
               :auto_tagging => options[:auto_tagging] && options[:auto_tagging].to_f,
               :upload_preset => options[:upload_preset],
               :phash => Cloudinary::Utils.as_safe_bool(options[:phash]),
+              :responsive_breakpoints => Cloudinary::Utils.generate_responsive_breakpoints_string(options[:responsive_breakpoints]),
               :return_delete_token => Cloudinary::Utils.as_safe_bool(options[:return_delete_token]),
             }
     params    
   end
+
+  def self.build_explicit_api_params(public_id, options)
+    options = options.clone
+    options.keys.each{|key| options[key.to_sym] = options.delete(key) if key.is_a?(String)}
+    params = {
+      :timestamp=>(options[:timestamp] || Time.now.to_i),
+      :type=>options[:type],
+      :public_id=> public_id,
+      :callback=> options[:callback],
+      :eager=>build_eager(options[:eager]),
+      :eager_notification_url=>options[:eager_notification_url],
+      :eager_async=>Cloudinary::Utils.as_safe_bool(options[:eager_async]),
+      :headers=>build_custom_headers(options[:headers]),
+      :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
+      :face_coordinates => options[:face_coordinates] && Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
+      :responsive_breakpoints => Cloudinary::Utils.generate_responsive_breakpoints_string(options[:responsive_breakpoints])
+    }
+    params    
+  end  
   
   def self.unsigned_upload(file, upload_preset, options={})
     upload(file, options.merge(:unsigned => true, :upload_preset => upload_preset))
@@ -159,18 +179,7 @@ class Cloudinary::Uploader
 
   def self.explicit(public_id, options={})
     call_api("explicit", options) do    
-      {
-        :timestamp=>(options[:timestamp] || Time.now.to_i),
-        :type=>options[:type],
-        :public_id=> public_id,
-        :callback=> options[:callback],
-        :eager=>build_eager(options[:eager]),
-        :eager_notification_url=>options[:eager_notification_url],
-        :eager_async=>Cloudinary::Utils.as_safe_bool(options[:eager_async]),
-        :headers=>build_custom_headers(options[:headers]),
-        :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
-        :face_coordinates => options[:face_coordinates] && Cloudinary::Utils.encode_double_array(options[:face_coordinates])  
-      }
+      self.build_explicit_api_params(public_id, options)
     end              
   end
     
