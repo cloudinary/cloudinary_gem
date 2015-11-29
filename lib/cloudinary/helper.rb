@@ -236,9 +236,15 @@ module CloudinaryHelper
     Cloudinary::Utils.private_download_url(public_id, format, options)
   end
 
+  # Helper method that uses the deprecated ZIP download API. 
+  # Replaced by cl_generate_zip_download_url that uses the more advanced and robust archive generation and download API
   def cl_zip_download_url(tag, options = {})
     Cloudinary::Utils.zip_download_url(tag, options)
   end
+
+  def cl_generate_zip_download_url(options = {})
+    Cloudinary::Utils.generate_zip_download_url(options)
+  end  
 
   def cl_signed_download_url(public_id, options = {})
     Cloudinary::Utils.signed_download_url(public_id, options)

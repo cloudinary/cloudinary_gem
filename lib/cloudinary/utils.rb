@@ -4,6 +4,7 @@ require 'zlib'
 require 'uri'
 require 'aws_cf_signer'
 require 'json'
+require 'cgi'
 
 class Cloudinary::Utils
   # @deprecated Use Cloudinary::SHARED_CDN
@@ -11,9 +12,9 @@ class Cloudinary::Utils
   DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {:width => :auto, :crop => :limit}
 
   # Warning: options are being destructively updated!
-  def self.generate_transformation_string(options={})
+  def self.generate_transformation_string(options={}, allow_implicit_crop_mode = false)
     if options.is_a?(Array)
-      return options.map{|base_transformation| generate_transformation_string(base_transformation.clone)}.join("/")
+      return options.map{|base_transformation| generate_transformation_string(base_transformation.clone, allow_implicit_crop_mode)}.join("/")
     end
 
     symbolize_keys!(options)
@@ -33,7 +34,7 @@ class Cloudinary::Utils
     options.delete(:width) if width && (width.to_f < 1 || no_html_sizes || width == "auto" || responsive_width)
     options.delete(:height) if height && (height.to_f < 1 || no_html_sizes || responsive_width)
 
-    width=height=nil if crop.nil? && !has_layer && width != "auto"
+    width=height=nil if crop.nil? && !has_layer && width != "auto" && !allow_implicit_crop_mode
 
     background = options.delete(:background)
     background = background.sub(/^#/, 'rgb:') if background
@@ -45,7 +46,7 @@ class Cloudinary::Utils
     if base_transformations.any?{|base_transformation| base_transformation.is_a?(Hash)}
       base_transformations = base_transformations.map do
         |base_transformation|
-        base_transformation.is_a?(Hash) ? generate_transformation_string(base_transformation.clone) : generate_transformation_string(:transformation=>base_transformation)
+        base_transformation.is_a?(Hash) ? generate_transformation_string(base_transformation.clone, allow_implicit_crop_mode) : generate_transformation_string({:transformation=>base_transformation}, allow_implicit_crop_mode)
       end
     else
       named_transformation = base_transformations.join(".")
@@ -126,7 +127,7 @@ class Cloudinary::Utils
     transformations = base_transformations << transformation
     if responsive_width
       responsive_width_transformation = Cloudinary.config.responsive_width_transformation || DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION
-      transformations << generate_transformation_string(responsive_width_transformation.clone)
+      transformations << generate_transformation_string(responsive_width_transformation.clone, allow_implicit_crop_mode)
     end
 
     if width.to_s == "auto" || responsive_width
@@ -237,7 +238,7 @@ class Cloudinary::Utils
       if !breakpoint_settings.nil?
         transformation =  breakpoint_settings.delete(:transformation) || breakpoint_settings.delete("transformation")
         if transformation
-          breakpoint_settings[:transformation] = Cloudinary::Utils.generate_transformation_string(transformation.clone)
+          breakpoint_settings[:transformation] = Cloudinary::Utils.generate_transformation_string(transformation.clone, true)
         end 
       end  
     end 
@@ -436,12 +437,19 @@ class Cloudinary::Utils
         :expires_at=>options[:expires_at] && options[:expires_at].to_i
       }, options)
 
-    return Cloudinary::Utils.cloudinary_api_url("download", options) + "?" + cloudinary_params.to_query
+    return Cloudinary::Utils.cloudinary_api_url("download", options) + "?" + hash_query_params(cloudinary_params)
   end
 
+  # Utility method that uses the deprecated ZIP download API. 
+  # Replaced by generate_zip_download_url that uses the more advanced and robust archive generation and download API
   def self.zip_download_url(tag, options = {})
     cloudinary_params = sign_request({:timestamp=>Time.now.to_i, :tag=>tag, :transformation=>generate_transformation_string(options)}, options)
-    return Cloudinary::Utils.cloudinary_api_url("download_tag.zip", options) + "?" + cloudinary_params.to_query
+    return Cloudinary::Utils.cloudinary_api_url("download_tag.zip", options) + "?" + hash_query_params(cloudinary_params)
+  end
+
+  def self.generate_zip_download_url(options = {})
+    cloudinary_params = sign_request(Cloudinary::Uploader.build_generate_archive_params(options.merge(:target_format => "zip", :mode => "download")), options)
+    return Cloudinary::Utils.cloudinary_api_url("generate_archive", options) + "?" + hash_query_params(cloudinary_params)
   end
 
   def self.signed_download_url(public_id, options = {})
@@ -611,6 +619,36 @@ class Cloudinary::Utils
   end
 
   private
+
+  def self.hash_query_params(hash)
+    if hash.respond_to?("to_query")
+      hash.to_query
+    else
+      flat_hash_to_query_params(hash)      
+    end
+  end
+
+
+  def to_query(key)
+    prefix = "#{key}[]"
+
+    if empty?
+      nil.to_query(prefix)
+    else
+      collect { |value| value.to_query(prefix) }.join '&'
+    end
+  end
+
+
+  def self.flat_hash_to_query_params(hash)
+    hash.collect do |key, value|      
+      if value.is_a?(Array)
+        value.map{|v| "#{CGI.escape(key.to_s)}[]=#{CGI.escape(v.to_s)}"}.join("&")
+      else  
+        "#{CGI.escape(key.to_s)}=#{CGI.escape(value.to_s)}"
+      end        
+    end.compact.sort! * '&'
+  end  
 
   def self.number_pattern
     "([0-9]*)\\.([0-9]+)|([0-9]+)"
