@@ -562,6 +562,15 @@ describe Cloudinary::Utils do
       .and empty_options
   end
 
+  it "should support aspect ratio" do
+    expect(["test",{ "aspect_ratio" => "1.0" }])
+      .to produce_url("#{upload_path}/ar_1.0/test")
+      .and empty_options
+    expect(["test",{ "aspect_ratio" => "3:2" }])
+      .to produce_url("#{upload_path}/ar_3:2/test")
+      .and empty_options
+  end  
+
   it "build_upload_params should not destroy options" do
     options = {:width=>100, :crop=>:scale}
     expect(Cloudinary::Uploader.build_upload_params(options)[:transformation]).to eq("c_scale,w_100")

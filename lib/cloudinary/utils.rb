@@ -89,6 +89,7 @@ class Cloudinary::Utils
       :w   => width
     }
     {
+      :ar => :aspect_ratio,
       :ac => :audio_codec,
       :br => :bit_rate,
       :cs => :color_space,
