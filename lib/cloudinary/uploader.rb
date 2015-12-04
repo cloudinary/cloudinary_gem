@@ -64,8 +64,7 @@ class Cloudinary::Uploader
   end
 
   def self.build_explicit_api_params(public_id, options = {})
-    options = options.clone
-    options.keys.each{|key| options[key.to_sym] = options.delete(key) if key.is_a?(String)}
+    options = Utils.symbolize_keys options
     params = {
       :timestamp=>(options[:timestamp] || Time.now.to_i),
       :type=>options[:type],
@@ -83,9 +82,8 @@ class Cloudinary::Uploader
   end  
 
   def self.build_generate_archive_params(options = {})
-    options = options.clone
-    options.keys.each{|key| options[key.to_sym] = options.delete(key) if key.is_a?(String)}
-    params = {
+    options = Utils.symbolize_keys options
+    {
       :timestamp=>(options[:timestamp] || Time.now.to_i),
       :type=>options[:type],
       :mode => options[:mode],
@@ -103,8 +101,7 @@ class Cloudinary::Uploader
       :prefixes=>options[:prefixes] && Cloudinary::Utils.build_array(options[:prefixes]),
       :transformations => build_eager(options[:transformations])
     }
-    params    
-  end  
+  end
   
   def self.unsigned_upload(file, upload_preset, options={})
     upload(file, options.merge(:unsigned => true, :upload_preset => upload_preset))
@@ -214,10 +211,10 @@ class Cloudinary::Uploader
   end
 
   def self.generate_zip(options={})
-    options.delete(:target_format)
-    options.delete("target_format")
-    call_api("generate_archive", options) do    
-      self.build_generate_archive_params(options.merge(:target_format => "zip"))
+    call_api("generate_archive", options) do
+      params = self.build_generate_archive_params(options)
+      params[:target_format] = "zip"
+      params
     end              
   end
     
