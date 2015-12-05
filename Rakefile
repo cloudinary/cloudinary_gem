@@ -52,4 +52,4 @@ namespace :cloudinary do
   end
 
 end
-task :build => :fetch_assets
+task :build => "cloudinary:fetch_assets"
