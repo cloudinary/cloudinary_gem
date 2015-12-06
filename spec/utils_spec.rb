@@ -431,7 +431,7 @@ describe Cloudinary::Utils do
         :font_size   => "18",
         :tags        => TEST_TAG
       })
-      srt = Tempfile.new('test_subtitles.srt')
+      srt = Tempfile.new(['test_subtitles', '.srt'])
       srt.write <<-END
       1
       00:00:10,500 --> 00:00:13,000
@@ -443,9 +443,9 @@ describe Cloudinary::Utils do
       srt.unlink
     end
 
-    # after :all do
-    #   Cloudinary::Api.delete_resources_by_tag TEST_TAG
-    # end
+    after :all do
+      Cloudinary::Api.delete_resources_by_tag TEST_TAG
+    end
 
     { 'overlay' => 'l', 'underlay' => 'u' }.each do |param, short|
       describe param do

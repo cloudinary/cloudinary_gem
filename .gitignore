@@ -18,6 +18,8 @@ capybara-*.html
 **.orig
 rerun.txt
 pickle-email-*.html
+/spec/config/
+
 
 ## Specific to RubyMotion:
 config/initializers/secret_token.rb
