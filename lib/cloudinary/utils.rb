@@ -444,6 +444,7 @@ class Cloudinary::Utils
   # Utility method that uses the deprecated ZIP download API. 
   # Replaced by generate_zip_download_url that uses the more advanced and robust archive generation and download API
   def self.zip_download_url(tag, options = {})
+    warn "zip_download_url is deprecated. Please use generate_zip_download_url instead."
     cloudinary_params = sign_request({:timestamp=>Time.now.to_i, :tag=>tag, :transformation=>generate_transformation_string(options)}, options)
     return Cloudinary::Utils.cloudinary_api_url("download_tag.zip", options) + "?" + hash_query_params(cloudinary_params)
   end
