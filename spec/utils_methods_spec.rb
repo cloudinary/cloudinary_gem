@@ -15,4 +15,18 @@ describe Utils do
   it "should parse a percent range value" do
     expect(Utils.instance_eval {norm_range_value("20p")}).to eq("20p")
   end
+
+  describe '.smart_escape' do
+    it 'escapes empty spaces to %20' do
+      expect(Utils.smart_escape(' ')).to eq('%20')
+    end
+
+    it 'escapes / to %252F' do
+      expect(Utils.smart_escape('/')).to eq('%252F')
+    end
+
+    it 'escapes , to %252C' do
+      expect(Utils.smart_escape(',')).to eq('%252C')
+    end
+  end
 end
