@@ -64,7 +64,7 @@ class Cloudinary::Uploader
   end
 
   def self.build_explicit_api_params(public_id, options = {})
-    options = Utils.symbolize_keys options
+    options = Cloudinary::Utils.symbolize_keys options
     params = {
       :timestamp=>(options[:timestamp] || Time.now.to_i),
       :type=>options[:type],
@@ -82,7 +82,7 @@ class Cloudinary::Uploader
   end  
 
   def self.build_generate_archive_params(options = {})
-    options = Utils.symbolize_keys options
+    options = Cloudinary::Utils.symbolize_keys options
     {
       :timestamp=>(options[:timestamp] || Time.now.to_i),
       :type=>options[:type],
