@@ -15,6 +15,12 @@ RSpec.configure do |config|
   config.filter_run_excluding :delete_all => true
 end
 
+RSpec.shared_context "cleanup" do
+  after :all do
+    Cloudinary::Api.delete_resources_by_tag(TEST_TAG) unless Cloudinary.config.keep_test_products
+  end
+
+end
 # Create a regexp with the given +tag+ name.
 def html_tag_matcher( tag)
   /<#{tag}([\s]+([-[:word:]]+)[\s]*\=\s*\"([^\"]*)\")*\s*>.*<\s*\/#{tag}\s*>/

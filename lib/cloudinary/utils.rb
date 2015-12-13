@@ -230,21 +230,20 @@ class Cloudinary::Utils
 
   def self.generate_responsive_breakpoints_string(breakpoints)
     return nil if breakpoints.nil?
-    breakpoints = breakpoints.clone
-    if !breakpoints.is_a?(Array)
-      breakpoints = [breakpoints]
-    end
+    breakpoints = build_array(breakpoints)
 
-    breakpoints.each do |breakpoint_settings|
-      if !breakpoint_settings.nil?
+    breakpoints.map do |breakpoint_settings|
+      unless breakpoint_settings.nil?
+        breakpoint_settings = breakpoint_settings.clone
         transformation =  breakpoint_settings.delete(:transformation) || breakpoint_settings.delete("transformation")
         if transformation
           breakpoint_settings[:transformation] = Cloudinary::Utils.generate_transformation_string(transformation.clone, true)
         end 
-      end  
-    end 
-    return breakpoints.to_json
-  end   
+      end
+      breakpoint_settings
+
+    end.to_json
+  end
 
   # Warning: options are being destructively updated!
   def self.unsigned_download_url(source, options = {})
@@ -442,16 +441,49 @@ class Cloudinary::Utils
   end
 
   # Utility method that uses the deprecated ZIP download API. 
-  # Replaced by generate_zip_download_url that uses the more advanced and robust archive generation and download API
+  # @deprecated Replaced by {download_zip_url} that uses the more advanced and robust archive generation and download API
   def self.zip_download_url(tag, options = {})
-    warn "zip_download_url is deprecated. Please use generate_zip_download_url instead."
+    warn "zip_download_url is deprecated. Please use download_zip_url instead."
     cloudinary_params = sign_request({:timestamp=>Time.now.to_i, :tag=>tag, :transformation=>generate_transformation_string(options)}, options)
     return Cloudinary::Utils.cloudinary_api_url("download_tag.zip", options) + "?" + hash_query_params(cloudinary_params)
   end
 
-  def self.generate_zip_download_url(options = {})
-    cloudinary_params = sign_request(Cloudinary::Uploader.build_generate_archive_params(options.merge(:target_format => "zip", :mode => "download")), options)
+  # Returns a URL that when invokes creates an archive and returns it.
+  # @param options [Hash]
+  # @option options [String|Symbol] :resource_type  The resource type of files to include in the archive: :image|:video|:raw
+  # @option options [String|Symbol] :type (:upload) The specific file type of resources: :upload|:private|:authenticated
+  # @option options [String|Symbol|Array] :tags (nil) list of tags to include in the archive
+  # @option options [String|Array] :public_ids (nil) list of public_ids to include in the archive
+  # @option options [String|Array] :prefixes (nil) Optional list of prefixes of public IDs (e.g., folders).
+  # @option options [String|Array] :transformations Optional list of transformations.
+  #   The derived images of the given transformations are included in the archive. Using the string representation of
+  #   multiple chained transformations as we use for the 'eager' upload parameter.
+  # @option options [String|Symbol] :mode (:create) return the generated archive file or to store it as a raw resource and
+  #   return a JSON with URLs for accessing the archive. Possible values: :download, :create
+  # @option options [String|Symbol] :target_format (:zip)
+  # @option options [String] :target_public_id Optional public ID of the generated raw resource.
+  #   Relevant only for the create mode. If not specified, random public ID is generated.
+  # @option options [boolean] :flatten_folders (false) If true, flatten public IDs with folders to be in the root of the archive.
+  #   Add numeric counter to the file name in case of a name conflict.
+  # @option options [boolean] :flatten_transformations (false) If true, and multiple transformations are given,
+  #   flatten the folder structure of derived images and store the transformation details on the file name instead.
+  # @option options [boolean] :use_original_filename Use the original file name of included images (if available) instead of the public ID.
+  # @option options [boolean] :async (false) If true, return immediately and perform the archive creation in the background.
+  #   Relevant only for the create mode.
+  # @option options [String] :notification_url Optional URL to send an HTTP post request (webhook) when the archive creation is completed.
+  # @option options [String|Array] :target_tags Optional array. Allows assigning one or more tag to the generated archive file (for later housekeeping via the admin API).
+  # @option options [String] :keep_derived (false) keep the derived images used for generating the archive
+  # @return [String] archive url
+  def self.download_archive_url(options = {})
+    cloudinary_params = sign_request(Cloudinary::Utils.archive_params(options.merge(:mode => "download")), options)
     return Cloudinary::Utils.cloudinary_api_url("generate_archive", options) + "?" + hash_query_params(cloudinary_params)
+  end
+
+
+  # Returns a URL that when invokes creates an zip archive and returns it.
+  # @see download_archive_url
+  def self.download_zip_url(options = {})
+    download_archive_url(options.merge(:target_format => "zip"))
   end
 
   def self.signed_download_url(public_id, options = {})
@@ -620,6 +652,42 @@ class Cloudinary::Utils
     end
   end
 
+  # Returns a Hash of parameters used to create an archive
+  # @param [Hash] options
+  # @private
+  def self.archive_params(options = {})
+    options = Cloudinary::Utils.symbolize_keys options
+    {
+      :timestamp=>(options[:timestamp] || Time.now.to_i),
+      :type=>options[:type],
+      :mode => options[:mode],
+      :target_format => options[:target_format],
+      :target_public_id=> options[:target_public_id],
+      :flatten_folders=>Cloudinary::Utils.as_safe_bool(options[:flatten_folders]),
+      :flatten_transformations=>Cloudinary::Utils.as_safe_bool(options[:flatten_transformations]),
+      :use_original_filename=>Cloudinary::Utils.as_safe_bool(options[:use_original_filename]),
+      :async=>Cloudinary::Utils.as_safe_bool(options[:async]),
+      :notification_url=>options[:notification_url],
+      :target_tags=>options[:target_tags] && Cloudinary::Utils.build_array(options[:target_tags]),
+      :keep_derived=>Cloudinary::Utils.as_safe_bool(options[:keep_derived]),
+      :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]),
+      :public_ids=>options[:public_ids] && Cloudinary::Utils.build_array(options[:public_ids]),
+      :prefixes=>options[:prefixes] && Cloudinary::Utils.build_array(options[:prefixes]),
+      :transformations => build_eager(options[:transformations])
+    }
+  end
+
+  # @private
+  def self.build_eager(eager)
+    return nil if eager.nil?
+    Cloudinary::Utils.build_array(eager).map do
+    |transformation, format|
+      transformation = transformation.clone
+      format = transformation.delete(:format) || format
+      [Cloudinary::Utils.generate_transformation_string(transformation, true), format].compact.join("/")
+    end.join("|")
+  end
+
   private
 
   def self.hash_query_params(hash)
@@ -630,18 +698,6 @@ class Cloudinary::Utils
     end
   end
 
-
-  def to_query(key)
-    prefix = "#{key}[]"
-
-    if empty?
-      nil.to_query(prefix)
-    else
-      collect { |value| value.to_query(prefix) }.join '&'
-    end
-  end
-
-
   def self.flat_hash_to_query_params(hash)
     hash.collect do |key, value|      
       if value.is_a?(Array)
@@ -649,7 +705,7 @@ class Cloudinary::Utils
       else  
         "#{CGI.escape(key.to_s)}=#{CGI.escape(value.to_s)}"
       end        
-    end.compact.sort! * '&'
+    end.compact.sort!.join('&')
   end  
 
   def self.number_pattern

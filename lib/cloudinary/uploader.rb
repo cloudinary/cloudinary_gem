@@ -3,15 +3,10 @@ require 'rest_client'
 require 'json'
 
 class Cloudinary::Uploader
-  
+
+  # @deprecated use {Cloudinary::Utils.build_eager} instead
   def self.build_eager(eager)
-    return nil if eager.nil?
-    Cloudinary::Utils.build_array(eager).map do
-      |transformation, format|
-      transformation = transformation.clone
-      format = transformation.delete(:format) || format
-      [Cloudinary::Utils.generate_transformation_string(transformation, true), format].compact.join("/")
-    end.join("|")
+    Cloudinary::Utils.build_eager(eager)
   end
 
   def self.build_upload_params(options)
@@ -31,7 +26,7 @@ class Cloudinary::Uploader
               :colors=>Cloudinary::Utils.as_safe_bool(options[:colors]),
               :image_metadata=>Cloudinary::Utils.as_safe_bool(options[:image_metadata]),
               :invalidate=>Cloudinary::Utils.as_safe_bool(options[:invalidate]),
-              :eager=>build_eager(options[:eager]),
+              :eager=>Cloudinary::Utils.build_eager(options[:eager]),
               :headers=>build_custom_headers(options[:headers]),
               :use_filename=>Cloudinary::Utils.as_safe_bool(options[:use_filename]),
               :unique_filename=>Cloudinary::Utils.as_safe_bool(options[:unique_filename]),
@@ -70,7 +65,7 @@ class Cloudinary::Uploader
       :type=>options[:type],
       :public_id=> public_id,
       :callback=> options[:callback],
-      :eager=>build_eager(options[:eager]),
+      :eager=>Cloudinary::Utils.build_eager(options[:eager]),
       :eager_notification_url=>options[:eager_notification_url],
       :eager_async=>Cloudinary::Utils.as_safe_bool(options[:eager_async]),
       :headers=>build_custom_headers(options[:headers]),
@@ -78,31 +73,9 @@ class Cloudinary::Uploader
       :face_coordinates => options[:face_coordinates] && Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
       :responsive_breakpoints => Cloudinary::Utils.generate_responsive_breakpoints_string(options[:responsive_breakpoints])
     }
-    params    
-  end  
-
-  def self.build_generate_archive_params(options = {})
-    options = Cloudinary::Utils.symbolize_keys options
-    {
-      :timestamp=>(options[:timestamp] || Time.now.to_i),
-      :type=>options[:type],
-      :mode => options[:mode],
-      :target_format => options[:target_format],
-      :target_public_id=> options[:target_public_id],
-      :flatten_folders=>Cloudinary::Utils.as_safe_bool(options[:flatten_folders]),
-      :flatten_transformations=>Cloudinary::Utils.as_safe_bool(options[:flatten_transformations]),
-      :use_original_filename=>Cloudinary::Utils.as_safe_bool(options[:use_original_filename]),
-      :async=>Cloudinary::Utils.as_safe_bool(options[:async]),
-      :notification_url=>options[:notification_url],
-      :target_tags=>options[:target_tags] && Cloudinary::Utils.build_array(options[:target_tags]),
-      :keep_derived=>Cloudinary::Utils.as_safe_bool(options[:keep_derived]),
-      :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]),
-      :public_ids=>options[:public_ids] && Cloudinary::Utils.build_array(options[:public_ids]),
-      :prefixes=>options[:prefixes] && Cloudinary::Utils.build_array(options[:prefixes]),
-      :transformations => build_eager(options[:transformations])
-    }
+    params
   end
-  
+
   def self.unsigned_upload(file, upload_preset, options={})
     upload(file, options.merge(:unsigned => true, :upload_preset => upload_preset))
   end
@@ -204,21 +177,21 @@ class Cloudinary::Uploader
     end              
   end
 
-  def self.generate_archive(options={})
-    call_api("generate_archive", options) do    
-      self.build_generate_archive_params(options)
-    end              
+  # Creates a new archive in the server and returns information in JSON format
+  def self.create_archive(options={}, target_format = nil)
+    call_api("generate_archive", options) do
+      opt = Cloudinary::Utils.archive_params(options)
+      opt[:target_format] = target_format if target_format
+      opt
+    end
   end
 
-  def self.generate_zip(options={})
-    call_api("generate_archive", options) do
-      params = self.build_generate_archive_params(options)
-      params[:target_format] = "zip"
-      params
-    end              
+  # Creates a new zip archive in the server and returns information in JSON format
+  def self.create_zip(options={})
+    create_archive(options, "zip")
   end
-    
-  TEXT_PARAMS = [:public_id, :font_family, :font_size, :font_color, :text_align, :font_weight, :font_style, :background, :opacity, :text_decoration, :line_spacing]  
+
+  TEXT_PARAMS = [:public_id, :font_family, :font_size, :font_color, :text_align, :font_weight, :font_style, :background, :opacity, :text_decoration, :line_spacing]
   def self.text(text, options={})
     call_api("text", options) do
       params = {:timestamp => Time.now.to_i, :text=>text}
@@ -310,7 +283,7 @@ class Cloudinary::Uploader
 
     params, non_signable = yield
     non_signable ||= []
-    
+
     unless options[:unsigned]
       api_key = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
       api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
@@ -320,19 +293,15 @@ class Cloudinary::Uploader
     timeout = options[:timeout] || Cloudinary.config.timeout || 60
 
     result = nil
-    
+
     api_url = Cloudinary::Utils.cloudinary_api_url(action, options)
     headers = {"User-Agent" => Cloudinary::USER_AGENT}
     headers['Content-Range'] = options[:content_range] if options[:content_range]
     RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject{|k, v| v.nil? || v==""}, :timeout=> timeout, :headers => headers) do
       |response, request, tmpresult|
-      raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" if ![200,400,401,403,404,500].include?(response.code)      
-      begin 
-        if response.headers && response.headers[:content_type] && !response.headers[:content_type].match(/json/i)
-          result = {"content_type" => response.headers[:content_type], "size" => response.body.length, "data" => response.body}
-        else  
-          result = Cloudinary::Utils.json_decode(response.body)
-        end  
+      raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" if ![200,400,401,403,404,500].include?(response.code)
+      begin
+        result = Cloudinary::Utils.json_decode(response.body)
       rescue => e
         # Error is parsing json
         raise CloudinaryException, "Error parsing server response (#{response.code}) - #{response.body}. Got - #{e}"
@@ -343,7 +312,7 @@ class Cloudinary::Uploader
         else
           raise CloudinaryException, result["error"]["message"]
         end
-      end        
+      end
     end
     
     result    

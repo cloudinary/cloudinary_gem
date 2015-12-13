@@ -13,15 +13,10 @@ describe Cloudinary::Utils do
       config.cdn_subdomain       = false
     end
   end
+
   let(:cloud_name) { Cloudinary.config.cloud_name }
   let(:root_path) { "http://res.cloudinary.com/#{cloud_name}" }
   let(:upload_path) { "#{root_path}/image/upload" }
-
-  it "should use cloud_name from config" do
-    expect(["test", {}])
-      .to produce_url("#{upload_path}/test")
-            .and empty_options
-  end
 
   it "should allow overriding cloud_name in options" do
     expect(["test", { :cloud_name => "test321" }])
@@ -395,14 +390,14 @@ describe Cloudinary::Utils do
   { 'overlay' => :l, :underlay => :u }.each do |param, letter|
     describe param do
       let(:root_path) { "http://res.cloudinary.com/#{cloud_name}" }
-      # [name, options, result]
       let(:layers_options) { [
-        ["string", "text:hello", "text:hello"],
-        ["public_id", { "public_id" => "logo" }, "logo"],
-        ["public_id with folder", { "public_id" => "folder/logo" }, "folder:logo"],
-        ["private", { "public_id" => "logo", "type" => "private" }, "private:logo"],
-        ["format", { "public_id" => "logo", "format" => "png" }, "logo.png"],
-        ["video", { "resource_type" => "video", "public_id" => "cat" }, "video:cat"],
+      # [name,                    options,                                              result]
+        ["string",                "text:hello",                                         "text:hello"],
+        ["public_id",             { "public_id" => "logo" },                            "logo"],
+        ["public_id with folder", { "public_id" => "folder/logo" },                     "folder:logo"],
+        ["private",               { "public_id" => "logo", "type" => "private" },       "private:logo"],
+        ["format",                { "public_id" => "logo", "format" => "png" },         "logo.png"],
+        ["video",                 { "resource_type" => "video", "public_id" => "cat" }, "video:cat"],
       ] }
       it "should support #{param}" do
         layers_options.each do |name, options, result|
@@ -444,7 +439,7 @@ describe Cloudinary::Utils do
     end
 
     after :all do
-        Cloudinary::Api.delete_resources_by_tag TEST_TAG
+      Cloudinary::Api.delete_resources_by_tag TEST_TAG
     end
 
     { 'overlay' => 'l', 'underlay' => 'u' }.each do |param, short|

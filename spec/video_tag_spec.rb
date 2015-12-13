@@ -14,6 +14,11 @@ if ::Rails::VERSION::MAJOR < 4
   end
 end
 describe CloudinaryHelper do
+  before :all do
+    # Test the helper in the context it runs in in production
+    ActionView::Base.send :include, CloudinaryHelper
+
+  end
   before(:each) do
     Cloudinary.config do |config|
       config.cloud_name          = "test123"
@@ -28,8 +33,6 @@ describe CloudinaryHelper do
   end
 
   let(:helper) {
-    # Test the helper in the context it runs in in production
-    ActionView::Base.send :include, CloudinaryHelper
     ActionView::Base.new
   }
   let(:root_path) { "http://res.cloudinary.com/test123" }
@@ -64,6 +67,7 @@ describe CloudinaryHelper do
           :start_offset => 3) }
 
       it 'should create a tag with "src" attribute that includes the transformations' do
+        expect(test_tag["src"]).to be_truthy
         expect(test_tag["src"]).to include("ac_acc")
         expect(test_tag["src"]).to include("vc_h264")
         expect(test_tag["src"]).to include("so_3")
@@ -71,6 +75,7 @@ describe CloudinaryHelper do
         expect(test_tag["src"]).to include("h_200")
       end
       it 'should have the correct tag height' do
+        expect(test_tag["src"]).to include("ac_acc")
         expect(test_tag["height"]).to eq("100")
       end
     end
