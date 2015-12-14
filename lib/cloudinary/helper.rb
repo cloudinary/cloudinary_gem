@@ -236,9 +236,15 @@ module CloudinaryHelper
     Cloudinary::Utils.private_download_url(public_id, format, options)
   end
 
+  # Helper method that uses the deprecated ZIP download API. 
+  # Replaced by cl_generate_zip_download_url that uses the more advanced and robust archive generation and download API
   def cl_zip_download_url(tag, options = {})
     Cloudinary::Utils.zip_download_url(tag, options)
   end
+
+  def cl_generate_zip_download_url(options = {})
+    Cloudinary::Utils.generate_zip_download_url(options)
+  end  
 
   def cl_signed_download_url(public_id, options = {})
     Cloudinary::Utils.signed_download_url(public_id, options)
@@ -251,11 +257,11 @@ module CloudinaryHelper
         include ActionView::Helpers::AssetTagHelper
       end
       if defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR > 2 && Cloudinary.config.enhance_image_tag
-        alias_method_chain :image_tag, :cloudinary # defines image_tag_without_cloudinary
-        alias_method_chain :image_path, :cloudinary # defines image_path_without_cloudinary
+        alias_method_chain :image_tag, :cloudinary unless public_method_defined? :image_tag_without_cloudinary
+        alias_method_chain :image_path, :cloudinary unless public_method_defined? :image_path_without_cloudinary
       else
-        alias_method :image_tag_without_cloudinary, :image_tag
-        alias_method :image_path_without_cloudinary, :image_path
+        alias_method :image_tag_without_cloudinary, :image_tag unless public_method_defined? :image_tag_without_cloudinary
+        alias_method :image_path_without_cloudinary, :image_path unless public_method_defined? :image_path_without_cloudinary
       end
     end
   end

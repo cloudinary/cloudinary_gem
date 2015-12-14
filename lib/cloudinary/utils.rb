@@ -3,6 +3,8 @@ require 'digest/sha1'
 require 'zlib'
 require 'uri'
 require 'aws_cf_signer'
+require 'json'
+require 'cgi'
 
 class Cloudinary::Utils
   # @deprecated Use Cloudinary::SHARED_CDN
@@ -10,9 +12,9 @@ class Cloudinary::Utils
   DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {:width => :auto, :crop => :limit}
 
   # Warning: options are being destructively updated!
-  def self.generate_transformation_string(options={})
+  def self.generate_transformation_string(options={}, allow_implicit_crop_mode = false)
     if options.is_a?(Array)
-      return options.map{|base_transformation| generate_transformation_string(base_transformation.clone)}.join("/")
+      return options.map{|base_transformation| generate_transformation_string(base_transformation.clone, allow_implicit_crop_mode)}.join("/")
     end
 
     symbolize_keys!(options)
@@ -32,7 +34,7 @@ class Cloudinary::Utils
     options.delete(:width) if width && (width.to_f < 1 || no_html_sizes || width == "auto" || responsive_width)
     options.delete(:height) if height && (height.to_f < 1 || no_html_sizes || responsive_width)
 
-    width=height=nil if crop.nil? && !has_layer && width != "auto"
+    width=height=nil if crop.nil? && !has_layer && width != "auto" && !allow_implicit_crop_mode
 
     background = options.delete(:background)
     background = background.sub(/^#/, 'rgb:') if background
@@ -44,7 +46,7 @@ class Cloudinary::Utils
     if base_transformations.any?{|base_transformation| base_transformation.is_a?(Hash)}
       base_transformations = base_transformations.map do
         |base_transformation|
-        base_transformation.is_a?(Hash) ? generate_transformation_string(base_transformation.clone) : generate_transformation_string(:transformation=>base_transformation)
+        base_transformation.is_a?(Hash) ? generate_transformation_string(base_transformation.clone, allow_implicit_crop_mode) : generate_transformation_string({:transformation=>base_transformation}, allow_implicit_crop_mode)
       end
     else
       named_transformation = base_transformations.join(".")
@@ -87,6 +89,7 @@ class Cloudinary::Utils
       :w   => width
     }
     {
+      :ar => :aspect_ratio,
       :ac => :audio_codec,
       :br => :bit_rate,
       :cs => :color_space,
@@ -125,7 +128,7 @@ class Cloudinary::Utils
     transformations = base_transformations << transformation
     if responsive_width
       responsive_width_transformation = Cloudinary.config.responsive_width_transformation || DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION
-      transformations << generate_transformation_string(responsive_width_transformation.clone)
+      transformations << generate_transformation_string(responsive_width_transformation.clone, allow_implicit_crop_mode)
     end
 
     if width.to_s == "auto" || responsive_width
@@ -223,6 +226,23 @@ class Cloudinary::Utils
   def self.api_sign_request(params_to_sign, api_secret)
     to_sign = api_string_to_sign(params_to_sign)
     Digest::SHA1.hexdigest("#{to_sign}#{api_secret}")
+  end
+
+  def self.generate_responsive_breakpoints_string(breakpoints)
+    return nil if breakpoints.nil?
+    breakpoints = build_array(breakpoints)
+
+    breakpoints.map do |breakpoint_settings|
+      unless breakpoint_settings.nil?
+        breakpoint_settings = breakpoint_settings.clone
+        transformation =  breakpoint_settings.delete(:transformation) || breakpoint_settings.delete("transformation")
+        if transformation
+          breakpoint_settings[:transformation] = Cloudinary::Utils.generate_transformation_string(transformation.clone, true)
+        end 
+      end
+      breakpoint_settings
+
+    end.to_json
   end
 
   # Warning: options are being destructively updated!
@@ -417,12 +437,53 @@ class Cloudinary::Utils
         :expires_at=>options[:expires_at] && options[:expires_at].to_i
       }, options)
 
-    return Cloudinary::Utils.cloudinary_api_url("download", options) + "?" + cloudinary_params.to_query
+    return Cloudinary::Utils.cloudinary_api_url("download", options) + "?" + hash_query_params(cloudinary_params)
   end
 
+  # Utility method that uses the deprecated ZIP download API. 
+  # @deprecated Replaced by {download_zip_url} that uses the more advanced and robust archive generation and download API
   def self.zip_download_url(tag, options = {})
+    warn "zip_download_url is deprecated. Please use download_zip_url instead."
     cloudinary_params = sign_request({:timestamp=>Time.now.to_i, :tag=>tag, :transformation=>generate_transformation_string(options)}, options)
-    return Cloudinary::Utils.cloudinary_api_url("download_tag.zip", options) + "?" + cloudinary_params.to_query
+    return Cloudinary::Utils.cloudinary_api_url("download_tag.zip", options) + "?" + hash_query_params(cloudinary_params)
+  end
+
+  # Returns a URL that when invokes creates an archive and returns it.
+  # @param options [Hash]
+  # @option options [String|Symbol] :resource_type  The resource type of files to include in the archive: :image|:video|:raw
+  # @option options [String|Symbol] :type (:upload) The specific file type of resources: :upload|:private|:authenticated
+  # @option options [String|Symbol|Array] :tags (nil) list of tags to include in the archive
+  # @option options [String|Array] :public_ids (nil) list of public_ids to include in the archive
+  # @option options [String|Array] :prefixes (nil) Optional list of prefixes of public IDs (e.g., folders).
+  # @option options [String|Array] :transformations Optional list of transformations.
+  #   The derived images of the given transformations are included in the archive. Using the string representation of
+  #   multiple chained transformations as we use for the 'eager' upload parameter.
+  # @option options [String|Symbol] :mode (:create) return the generated archive file or to store it as a raw resource and
+  #   return a JSON with URLs for accessing the archive. Possible values: :download, :create
+  # @option options [String|Symbol] :target_format (:zip)
+  # @option options [String] :target_public_id Optional public ID of the generated raw resource.
+  #   Relevant only for the create mode. If not specified, random public ID is generated.
+  # @option options [boolean] :flatten_folders (false) If true, flatten public IDs with folders to be in the root of the archive.
+  #   Add numeric counter to the file name in case of a name conflict.
+  # @option options [boolean] :flatten_transformations (false) If true, and multiple transformations are given,
+  #   flatten the folder structure of derived images and store the transformation details on the file name instead.
+  # @option options [boolean] :use_original_filename Use the original file name of included images (if available) instead of the public ID.
+  # @option options [boolean] :async (false) If true, return immediately and perform the archive creation in the background.
+  #   Relevant only for the create mode.
+  # @option options [String] :notification_url Optional URL to send an HTTP post request (webhook) when the archive creation is completed.
+  # @option options [String|Array] :target_tags Optional array. Allows assigning one or more tag to the generated archive file (for later housekeeping via the admin API).
+  # @option options [String] :keep_derived (false) keep the derived images used for generating the archive
+  # @return [String] archive url
+  def self.download_archive_url(options = {})
+    cloudinary_params = sign_request(Cloudinary::Utils.archive_params(options.merge(:mode => "download")), options)
+    return Cloudinary::Utils.cloudinary_api_url("generate_archive", options) + "?" + hash_query_params(cloudinary_params)
+  end
+
+
+  # Returns a URL that when invokes creates an zip archive and returns it.
+  # @see download_archive_url
+  def self.download_zip_url(options = {})
+    download_archive_url(options.merge(:target_format => "zip"))
   end
 
   def self.signed_download_url(public_id, options = {})
@@ -591,7 +652,61 @@ class Cloudinary::Utils
     end
   end
 
+  # Returns a Hash of parameters used to create an archive
+  # @param [Hash] options
+  # @private
+  def self.archive_params(options = {})
+    options = Cloudinary::Utils.symbolize_keys options
+    {
+      :timestamp=>(options[:timestamp] || Time.now.to_i),
+      :type=>options[:type],
+      :mode => options[:mode],
+      :target_format => options[:target_format],
+      :target_public_id=> options[:target_public_id],
+      :flatten_folders=>Cloudinary::Utils.as_safe_bool(options[:flatten_folders]),
+      :flatten_transformations=>Cloudinary::Utils.as_safe_bool(options[:flatten_transformations]),
+      :use_original_filename=>Cloudinary::Utils.as_safe_bool(options[:use_original_filename]),
+      :async=>Cloudinary::Utils.as_safe_bool(options[:async]),
+      :notification_url=>options[:notification_url],
+      :target_tags=>options[:target_tags] && Cloudinary::Utils.build_array(options[:target_tags]),
+      :keep_derived=>Cloudinary::Utils.as_safe_bool(options[:keep_derived]),
+      :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]),
+      :public_ids=>options[:public_ids] && Cloudinary::Utils.build_array(options[:public_ids]),
+      :prefixes=>options[:prefixes] && Cloudinary::Utils.build_array(options[:prefixes]),
+      :transformations => build_eager(options[:transformations])
+    }
+  end
+
+  # @private
+  def self.build_eager(eager)
+    return nil if eager.nil?
+    Cloudinary::Utils.build_array(eager).map do
+    |transformation, format|
+      transformation = transformation.clone
+      format = transformation.delete(:format) || format
+      [Cloudinary::Utils.generate_transformation_string(transformation, true), format].compact.join("/")
+    end.join("|")
+  end
+
   private
+
+  def self.hash_query_params(hash)
+    if hash.respond_to?("to_query")
+      hash.to_query
+    else
+      flat_hash_to_query_params(hash)      
+    end
+  end
+
+  def self.flat_hash_to_query_params(hash)
+    hash.collect do |key, value|      
+      if value.is_a?(Array)
+        value.map{|v| "#{CGI.escape(key.to_s)}[]=#{CGI.escape(v.to_s)}"}.join("&")
+      else  
+        "#{CGI.escape(key.to_s)}=#{CGI.escape(value.to_s)}"
+      end        
+    end.compact.sort!.join('&')
+  end  
 
   def self.number_pattern
     "([0-9]*)\\.([0-9]+)|([0-9]+)"

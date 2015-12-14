@@ -3,17 +3,12 @@ require 'rest_client'
 require 'json'
 
 class Cloudinary::Uploader
-  
+
+  # @deprecated use {Cloudinary::Utils.build_eager} instead
   def self.build_eager(eager)
-    return nil if eager.nil?
-    Cloudinary::Utils.build_array(eager).map do
-      |transformation, format|
-      transformation = transformation.clone
-      format = transformation.delete(:format) || format
-      [Cloudinary::Utils.generate_transformation_string(transformation), format].compact.join("/")
-    end.join("|")
+    Cloudinary::Utils.build_eager(eager)
   end
-  
+
   def self.build_upload_params(options)
     #symbolize keys
     options = options.clone
@@ -31,7 +26,7 @@ class Cloudinary::Uploader
               :colors=>Cloudinary::Utils.as_safe_bool(options[:colors]),
               :image_metadata=>Cloudinary::Utils.as_safe_bool(options[:image_metadata]),
               :invalidate=>Cloudinary::Utils.as_safe_bool(options[:invalidate]),
-              :eager=>build_eager(options[:eager]),
+              :eager=>Cloudinary::Utils.build_eager(options[:eager]),
               :headers=>build_custom_headers(options[:headers]),
               :use_filename=>Cloudinary::Utils.as_safe_bool(options[:use_filename]),
               :unique_filename=>Cloudinary::Utils.as_safe_bool(options[:unique_filename]),
@@ -57,11 +52,30 @@ class Cloudinary::Uploader
               :auto_tagging => options[:auto_tagging] && options[:auto_tagging].to_f,
               :upload_preset => options[:upload_preset],
               :phash => Cloudinary::Utils.as_safe_bool(options[:phash]),
+              :responsive_breakpoints => Cloudinary::Utils.generate_responsive_breakpoints_string(options[:responsive_breakpoints]),
               :return_delete_token => Cloudinary::Utils.as_safe_bool(options[:return_delete_token]),
             }
     params    
   end
-  
+
+  def self.build_explicit_api_params(public_id, options = {})
+    options = Cloudinary::Utils.symbolize_keys options
+    params = {
+      :timestamp=>(options[:timestamp] || Time.now.to_i),
+      :type=>options[:type],
+      :public_id=> public_id,
+      :callback=> options[:callback],
+      :eager=>Cloudinary::Utils.build_eager(options[:eager]),
+      :eager_notification_url=>options[:eager_notification_url],
+      :eager_async=>Cloudinary::Utils.as_safe_bool(options[:eager_async]),
+      :headers=>build_custom_headers(options[:headers]),
+      :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
+      :face_coordinates => options[:face_coordinates] && Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
+      :responsive_breakpoints => Cloudinary::Utils.generate_responsive_breakpoints_string(options[:responsive_breakpoints])
+    }
+    params
+  end
+
   def self.unsigned_upload(file, upload_preset, options={})
     upload(file, options.merge(:unsigned => true, :upload_preset => upload_preset))
   end
@@ -159,22 +173,25 @@ class Cloudinary::Uploader
 
   def self.explicit(public_id, options={})
     call_api("explicit", options) do    
-      {
-        :timestamp=>(options[:timestamp] || Time.now.to_i),
-        :type=>options[:type],
-        :public_id=> public_id,
-        :callback=> options[:callback],
-        :eager=>build_eager(options[:eager]),
-        :eager_notification_url=>options[:eager_notification_url],
-        :eager_async=>Cloudinary::Utils.as_safe_bool(options[:eager_async]),
-        :headers=>build_custom_headers(options[:headers]),
-        :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
-        :face_coordinates => options[:face_coordinates] && Cloudinary::Utils.encode_double_array(options[:face_coordinates])  
-      }
+      self.build_explicit_api_params(public_id, options)
     end              
   end
-    
-  TEXT_PARAMS = [:public_id, :font_family, :font_size, :font_color, :text_align, :font_weight, :font_style, :background, :opacity, :text_decoration, :line_spacing]  
+
+  # Creates a new archive in the server and returns information in JSON format
+  def self.create_archive(options={}, target_format = nil)
+    call_api("generate_archive", options) do
+      opt = Cloudinary::Utils.archive_params(options)
+      opt[:target_format] = target_format if target_format
+      opt
+    end
+  end
+
+  # Creates a new zip archive in the server and returns information in JSON format
+  def self.create_zip(options={})
+    create_archive(options, "zip")
+  end
+
+  TEXT_PARAMS = [:public_id, :font_family, :font_size, :font_color, :text_align, :font_weight, :font_style, :background, :opacity, :text_decoration, :line_spacing]
   def self.text(text, options={})
     call_api("text", options) do
       params = {:timestamp => Time.now.to_i, :text=>text}
@@ -266,7 +283,7 @@ class Cloudinary::Uploader
 
     params, non_signable = yield
     non_signable ||= []
-    
+
     unless options[:unsigned]
       api_key = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
       api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
@@ -276,7 +293,7 @@ class Cloudinary::Uploader
     timeout = options[:timeout] || Cloudinary.config.timeout || 60
 
     result = nil
-    
+
     api_url = Cloudinary::Utils.cloudinary_api_url(action, options)
     headers = {"User-Agent" => Cloudinary::USER_AGENT}
     headers['Content-Range'] = options[:content_range] if options[:content_range]
@@ -295,7 +312,7 @@ class Cloudinary::Uploader
         else
           raise CloudinaryException, result["error"]["message"]
         end
-      end        
+      end
     end
     
     result    

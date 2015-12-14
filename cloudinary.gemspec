@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency "aws_cf_signer"
   s.add_development_dependency "rspec", '>=3.2'
   s.add_development_dependency "rspec-rails"
+  s.add_development_dependency "rubyzip"
 
   if RUBY_VERSION > "1.9"
     s.add_dependency "rest-client"
