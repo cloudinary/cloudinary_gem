@@ -146,3 +146,20 @@ RSpec::Matchers.define :be_served_by_cloudinary do
   end
 end
 
+def deep_fetch(hash, path)
+  Array(path).reduce(hash) { |h, key| h && h.fetch(key, nil) }
+end
+
+# Matches deep values in the actual Hash, disregarding other keys and values.
+# @example
+#   expect( {:foo => { :bar => 'foobar'}}).to have_deep_hash_values_of( [:foo, :bar] => 'foobar')
+#   expect( foo_instance).to receive(:bar_method).with(deep_hash_values_of([:foo, :bar] => 'foobar'))
+RSpec::Matchers.define :deep_hash_value do |expected|
+  match do |actual|
+    expected.all? do |path, value|
+      values_match? deep_fetch(actual, path), value
+    end
+  end
+end
+
+RSpec::Matchers.alias_matcher :have_deep_hash_values_of, :deep_hash_value

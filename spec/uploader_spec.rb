@@ -193,4 +193,14 @@ describe Cloudinary::Uploader do
       end
     end
   end
+  describe 'explicit' do
+
+    context ":invalidate" do
+      it 'should pass the invalidate value to the server' do
+        expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :invalidate] => 1))
+        Cloudinary::Uploader.explicit("cloudinary", :type=>"twitter_name", :eager=>[{:crop=>"scale", :width=>"2.0"}], :invalidate => true, :tags => TEST_TAG)
+      end
+    end
+  end
 end
+

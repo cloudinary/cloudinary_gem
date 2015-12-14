@@ -61,17 +61,18 @@ class Cloudinary::Uploader
   def self.build_explicit_api_params(public_id, options = {})
     options = Cloudinary::Utils.symbolize_keys options
     params = {
-      :timestamp=>(options[:timestamp] || Time.now.to_i),
-      :type=>options[:type],
-      :public_id=> public_id,
       :callback=> options[:callback],
       :eager=>Cloudinary::Utils.build_eager(options[:eager]),
-      :eager_notification_url=>options[:eager_notification_url],
       :eager_async=>Cloudinary::Utils.as_safe_bool(options[:eager_async]),
-      :headers=>build_custom_headers(options[:headers]),
-      :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
+      :eager_notification_url=>options[:eager_notification_url],
       :face_coordinates => options[:face_coordinates] && Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
-      :responsive_breakpoints => Cloudinary::Utils.generate_responsive_breakpoints_string(options[:responsive_breakpoints])
+      :headers=>build_custom_headers(options[:headers]),
+      :invalidate => Cloudinary::Utils.as_safe_bool(options[:invalidate]),
+      :public_id=> public_id,
+      :responsive_breakpoints => Cloudinary::Utils.generate_responsive_breakpoints_string(options[:responsive_breakpoints]),
+      :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
+      :timestamp=>(options[:timestamp] || Time.now.to_i),
+      :type=>options[:type]
     }
     params
   end
