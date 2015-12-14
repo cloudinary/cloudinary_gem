@@ -330,4 +330,28 @@ describe Cloudinary::Api do
     expect(paths).to include("test_folder1/test_subfolder2")
     expect{Cloudinary::Api.subfolders("test_folder")}.to raise_error(Cloudinary::Api::NotFound)
   end
+
+  describe '.restore'  do
+    before :each do
+      Cloudinary::Uploader.upload("spec/logo.png", :public_id => "api_test_restore", :backup => true, :tags => TEST_TAG)
+      resource = Cloudinary::Api.resource("api_test_restore")
+      expect(resource).not_to be_nil
+      expect(resource["bytes"]).to eq(3381)
+      Cloudinary::Api.delete_resources("api_test_restore")
+      resource = Cloudinary::Api.resource("api_test_restore")
+      expect(resource).not_to be_nil
+      expect(resource["bytes"]).to eq(0)
+      expect(resource["placeholder"]).to eq(true)
+    end
+    it 'should restore a deleted resource' do
+      response = Cloudinary::Api.restore("api_test_restore")
+      info     = response["api_test_restore"]
+      expect(info).not_to be_nil
+      expect(info["bytes"]).to eq(3381)
+      resource = Cloudinary::Api.resource("api_test_restore")
+      expect(resource).not_to be_nil
+      expect(resource["bytes"]).to eq(3381)
+    end
+  end
+
 end
