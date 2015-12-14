@@ -23,8 +23,27 @@ module Cloudinary
   OLD_AKAMAI_SHARED_CDN = "cloudinary-a.akamaihd.net"
   SHARED_CDN = AKAMAI_SHARED_CDN
   
-  USER_AGENT = "cld-ruby-" + VERSION
-    
+  USER_AGENT = "CloudinaryRuby/" + VERSION
+  @@user_platform = ""
+
+  # Add platform information to the USER_AGENT header
+  # This is intended for platform information and not individual applications!
+  def self.user_platform=(value)
+    @@user_platform= value
+  end
+
+  def self.user_platform
+    @@user_platform
+  end
+
+  def self.USER_AGENT
+    if @@user_platform.empty?
+      "#{USER_AGENT}"
+    else
+      "#{@@user_platform} #{USER_AGENT}"
+    end
+  end
+
   FORMAT_ALIASES = {
     "jpeg" => "jpg",
     "jpe" => "jpg",

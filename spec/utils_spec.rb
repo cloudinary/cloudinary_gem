@@ -668,4 +668,6 @@ describe Cloudinary::Utils do
     expect(Cloudinary::Utils.encode_double_array([1, 2, 3, 4])).to eq("1,2,3,4")
     expect(Cloudinary::Utils.encode_double_array([[1, 2, 3, 4], [5, 6, 7, 8]])).to eq("1,2,3,4|5,6,7,8")
   end
+
+
 end
