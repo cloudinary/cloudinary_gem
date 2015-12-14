@@ -93,4 +93,10 @@ describe Cloudinary::Uploader do
       expect(archive_result.keys).to match_array(expected_keys)
     end
   end
+  describe '.create_zip' do
+    it 'should call create_archive with "zip" format' do
+      expect(Cloudinary::Uploader).to receive(:create_archive).with({ :tags => TEST_TAG }, "zip")
+      Cloudinary::Uploader.create_zip({ :tags => TEST_TAG })
+    end
+  end
 end
