@@ -35,7 +35,7 @@ class Cloudinary::Api
     resource_type = options[:resource_type] || "image"
     type = options[:type]
     uri = "resources/#{resource_type}"
-    uri += "/#{type}" if !type.blank?
+    uri += "/#{type}" unless type.blank?
     call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context, :moderations, :direction, :start_at), options)
   end
 
@@ -250,8 +250,7 @@ class Cloudinary::Api
 
   def self.only(hash, *keys)
     result = {}
-    keys.each do
-    |key|
+    keys.each do |key|
       result[key] = hash[key] if hash.include?(key)
       result[key] = hash[key.to_s] if hash.include?(key.to_s)
     end
@@ -259,6 +258,6 @@ class Cloudinary::Api
   end
 
   def self.transformation_string(transformation)
-    transformation = transformation.is_a?(String) ? transformation : Cloudinary::Utils.generate_transformation_string(transformation.clone)
+    transformation.is_a?(String) ? transformation : Cloudinary::Utils.generate_transformation_string(transformation.clone)
   end
 end
