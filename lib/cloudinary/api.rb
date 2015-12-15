@@ -187,6 +187,30 @@ class Cloudinary::Api
     call_api(:get, "folders/#{of_folder_path}", {}, options)
   end
 
+  def self.upload_mappings(options={})
+    params = only(options, :next_cursor, :max_results)
+    call_api(:get, :upload_mappings, params, options)
+  end
+
+  def self.upload_mapping(name=nil, options={})
+    call_api( :get, 'upload_mappings', {:folder => name}, options)
+  end
+
+  def self.delete_upload_mapping(name, options={})
+    call_api( :delete, 'upload_mappings', {:folder => name}, options)
+  end
+
+  def self.update_upload_mapping(name, options={})
+    params = only(options, :template)
+    params[:folder] = name
+    call_api( :put, 'upload_mappings', params, options)
+  end
+
+  def self.create_upload_mapping(name, options={})
+    params = only(options, :template)
+    params[:folder] = name
+    call_api( :post, 'upload_mappings', params, options)
+  end
   protected
 
   def self.call_api(method, uri, params, options)

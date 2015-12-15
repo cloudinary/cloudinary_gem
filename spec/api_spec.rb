@@ -354,4 +354,28 @@ describe Cloudinary::Api do
     end
   end
 
+  describe 'mapping' do
+    mapping = "api_test_upload_mapping#{rand(100000)}"
+    after :all do
+      begin
+        Cloudinary::Api.delete_upload_mapping(mapping)
+      rescue
+        puts "Could not delete #{mapping}"
+      end
+    end
+
+    it 'should create mapping' do
+      result = Cloudinary::Api.create_upload_mapping(mapping, :template =>"http://cloudinary.com")
+      result = Cloudinary::Api.upload_mapping(mapping)
+      expect(result['template']).to eq("http://cloudinary.com")
+      Cloudinary::Api.update_upload_mapping(mapping, "template" =>"http://res.cloudinary.com")
+      result = Cloudinary::Api.upload_mapping(mapping)
+      expect(result["template"]).to eq("http://res.cloudinary.com")
+      result = Cloudinary::Api.upload_mappings
+      expect(result["mappings"]).to include("folder" => mapping, "template" =>"http://res.cloudinary.com" )
+      Cloudinary::Api.delete_upload_mapping(mapping)
+      result = Cloudinary::Api.upload_mappings()
+      expect(result["mappings"]).not_to include(mapping )
+    end
+  end
 end
