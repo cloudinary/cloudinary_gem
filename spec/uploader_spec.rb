@@ -29,18 +29,44 @@ describe Cloudinary::Uploader do
     expected_signature = Cloudinary::Utils.api_sign_request({:public_id=>result["public_id"], :version=>result["version"]}, Cloudinary.config.api_secret)
     expect(result["signature"]).to eq(expected_signature)
   end
-  
-  it "should successfully rename a file" do
-    result = Cloudinary::Uploader.upload("spec/logo.png", :tags => TEST_TAG)
-    Cloudinary::Uploader.rename(result["public_id"], result["public_id"]+"2")
-    expect(Cloudinary::Api.resource(result["public_id"]+"2")).not_to be_nil
 
-    result2 = Cloudinary::Uploader.upload("spec/favicon.ico", :tags => TEST_TAG)
-    expect{Cloudinary::Uploader.rename(result2["public_id"], result["public_id"]+"2")}.to raise_error
-    Cloudinary::Uploader.rename(result2["public_id"], result["public_id"]+"2", :overwrite=>true)
+  describe '.rename' do
+    before(:all) do
+      @result        = Cloudinary::Uploader.upload("spec/logo.png", :tags => TEST_TAG)
+      @resource_1_id = @result["public_id"]
+      result         = Cloudinary::Uploader.upload("spec/favicon.ico", :tags => TEST_TAG)
+      @resource_2_id = result["public_id"]
+    end
 
-    expect(Cloudinary::Api.resource(result["public_id"]+"2")["format"]).to eq("ico")
+    it 'should rename a resource' do
+      Cloudinary::Uploader.rename(@resource_1_id, @resource_1_id+"2")
+      expect(Cloudinary::Api.resource(@resource_1_id+"2")).not_to be_nil
+      @resource_1_id = @resource_1_id+"2" # will not update if expect fails
+    end
+    it 'should not allow renaming to an existing ID' do
+      id             = @resource_2_id
+      @resource_2_id = @resource_1_id+"2" # if rename doesn't fail, this is the new ID
+      expect { Cloudinary::Uploader.rename(id, @resource_1_id+"2") }.to raise_error
+      @resource_2_id = id
+    end
+    context ':overwrite => true' do
+      it 'should rename to an existing ID' do
+        new_id = Cloudinary::Uploader.upload("spec/logo.png", :tags => TEST_TAG)["public_id"]
+        Cloudinary::Uploader.rename(@resource_2_id, new_id, :overwrite => true)
+        expect(Cloudinary::Api.resource(new_id)["format"]).to eq("ico")
+        @resource_2_id = new_id # will not update if expect fails
+      end
+    end
+    context ':invalidate => true' do
+      it 'should notidy the server to invalidate the resource in the CDN' do
+        # Can't test the result, so we just verify the parameter is send to the server
+        expect(RestClient::Request).to receive(:execute).with(deep_hash_value([:payload, :invalidate] => 1))
+        Cloudinary::Uploader.rename(@resource_2_id, @resource_2_id+"2", :invalidate => true) # will not affect the server
+      end
+
+    end
   end
+
 
   it "should support explicit" do
     result = Cloudinary::Uploader.explicit("cloudinary", :type=>"twitter_name", :eager=>[{:crop=>"scale", :width=>"2.0"}], :tags => TEST_TAG)

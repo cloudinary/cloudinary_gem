@@ -151,15 +151,16 @@ class Cloudinary::Uploader
   end
 
   def self.rename(from_public_id, to_public_id, options={})
-    call_api("rename", options) do    
+    call_api("rename", options) do
       {
-        :timestamp=>(options[:timestamp] || Time.now.to_i),
-        :type=>options[:type],
-        :overwrite=>options[:overwrite],
-        :from_public_id=>from_public_id,
-        :to_public_id=>to_public_id,
+        :timestamp      => (options[:timestamp] || Time.now.to_i),
+        :type           => options[:type],
+        :overwrite      => Cloudinary::Utils.as_safe_bool(options[:overwrite]),
+        :from_public_id => from_public_id,
+        :to_public_id   => to_public_id,
+        :invalidate     => Cloudinary::Utils.as_safe_bool(options[:invalidate])
       }
-    end              
+    end
   end
 
   def self.exists?(public_id, options={})
