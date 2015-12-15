@@ -210,6 +210,8 @@ class Cloudinary::Utils
     end
     letter_spacing = layer[:letter_spacing]
     keywords.push("letter_spacing_#{letter_spacing}") unless letter_spacing.blank?
+    line_spacing = layer[:line_spacing]
+    keywords.push("line_spacing_#{line_spacing}") unless line_spacing.blank?
     if !font_size.blank? || !font_family.blank? || !keywords.empty?
       raise(CloudinaryException, "Must supply font_family for text in overlay/underlay") if font_family.blank?
       raise(CloudinaryException, "Must supply font_size for text in overlay/underlay") if font_size.blank?

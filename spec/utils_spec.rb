@@ -438,9 +438,7 @@ describe Cloudinary::Utils do
       srt.unlink
     end
 
-    after :all do
-      Cloudinary::Api.delete_resources_by_tag TEST_TAG
-    end
+    include_context "cleanup"
 
     { 'overlay' => 'l', 'underlay' => 'u' }.each do |param, short|
       describe param do
@@ -451,7 +449,7 @@ describe Cloudinary::Utils do
           ["explicit layer parameter", "text:test_text:#{text_encoded}", "text:test_text:#{text_encoded}"],
           ["text parameter", { :public_id => "test_text", :text => text_layer }, "text:test_text:#{text_encoded}"],
           ["text with font family and size parameters", { :text => text_layer, :font_family => "Arial", :font_size => "18" }, "text:Arial_18:#{text_encoded}"],
-          ["text with text style parameter", { :text => text_layer, :font_family => "Arial", :font_size => "18", :font_weight => "bold", :font_style => "italic", :letter_spacing => 4 }, "text:Arial_18_bold_italic_letter_spacing_4:#{text_encoded}"],
+          ["text with text style parameter", { :text => text_layer, :font_family => "Arial", :font_size => "18", :font_weight => "bold", :font_style => "italic", :letter_spacing => 4, :line_spacing => 2 }, "text:Arial_18_bold_italic_letter_spacing_4_line_spacing_2:#{text_encoded}"],
           ["subtitles", { :resource_type => "subtitles", :public_id => "subtitles.srt" }, "subtitles:subtitles.srt"],
           ["subtitles with font family and size", { :resource_type => "subtitles", :public_id => "subtitles.srt", :font_family => "Arial", :font_size => "40" }, "subtitles:Arial_40:subtitles.srt"]
         ]
