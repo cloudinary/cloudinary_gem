@@ -9,6 +9,7 @@ class Cloudinary::Uploader
     Cloudinary::Utils.build_eager(eager)
   end
 
+  # @private
   def self.build_upload_params(options)
     #symbolize keys
     options = options.clone
@@ -59,6 +60,7 @@ class Cloudinary::Uploader
     params
   end
 
+  # @private
   def self.build_explicit_api_params(public_id, options = {})
     options = Cloudinary::Utils.symbolize_keys options
     params  = {

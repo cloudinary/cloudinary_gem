@@ -376,14 +376,21 @@ class Cloudinary::Utils
     [resource_type, type]
   end
 
+  # Creates the URL prefix for the cloudinary resource URL
+  #
   # cdn_subdomain and secure_cdn_subdomain
-  # 1) Customers in shared distribution (e.g. res.cloudinary.com)
-  #   if cdn_domain is true uses res-[1-5].cloudinary.com for both http and https. Setting secure_cdn_subdomain to false disables this for https.
-  # 2) Customers with private cdn
-  #   if cdn_domain is true uses cloudname-res-[1-5].cloudinary.com for http
-  #   if secure_cdn_domain is true uses cloudname-res-[1-5].cloudinary.com for https (please contact support if you require this)
-  # 3) Customers with cname
-  #   if cdn_domain is true uses a[1-5].cname for http. For https, uses the same naming scheme as 1 for shared distribution and as 2 for private distribution.
+  # 1. Customers in shared distribution (e.g. res.cloudinary.com)
+  #
+  #    if cdn_domain is true uses res-[1-5 ].cloudinary.com for both http and https. Setting secure_cdn_subdomain to false disables this for https.
+  # 2. Customers with private cdn
+  #
+  #    if cdn_domain is true uses cloudname-res-[1-5 ].cloudinary.com for http
+  #
+  #    if secure_cdn_domain is true uses cloudname-res-[1-5 ].cloudinary.com for https (please contact support if you require this)
+  # 3. Customers with cname
+  #
+  #    if cdn_domain is true uses a\[1-5\]\.cname for http. For https, uses the same naming scheme as 1 for shared distribution and as 2 for private distribution.
+  # @private
   def self.unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
     return "/res#{cloud_name}" if cloud_name.start_with?("/") # For development
 
@@ -452,12 +459,12 @@ class Cloudinary::Utils
 
   # Returns a URL that when invokes creates an archive and returns it.
   # @param options [Hash]
-  # @option options [String|Symbol] :resource_type  The resource type of files to include in the archive: :image|:video|:raw
+  # @option options [String|Symbol] :resource_type  The resource type of files to include in the archive. Must be one of :image | :video | :raw
   # @option options [String|Symbol] :type (:upload) The specific file type of resources: :upload|:private|:authenticated
   # @option options [String|Symbol|Array] :tags (nil) list of tags to include in the archive
-  # @option options [String|Array] :public_ids (nil) list of public_ids to include in the archive
-  # @option options [String|Array] :prefixes (nil) Optional list of prefixes of public IDs (e.g., folders).
-  # @option options [String|Array] :transformations Optional list of transformations.
+  # @option options [String|Array<String>] :public_ids (nil) list of public_ids to include in the archive
+  # @option options [String|Array<String>] :prefixes (nil) Optional list of prefixes of public IDs (e.g., folders).
+  # @option options [String|Array<String>] :transformations Optional list of transformations.
   #   The derived images of the given transformations are included in the archive. Using the string representation of
   #   multiple chained transformations as we use for the 'eager' upload parameter.
   # @option options [String|Symbol] :mode (:create) return the generated archive file or to store it as a raw resource and
@@ -473,7 +480,7 @@ class Cloudinary::Utils
   # @option options [boolean] :async (false) If true, return immediately and perform the archive creation in the background.
   #   Relevant only for the create mode.
   # @option options [String] :notification_url Optional URL to send an HTTP post request (webhook) when the archive creation is completed.
-  # @option options [String|Array] :target_tags Optional array. Allows assigning one or more tag to the generated archive file (for later housekeeping via the admin API).
+  # @option options [String|Array<String] :target_tags Optional array. Allows assigning one or more tag to the generated archive file (for later housekeeping via the admin API).
   # @option options [String] :keep_derived (false) keep the derived images used for generating the archive
   # @return [String] archive url
   def self.download_archive_url(options = {})
