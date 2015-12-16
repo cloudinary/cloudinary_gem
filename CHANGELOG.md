@@ -1,4 +1,36 @@
 
+1.1.2 / 2015-12-16
+==================
+
+  * Support new archive (ZIP) creation API:
+    * Uploader: `create_archive`, `create_zip`.
+    * Utils: `download_archive_url`, `download_zip_url`
+    * Helper: `cl_download_archive_url`, `cl_download_zip_url`.
+  * Use basic to_query implementation when Rails is not available.
+  * Allow chained transformations and eager transformations to process width & height when crop is not defined.
+  * Apply style and whitespaces.
+  * Remove redundant variable. Replace if ! with until.
+  * Apply style and whitespaces.
+  * Remove redundant variable
+  * Add `:invalidate` option to `Cloudinary::Uploader.rename`
+  * Add line spacing to text layer
+  * Add upload mapping
+  * Add `Cloudinary::Api.restore`
+  * Add `deep_hash_values` matcher. Add `invalidate` test to `explicit`
+  * Add `Cloudinary.user_platform`
+  * Merge branch 'feature/breakpoints_and_zip'
+  * Add test for `Cloudinary::Uploader.create_zip`
+  * Refactor `create_archive`. Rename `generate_zip_download_url`. Create `download_archive_url`. Add cleanup to spec code.
+  * Add condition to `image_tag` and `image_path` aliasing.
+  * Add `archive_spec.rb`. Add rubyzip development dependency.
+  * Add `Cloudinary::` to `Utils` calls
+  * Fix temp file name in spec. Re-enable deletion of resources after the test.
+  * Add deprecation warning to `zip_download_url`
+  * Fix rake `build` dependency to `cloudinary:fetch_assets`
+  * Apply `symbolize_keys`
+  * Support the aspect_ratio transformation parameter
+  * Support responsive_breakpoints JSON parameter in upload and explicit API
+
 1.1.1 / 2015-12-04
 ==================
 
