@@ -37,7 +37,7 @@ describe Cloudinary::Utils do
         {
           :target_public_id => 'gem_archive_test',
           :public_ids       => %w(tag_sample tag_samplebw),
-          :tags             => ARCHIVE_TAG
+          :target_tags      => [TEST_TAG, ARCHIVE_TAG]
         }.merge(options))
     }
 
