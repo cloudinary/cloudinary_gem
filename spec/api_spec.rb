@@ -375,7 +375,7 @@ describe Cloudinary::Api do
       expect(result["mappings"]).to include("folder" => mapping, "template" =>"http://res.cloudinary.com" )
       Cloudinary::Api.delete_upload_mapping(mapping)
       result = Cloudinary::Api.upload_mappings()
-      expect(result["mappings"]).not_to include(mapping )
+      expect(result["mappings"]).not_to include("folder" => mapping )
     end
   end
 end
