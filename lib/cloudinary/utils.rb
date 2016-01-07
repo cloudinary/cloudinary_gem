@@ -13,6 +13,9 @@ class Cloudinary::Utils
 
   # Warning: options are being destructively updated!
   def self.generate_transformation_string(options={}, allow_implicit_crop_mode = false)
+    # allow_implicit_crop_mode was added to support height and width parameters without specifying a crop mode.
+    # This only apply to this (cloudinary_gem) SDK
+
     if options.is_a?(Array)
       return options.map{|base_transformation| generate_transformation_string(base_transformation.clone, allow_implicit_crop_mode)}.join("/")
     end
