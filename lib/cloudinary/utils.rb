@@ -195,13 +195,13 @@ class Cloudinary::Utils
   end
   private_class_method :process_layer
 
-  LAYER_KEYWORD_PARAMS ={
-    :font_weight     => "normal",
-    :font_style      => "normal",
-    :text_decoration => "none",
-    :text_align      => nil,
-    :stroke          => "none"
-  }
+  LAYER_KEYWORD_PARAMS =[
+    [:font_weight     ,"normal"],
+    [:font_style      ,"normal"],
+    [:text_decoration ,"none"],
+    [:text_align      ,nil],
+    [:stroke          ,"none"],
+  ]
 
   def self.text_style(layer)
     font_family = layer[:font_family]
