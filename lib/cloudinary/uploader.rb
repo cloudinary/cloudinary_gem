@@ -60,26 +60,6 @@ class Cloudinary::Uploader
     params
   end
 
-  # @private
-  def self.build_explicit_api_params(public_id, options = {})
-    options = Cloudinary::Utils.symbolize_keys options
-    params  = {
-      :callback               => options[:callback],
-      :eager                  => Cloudinary::Utils.build_eager(options[:eager]),
-      :eager_async            => Cloudinary::Utils.as_safe_bool(options[:eager_async]),
-      :eager_notification_url => options[:eager_notification_url],
-      :face_coordinates       => options[:face_coordinates] && Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
-      :headers                => build_custom_headers(options[:headers]),
-      :invalidate             => Cloudinary::Utils.as_safe_bool(options[:invalidate]),
-      :public_id              => public_id,
-      :responsive_breakpoints => Cloudinary::Utils.generate_responsive_breakpoints_string(options[:responsive_breakpoints]),
-      :tags                   => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
-      :timestamp              => (options[:timestamp] || Time.now.to_i),
-      :type                   => options[:type]
-    }
-    params
-  end
-
   def self.unsigned_upload(file, upload_preset, options={})
     upload(file, options.merge(:unsigned => true, :upload_preset => upload_preset))
   end
@@ -178,16 +158,18 @@ class Cloudinary::Uploader
 
   def self.explicit(public_id, options={})
     call_api("explicit", options) do
-      self.build_explicit_api_params(public_id, options)
+      params             = build_upload_params(options)
+      params[:public_id] = public_id
+      params
     end
   end
 
   # Creates a new archive in the server and returns information in JSON format
   def self.create_archive(options={}, target_format = nil)
     call_api("generate_archive", options) do
-      opt                 = Cloudinary::Utils.archive_params(options)
-      opt[:target_format] = target_format if target_format
-      opt
+      params                 = Cloudinary::Utils.archive_params(options)
+      params[:target_format] = target_format if target_format
+      params
     end
   end
 
