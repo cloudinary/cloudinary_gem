@@ -9,30 +9,34 @@ describe Cloudinary::Uploader do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
   include_context "cleanup"
 
+  TEST_IMG = "spec/logo.png"
+  TEST_IMG_W = 241
+  TEST_IMG_H = 51
+
   it "should successfully upload file" do
-    result = Cloudinary::Uploader.upload("spec/logo.png", :tags => TEST_TAG)
-    expect(result["width"]).to eq(241)
-    expect(result["height"]).to eq(51)
+    result = Cloudinary::Uploader.upload(TEST_IMG, :tags => TEST_TAG)
+    expect(result["width"]).to eq(TEST_IMG_W)
+    expect(result["height"]).to eq(TEST_IMG_H)
     expected_signature = Cloudinary::Utils.api_sign_request({:public_id=>result["public_id"], :version=>result["version"]}, Cloudinary.config.api_secret)
     expect(result["signature"]).to eq(expected_signature)
   end
-  
+
   it "should successfully upload a file from pathname", :pathname => true do
-    result = Cloudinary::Uploader.upload(Pathname.new("spec/logo.png"), :tags => TEST_TAG)
-    expect(result["width"]).to eq(241)
+    result = Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :tags => TEST_TAG)
+    expect(result["width"]).to eq(TEST_IMG_W)
   end
 
   it "should successfully upload file by url" do
     result = Cloudinary::Uploader.upload("http://cloudinary.com/images/old_logo.png", :tags => TEST_TAG)
-    expect(result["width"]).to eq(241)
-    expect(result["height"]).to eq(51)
+    expect(result["width"]).to eq(TEST_IMG_W)
+    expect(result["height"]).to eq(TEST_IMG_H)
     expected_signature = Cloudinary::Utils.api_sign_request({:public_id=>result["public_id"], :version=>result["version"]}, Cloudinary.config.api_secret)
     expect(result["signature"]).to eq(expected_signature)
   end
 
   describe '.rename' do
     before(:all) do
-      @result        = Cloudinary::Uploader.upload("spec/logo.png", :tags => TEST_TAG)
+      @result        = Cloudinary::Uploader.upload(TEST_IMG, :tags => TEST_TAG)
       @resource_1_id = @result["public_id"]
       result         = Cloudinary::Uploader.upload("spec/favicon.ico", :tags => TEST_TAG)
       @resource_2_id = result["public_id"]
@@ -51,7 +55,7 @@ describe Cloudinary::Uploader do
     end
     context ':overwrite => true' do
       it 'should rename to an existing ID' do
-        new_id = Cloudinary::Uploader.upload("spec/logo.png", :tags => TEST_TAG)["public_id"]
+        new_id = Cloudinary::Uploader.upload(TEST_IMG, :tags => TEST_TAG)["public_id"]
         Cloudinary::Uploader.rename(@resource_2_id, new_id, :overwrite => true)
         expect(Cloudinary::Api.resource(new_id)["format"]).to eq("ico")
         @resource_2_id = new_id # will not update if expect fails
@@ -75,12 +79,12 @@ describe Cloudinary::Uploader do
   end
   
   it "should support eager" do
-    Cloudinary::Uploader.upload("spec/logo.png", :eager=>[{:crop=>"scale", :width=>"2.0"}], :tags => TEST_TAG)
+    Cloudinary::Uploader.upload(TEST_IMG, :eager =>[{ :crop =>"scale", :width =>"2.0"}], :tags => TEST_TAG)
   end
 
   it "should support headers" do
-    Cloudinary::Uploader.upload("spec/logo.png", :headers=>["Link: 1"], :tags => TEST_TAG)
-    Cloudinary::Uploader.upload("spec/logo.png", :headers=>{"Link" => "1"}, :tags => TEST_TAG)
+    Cloudinary::Uploader.upload(TEST_IMG, :headers =>["Link: 1"], :tags => TEST_TAG)
+    Cloudinary::Uploader.upload(TEST_IMG, :headers =>{ "Link" => "1"}, :tags => TEST_TAG)
   end
 
   it "should successfully generate text image" do
@@ -91,7 +95,7 @@ describe Cloudinary::Uploader do
 
   it "should correctly handle tags" do
     new_tag = "tag#{rand(10000)}"
-    result = Cloudinary::Uploader.upload("spec/logo.png", :tags => TEST_TAG)
+    result = Cloudinary::Uploader.upload(TEST_IMG, :tags => TEST_TAG)
     Cloudinary::Uploader.add_tag("#{new_tag}_1", result["public_id"])
     Cloudinary::Uploader.add_tag("#{new_tag}_2", result["public_id"])
     expect(Cloudinary::Api.resource(result["public_id"])["tags"]).to match_array(["#{new_tag}_1", "#{new_tag}_2", TEST_TAG])
@@ -102,29 +106,29 @@ describe Cloudinary::Uploader do
   end
   
   it "should correctly handle unique_filename" do
-    result = Cloudinary::Uploader.upload("spec/logo.png", :use_filename => true, :tags => TEST_TAG)
+    result = Cloudinary::Uploader.upload(TEST_IMG, :use_filename => true, :tags => TEST_TAG)
     expect(result["public_id"]).to match(/logo_[a-zA-Z0-9]{6}/)
-    result = Cloudinary::Uploader.upload("spec/logo.png", :use_filename => true, :unique_filename => false, :tags => TEST_TAG)
+    result = Cloudinary::Uploader.upload(TEST_IMG, :use_filename => true, :unique_filename => false, :tags => TEST_TAG)
     expect(result["public_id"]).to eq("logo")
   end
   
   it "should allow whitelisted formats if allowed_formats", :allowed=>true do
-    result = Cloudinary::Uploader.upload("spec/logo.png", :allowed_formats => ["png"], :tags => TEST_TAG)
+    result = Cloudinary::Uploader.upload(TEST_IMG, :allowed_formats => ["png"], :tags => TEST_TAG)
     expect(result["format"]).to eq("png")
   end
   
   it "should prevent non whitelisted formats from being uploaded if allowed_formats is specified", :allowed=>true do
-    expect{Cloudinary::Uploader.upload("spec/logo.png", :allowed_formats => ["jpg"], :tags => TEST_TAG)}.to raise_error
+    expect{Cloudinary::Uploader.upload(TEST_IMG, :allowed_formats => ["jpg"], :tags => TEST_TAG)}.to raise_error
   end
   
   it "should allow non whitelisted formats if type is specified and convert to that type", :allowed=>true do
-    result = Cloudinary::Uploader.upload("spec/logo.png", :allowed_formats => ["jpg"], :format => "jpg", :tags => TEST_TAG)
+    result = Cloudinary::Uploader.upload(TEST_IMG, :allowed_formats => ["jpg"], :format => "jpg", :tags => TEST_TAG)
     expect(result["format"]).to eq("jpg")
   end
   
   it "should allow sending face coordinates" do
     coordinates = [[120, 30, 109, 150], [121, 31, 110, 151]]
-    result = Cloudinary::Uploader.upload("spec/logo.png", {:face_coordinates => coordinates, :faces => true, :tags => TEST_TAG})
+    result = Cloudinary::Uploader.upload(TEST_IMG, { :face_coordinates => coordinates, :faces => true, :tags => TEST_TAG})
     expect(result["faces"]).to eq(coordinates)
 
     different_coordinates = [[122, 32, 111, 152]]
@@ -135,13 +139,13 @@ describe Cloudinary::Uploader do
   
   it "should allow sending context" do
     context = {"caption" => "some caption", "alt" => "alternative"}
-    result = Cloudinary::Uploader.upload("spec/logo.png", {:context => context, :tags => TEST_TAG})
+    result = Cloudinary::Uploader.upload(TEST_IMG, { :context => context, :tags => TEST_TAG})
     info = Cloudinary::Api.resource(result["public_id"], {:context => true})
     expect(info["context"]).to eq({"custom" => context})
   end
   
   it "should support requesting manual moderation" do
-    result = Cloudinary::Uploader.upload("spec/logo.png", {:moderation => :manual, :tags => TEST_TAG})
+    result = Cloudinary::Uploader.upload(TEST_IMG, { :moderation => :manual, :tags => TEST_TAG})
     expect(result["moderation"][0]["status"]).to eq("pending")
     expect(result["moderation"][0]["kind"]).to eq("manual")
   end
@@ -151,15 +155,15 @@ describe Cloudinary::Uploader do
   end
   
   it "should support requesting categorization" do
-    expect{Cloudinary::Uploader.upload("spec/logo.png", {:categorization => :illegal, :tags => TEST_TAG})}.to raise_error(CloudinaryException, /Illegal value|not a valid/)
+    expect{Cloudinary::Uploader.upload(TEST_IMG, { :categorization => :illegal, :tags => TEST_TAG})}.to raise_error(CloudinaryException, /Illegal value|not a valid|is invalid/)
   end
   
   it "should support requesting detection" do
-    expect{Cloudinary::Uploader.upload("spec/logo.png", {:detection => :illegal, :tags => TEST_TAG})}.to raise_error(CloudinaryException, /Illegal value|not a valid/)
+    expect{Cloudinary::Uploader.upload(TEST_IMG, { :detection => :illegal, :tags => TEST_TAG})}.to raise_error(CloudinaryException, /Illegal value|not a valid/)
   end
   
   it "should support requesting auto_tagging" do
-    expect{Cloudinary::Uploader.upload("spec/logo.png", {:auto_tagging => 0.5, :tags => TEST_TAG})}.to raise_error(CloudinaryException, /Must use/)
+    expect{Cloudinary::Uploader.upload(TEST_IMG, { :auto_tagging => 0.5, :tags => TEST_TAG})}.to raise_error(CloudinaryException, /Must use/)
   end
 
   it "should support upload_large", :large => true do
@@ -189,7 +193,7 @@ describe Cloudinary::Uploader do
       Cloudinary.config.api_key = nil
       Cloudinary.config.api_secret = nil
 
-      result = Cloudinary::Uploader.unsigned_upload("spec/logo.png", preset["name"], :tags => TEST_TAG)
+      result = Cloudinary::Uploader.unsigned_upload(TEST_IMG, preset["name"], :tags => TEST_TAG)
       expect(result["public_id"]).to match(/^test_folder_upload\/[a-z0-9]+$/)
 
       Cloudinary.class_variable_set(:@@config, nil)
@@ -207,13 +211,13 @@ describe Cloudinary::Uploader do
     end
 
     it "should fail if timeout is reached" do
-      expect{Cloudinary::Uploader.upload(Pathname.new("spec/logo.png"), :tags => TEST_TAG)}.to raise_error
+      expect{Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :tags => TEST_TAG)}.to raise_error
     end
   end
 
   context ":responsive_breakpoints" do
     context ":create_derived" do
-      result = Cloudinary::Uploader.upload("spec/logo.png", :responsive_breakpoints => {:create_derived => false }, :tags => TEST_TAG)
+      result = Cloudinary::Uploader.upload(TEST_IMG, :responsive_breakpoints => { :create_derived => false }, :tags => TEST_TAG)
       it 'should return a responsive_breakpoints in the response' do
         expect(result).to include('responsive_breakpoints')
       end

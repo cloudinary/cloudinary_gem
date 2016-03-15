@@ -584,16 +584,33 @@ class Cloudinary::Utils
     end
   end
 
-  IMAGE_FORMATS = %w(bmp png tif tiff jpg jpeg gif pdf ico eps jpc jp2 psd)
+  IMAGE_FORMATS = %w(ai bmp bpg djvu eps eps3 flif gif h264 hdp hpx ico j2k jp2 jpc jpe jpg miff mka mp4 pdf png psd svg tif tiff wdp webm webp zip )
+
+  AUDIO_FORMATS = %w(aac aifc aiff flac m4a mp3 ogg wav)
+
+  VIDEO_FORMATS = %w(3g2 3gp asf avi flv h264 m2t m2v m3u8 mka mov mp4 mpeg ogv ts webm wmv )
 
   def self.supported_image_format?(format)
+    supported_format? format, IMAGE_FORMATS
+  end
+
+  def self.supported_format?( format, formats)
     format = format.to_s.downcase
     extension = format =~ /\./ ? format.split('.').last : format
-    IMAGE_FORMATS.include?(extension)
+    formats.include?(extension)
   end
 
   def self.resource_type_for_format(format)
-    self.supported_image_format?(format) ? 'image' : 'raw'
+    case
+    when self.supported_format?(format, IMAGE_FORMATS)
+      'image'
+    when self.supported_format?(format, VIDEO_FORMATS)
+      'video'
+    when self.supported_format?(format, AUDIO_FORMATS)
+      'audio'
+    else
+      'raw'
+    end
   end
 
   def self.config_option_consume(options, option_name, default_value = nil)
