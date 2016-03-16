@@ -1,4 +1,14 @@
 
+1.1.3 / 2016-03-16
+==================
+
+  * Update known file types.
+  * Use `upload` params in `explicit` for forward compatibility.
+  * Change `LAYER_KEYWORD_PARAMS` to array to explicitly declare the order.
+  * Add comment regarding the `allow_implicit_crop_mode`.
+  * Use `target_tags` to specify tags for the created archive.
+  * Fix mapping test.
+
 1.1.2 / 2015-12-16
 ==================
 
