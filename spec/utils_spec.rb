@@ -391,13 +391,13 @@ describe Cloudinary::Utils do
     describe param do
       let(:root_path) { "http://res.cloudinary.com/#{cloud_name}" }
       let(:layers_options) { [
-      # [name,                    options,                                              result]
-        ["string",                "text:hello",                                         "text:hello"],
-        ["public_id",             { "public_id" => "logo" },                            "logo"],
-        ["public_id with folder", { "public_id" => "folder/logo" },                     "folder:logo"],
-        ["private",               { "public_id" => "logo", "type" => "private" },       "private:logo"],
-        ["format",                { "public_id" => "logo", "format" => "png" },         "logo.png"],
-        ["video",                 { "resource_type" => "video", "public_id" => "cat" }, "video:cat"],
+        # [name,                    options,                                              result]
+        ["string", "text:hello", "text:hello"],
+        ["public_id", { "public_id" => "logo" }, "logo"],
+        ["public_id with folder", { "public_id" => "folder/logo" }, "folder:logo"],
+        ["private", { "public_id" => "logo", "type" => "private" }, "private:logo"],
+        ["format", { "public_id" => "logo", "format" => "png" }, "logo.png"],
+        ["video", { "resource_type" => "video", "public_id" => "cat" }, "video:cat"],
       ] }
       it "should support #{param}" do
         layers_options.each do |name, options, result|
@@ -667,5 +667,69 @@ describe Cloudinary::Utils do
     expect(Cloudinary::Utils.encode_double_array([[1, 2, 3, 4], [5, 6, 7, 8]])).to eq("1,2,3,4|5,6,7,8")
   end
 
+  describe ":if" do
+    describe 'with literal condition string' do
+      it "should include the if parameter as the first component in the transformation string" do
+        expect(["sample", { if: "w_lt_200", crop: "fill", height: 120, width: 80 }])
+          .to produce_url("#{upload_path}/if_w_lt_200,c_fill,h_120,w_80/sample")
+        expect(["sample", { crop: "fill", height: 120, if: "w_lt_200", width: 80 }])
+          .to produce_url("#{upload_path}/if_w_lt_200,c_fill,h_120,w_80/sample")
 
+      end
+      it "should allow multiple conditions when chaining transformations " do
+        expect(["sample", transformation: [{ if: "w_lt_200", crop: "fill", height: 120, width: 80 },
+                                           { if: "w_gt_400", crop: "fit", width: 150, height: 150 },
+                                           { effect: "sepia" }]])
+          .to produce_url("#{upload_path}/if_w_lt_200,c_fill,h_120,w_80/if_w_gt_400,c_fit,h_150,w_150/e_sepia/sample")
+      end
+
+      describe "including spaces and operators" do
+        it "should translate operators" do
+          expect(["sample", { if: "w < 200", crop: "fill", height: 120, width: 80 }])
+            .to produce_url("#{upload_path}/if_w_lt_200,c_fill,h_120,w_80/sample")
+        end
+      end
+
+      describe 'if end' do
+        it "should include the if_end as the last parameter in its component" do
+          expect(["sample", transformation: [{ if: "w_lt_200" },
+                                             { crop: "fill", height: 120, width: 80, effect: "sharpen" },
+                                             { effect: "brightness:50" },
+                                             { effect: "shadow", color: "red" },
+                                             { if: "end" }]])
+            .to produce_url("#{upload_path}/if_w_lt_200/c_fill,e_sharpen,h_120,w_80/e_brightness:50/co_red,e_shadow/if_end/sample")
+        end
+        it "should support if_else with transformation parameters" do
+          expect(["sample", transformation: [{ if: "w_lt_200", crop: "fill", height: 120, width: 80 },
+                                             { if: "else", crop: "fill", height: 90, width: 100 }]])
+            .to produce_url("#{upload_path}/if_w_lt_200,c_fill,h_120,w_80/if_else,c_fill,h_90,w_100/sample")
+        end
+        it "if_else should be without any transformation parameters" do
+          expect(["sample", transformation: [{ if: "w_lt_200" },
+                                             { crop: "fill", height: 120, width: 80 },
+                                             { if: "else" },
+                                             { crop: "fill", height: 90, width: 100 }]])
+            .to produce_url("#{upload_path}/if_w_lt_200/c_fill,h_120,w_80/if_else/c_fill,h_90,w_100/sample")
+        end
+      end
+      it "should support and translate operators:  '=', '!=', '<', '>', '<=', '>=', '&&', '||'" do
+
+        allOperators =
+          'if_'           +
+            'w_eq_0_and'    +
+            '_w_ne_0_or'    +
+            '_h_lt_0_and'   +
+            '_ar_gt_0_and'   +
+            '_pc_lte_0_and'  +
+            '_fc_gte_0'      +
+            ',e_grayscale'
+
+        expect( ["sample",
+                 :if =>"width = 0 && w != 0 || height < 0 and aspect_ratio > 0 and page_count <= 0 and face_count >= 0",
+                 :effect =>"grayscale"])
+          .to produce_url("#{upload_path}/#{allOperators}/sample")
+    end
+
+    end
+  end
 end
