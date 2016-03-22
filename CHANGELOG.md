@@ -1,4 +1,17 @@
 
+1.1.4 / 2016-03-22
+==================
+
+New functionality and features
+------------------------------
+
+  * Add conditional transformation
+
+Other Changes
+-------------
+
+  * Fix direct upload in the sample project
+
 1.1.3 / 2016-03-16
 ==================
 
