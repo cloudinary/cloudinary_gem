@@ -92,7 +92,7 @@ class Cloudinary::Utils
 
     overlay = process_layer(options.delete(:overlay))
     underlay = process_layer(options.delete(:underlay))
-
+    ifValue = process_if(options.delete(:if))
 
     params = {
       :a   => angle,
@@ -143,19 +143,9 @@ class Cloudinary::Utils
       params[range_value] = norm_range_value params[range_value] if params[range_value].present?
     end
 
-
-    transformation = params.reject{|_k,v| v.blank?}.map{|k,v| "#{k}_#{v}"}.sort
-    ifValue = options[:if]
-    transformation = transformation.join(",")
-    if ifValue
-      ifValue = ifValue.gsub(
-        /(#{CONDITIONAL_PARAMETERS.keys.join("|")}|[=<>&|!]+)/,
-        CONDITIONAL_PARAMETERS.merge(CONDITIONAL_OPERATORS))
-      .gsub(/[ _]+/, "_")
-
-      ifValue = "if_" + ifValue
-    end
     raw_transformation = options.delete(:raw_transformation)
+    transformation = params.reject{|_k,v| v.blank?}.map{|k,v| "#{k}_#{v}"}.sort
+    transformation = transformation.join(",")
     transformation = [ifValue, transformation, raw_transformation].reject(&:blank?).join(",")
 
     transformations = base_transformations << transformation
@@ -172,6 +162,21 @@ class Cloudinary::Utils
     end
 
     transformations.reject(&:blank?).join("/")
+  end
+
+  # Parse "if" parameter
+  # Translates the condition if provided.
+  # @return [string] "if_" + ifValue
+  # @private
+  def self.process_if(ifValue)
+    if ifValue
+      ifValue = ifValue.gsub(
+        /(#{CONDITIONAL_PARAMETERS.keys.join("|")}|[=<>&|!]+)/,
+        CONDITIONAL_PARAMETERS.merge(CONDITIONAL_OPERATORS))
+        .gsub(/[ _]+/, "_")
+
+      ifValue = "if_" + ifValue
+    end
   end
 
   # Parse layer options
