@@ -70,12 +70,11 @@ describe Cloudinary::Api do
   end
   
   it "should allow listing resources by start date", :start_at => true do
-    sleep(2)
-    start_at = Time.now.to_s
-    sleep(2)
-    response = Cloudinary::Uploader.upload("spec/logo.png")
+    sleep(1)
+    response = Cloudinary::Uploader.upload("spec/logo.png", :tags => TEST_TAG)
+    start_at = Time.parse( response["created_at"]) - 0.5
     resources = @api.resources(:type=>"upload", :start_at=>start_at, :direction => "asc")["resources"]
-    expect(resources.map{|resource| resource["public_id"]}) == [response["public_id"]]
+    expect(resources.map{|resource| resource["public_id"]}).to eq([response["public_id"]])
   end
   
   it "should allow listing resources in both directions" do
