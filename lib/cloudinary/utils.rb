@@ -389,14 +389,18 @@ class Cloudinary::Utils
   def self.finalize_resource_type(resource_type, type, url_suffix, use_root_path, shorten)
     type ||= :upload
     if !url_suffix.blank?
-      if resource_type.to_s == "image" && type.to_s == "upload"
+      case
+      when resource_type.to_s == "image" && type.to_s == "upload"
         resource_type = "images"
         type = nil
-      elsif resource_type.to_s == "raw" && type.to_s == "upload"
+      when resource_type.to_s == "image" && type.to_s == "private"
+        resource_type = "private_images"
+        type = nil
+      when resource_type.to_s == "raw" && type.to_s == "upload"
         resource_type = "files"
         type = nil
       else
-        raise(CloudinaryException, "URL Suffix only supported for image/upload and raw/upload")
+        raise(CloudinaryException, "URL Suffix only supported for image/upload, image/private and raw/upload")
       end
     end
     if use_root_path
