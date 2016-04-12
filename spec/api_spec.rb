@@ -8,11 +8,13 @@ describe Cloudinary::Api do
   prefix = "api_test_#{Time.now.to_i}"
   test_id_1 = "#{prefix}_1"
   test_id_2   = "#{prefix}_2"
+  test_id_3   = "#{prefix}_3"
   before(:all) do
     @timestamp_tag = "api_test_tag_#{Time.now.to_i}"
     @api = Cloudinary::Api
     Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_1, :tags => [TEST_TAG, @timestamp_tag], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
     Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_2, :tags => [TEST_TAG, @timestamp_tag], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_3, :tags => [TEST_TAG, @timestamp_tag], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
   end
 
   it "should allow listing resource_types" do
@@ -36,7 +38,6 @@ describe Cloudinary::Api do
     expect(result2["resources"].length).to eq(1)
     expect(result2["resources"][0]["public_id"]).not_to eq(result["resources"][0]["public_id"] )
   end
-
 
   it "should allow listing resources by type" do
     resource = @api.resources(:type=>"upload", :tags=>true)["resources"].find{|resource| resource["public_id"] == test_id_1
@@ -171,6 +172,22 @@ describe Cloudinary::Api do
       transformation = @api.transformation("c_scale,w_100")
       expect(transformation).not_to be_blank
       expect(transformation["allowed_for_strict"]).to eq(false)
+    end
+
+    it "should fetch two different derived images using next_cursor" do
+      result = @api.transformation("c_scale,w_100", :max_results=>1)
+      puts result
+      expect(result["derived"]).not_to be_blank
+      puts "a"
+      expect(result["derived"].length).to eq(1)
+      puts "aa"
+      expect(result["next_cursor"]).not_to be_blank
+      puts "aaa" + result["next_cursor"]
+      result2 = @api.transformation("c_scale,w_100", :max_results=>1, :next_cursor=>result["next_cursor"])
+      puts result2
+      expect(result2["derived"]).not_to be_blank
+      expect(result2["derived"].length).to eq(1)
+      expect(result2["derived"][0]["id"]).not_to eq(result["derived"][0]["id"] )
     end
 
     describe "named transformations" do
@@ -376,5 +393,7 @@ describe Cloudinary::Api do
       result = Cloudinary::Api.upload_mappings()
       expect(result["mappings"]).not_to include("folder" => mapping )
     end
+
+
   end
 end
