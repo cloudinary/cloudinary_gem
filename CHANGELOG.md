@@ -1,4 +1,11 @@
 
+1.1.5 / 2016-04-12
+==================
+
+  * Add `url_suffix` support for private images.
+  * Replace explicit twitter test with explicit transformation
+  * Fix "should allow listing resources by start date" test
+
 1.1.4 / 2016-03-22
 ==================
 

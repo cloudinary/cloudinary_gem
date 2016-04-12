@@ -1,4 +1,4 @@
 # Copyright Cloudinary
 module Cloudinary
-  VERSION = "1.1.4"
+  VERSION = "1.1.5"
 end
