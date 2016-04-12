@@ -176,15 +176,10 @@ describe Cloudinary::Api do
 
     it "should fetch two different derived images using next_cursor" do
       result = @api.transformation("c_scale,w_100", :max_results=>1)
-      puts result
       expect(result["derived"]).not_to be_blank
-      puts "a"
       expect(result["derived"].length).to eq(1)
-      puts "aa"
       expect(result["next_cursor"]).not_to be_blank
-      puts "aaa" + result["next_cursor"]
       result2 = @api.transformation("c_scale,w_100", :max_results=>1, :next_cursor=>result["next_cursor"])
-      puts result2
       expect(result2["derived"]).not_to be_blank
       expect(result2["derived"].length).to eq(1)
       expect(result2["derived"][0]["id"]).not_to eq(result["derived"][0]["id"] )
