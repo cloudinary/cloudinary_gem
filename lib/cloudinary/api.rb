@@ -137,7 +137,7 @@ class Cloudinary::Api
   end
 
   def self.transformation(transformation, options={})
-    call_api(:get, "transformations/#{transformation_string(transformation)}", only(options, :max_results), options)
+    call_api(:get, "transformations/#{transformation_string(transformation)}", only(options, :max_results, :next_cursor), options)
   end
 
   def self.delete_transformation(transformation, options={})
