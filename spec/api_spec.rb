@@ -12,9 +12,9 @@ describe Cloudinary::Api do
   before(:all) do
 
     @api = Cloudinary::Api
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
   end
 
   after(:all) do
@@ -150,6 +150,19 @@ describe Cloudinary::Api do
   it "should allow deleting resources" do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :public_ids] => ["apit_test", "test_id_2", "api_test3"]}))
     @api.delete_resources(["apit_test", "test_id_2", "api_test3"])
+  end
+
+  it "should allow deleting resource transformations" do
+    resource = Cloudinary::Uploader.upload(TEST_IMG, :eager => [{:width=>101,:crop=>:scale}, {:width=>200,:crop=>:crop}])
+    public_id = resource["public_id"]
+    expect(resource).not_to be_blank
+    derived = resource["eager"].map{|d| d["transformation"]}
+    expect(derived).to include("c_scale,w_101", "c_crop,w_200")
+    @api.delete_resources([public_id], :transformations => "c_crop,w_200")
+    resource = @api.resource(public_id)
+    derived = resource["derived"].map{|d| d["transformation"]}
+    expect(derived).not_to include("c_crop,w_200")
+    expect(derived).to include("c_scale,w_101")
   end
 
   it "should allow deleting resources by prefix" do
@@ -300,7 +313,7 @@ describe Cloudinary::Api do
   
   # this test must be last because it deletes (potentially) all dependent transformations which some tests rely on. Excluded by default.
   skip "should allow deleting all resources", :delete_all=>true do
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test5", :eager=>[:width=>101,:crop=>:scale], :tags => [TEST_TAG, TIMESTAMP_TAG])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id=>"api_test5", :eager=>[:width=>101,:crop=>:scale], :tags => [TEST_TAG, TIMESTAMP_TAG])
     resource = @api.resource("api_test5")
     expect(resource).not_to be_blank
     expect(resource["derived"].length).to eq(1)
@@ -311,7 +324,7 @@ describe Cloudinary::Api do
   end
   
   it "should support setting manual moderation status" do
-    result = Cloudinary::Uploader.upload("spec/logo.png", {:moderation => :manual, :tags => [TEST_TAG, TIMESTAMP_TAG]})
+    result = Cloudinary::Uploader.upload(TEST_IMG, {:moderation => :manual, :tags => [TEST_TAG, TIMESTAMP_TAG]})
     expect(result["moderation"][0]["status"]).to eq("pending")
     expect(result["moderation"][0]["kind"]).to eq("manual")
     api_result = Cloudinary::Api.update(result["public_id"], {:moderation_status => :approved})
@@ -325,7 +338,7 @@ describe Cloudinary::Api do
   end
   
   it "should support requesting categorization" do
-    result = Cloudinary::Uploader.upload("spec/logo.png", :tags => [TEST_TAG, TIMESTAMP_TAG])
+    result = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect{Cloudinary::Api.update(result["public_id"], {:categorization => :illegal})}.to raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
   end
   

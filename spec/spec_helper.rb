@@ -4,6 +4,10 @@ require 'rspec/version'
 require 'rest_client'
 
 TEST_IMAGE_URL = "http://cloudinary.com/images/old_logo.png"
+TEST_IMG = "spec/logo.png"
+TEST_IMG_W = 241
+TEST_IMG_H = 51
+
 TEST_TAG = 'cloudinary_gem_test'
 TIMESTAMP_TAG = "#{TEST_TAG}_#{rand(999999999)}_#{RUBY_VERSION}_#{ defined? Rails::version ? Rails::version : 'no_rails'}"
 

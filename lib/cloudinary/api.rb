@@ -98,27 +98,27 @@ class Cloudinary::Api
     resource_type = options[:resource_type] || "image"
     type          = options[:type] || "upload"
     uri           = "resources/#{resource_type}/#{type}"
-    call_api(:delete, uri, { :public_ids => public_ids }.merge(only(options, :keep_original, :invalidate)), options)
+    call_api(:delete, uri, delete_resource_params(options, :public_ids => public_ids ), options)
   end
 
   def self.delete_resources_by_prefix(prefix, options={})
     resource_type = options[:resource_type] || "image"
     type          = options[:type] || "upload"
     uri           = "resources/#{resource_type}/#{type}"
-    call_api(:delete, uri, { :prefix => prefix }.merge(only(options, :keep_original, :next_cursor, :invalidate)), options)
+    call_api(:delete, uri, delete_resource_params(options, :prefix => prefix), options)
   end
 
   def self.delete_all_resources(options={})
     resource_type = options[:resource_type] || "image"
     type          = options[:type] || "upload"
     uri           = "resources/#{resource_type}/#{type}"
-    call_api(:delete, uri, { :all => true }.merge(only(options, :keep_original, :next_cursor, :invalidate)), options)
+    call_api(:delete, uri, delete_resource_params(options, :all => true ), options)
   end
 
   def self.delete_resources_by_tag(tag, options={})
     resource_type = options[:resource_type] || "image"
     uri           = "resources/#{resource_type}/tags/#{tag}"
-    call_api(:delete, uri, only(options, :keep_original, :next_cursor, :invalidate), options)
+    call_api(:delete, uri, delete_resource_params(options), options)
   end
 
   def self.delete_derived_resources(derived_resource_ids, options={})
@@ -153,16 +153,16 @@ class Cloudinary::Api
   end
 
   def self.transformation(transformation, options={})
-    call_api(:get, "transformations/#{transformation_string(transformation)}", only(options, :max_results, :next_cursor), options)
+    call_api(:get, "transformations/#{transformation_string(transformation)}", only(options, :next_cursor, :max_results), options)
   end
 
   def self.delete_transformation(transformation, options={})
     call_api(:delete, "transformations/#{transformation_string(transformation)}", {}, options)
   end
 
-# updates - supports:
-#   "allowed_for_strict" boolean
-#   "unsafe_update" transformation params - updates a named transformation parameters without regenerating existing images
+  # updates - supports:
+  #   "allowed_for_strict" boolean
+  #   "unsafe_update" transformation params - updates a named transformation parameters without regenerating existing images
   def self.update_transformation(transformation, updates, options={})
     params                 = only(updates, :allowed_for_strict)
     params[:unsafe_update] = transformation_string(updates[:unsafe_update]) if updates[:unsafe_update]
@@ -173,7 +173,7 @@ class Cloudinary::Api
     call_api(:post, "transformations/#{name}", { :transformation => transformation_string(definition) }, options)
   end
 
-# upload presets
+  # upload presets
   def self.upload_presets(options={})
     call_api(:get, "upload_presets", only(options, :next_cursor, :max_results), options)
   end
@@ -302,6 +302,10 @@ class Cloudinary::Api
       result[key] = hash[key.to_s] if hash.include?(key.to_s)
     end
     result
+  end
+
+  def self.delete_resource_params(options, params ={})
+    params.merge(only(options, :keep_original, :next_cursor, :invalidate, :transformations))
   end
 
   def self.transformation_string(transformation)

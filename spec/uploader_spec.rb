@@ -9,10 +9,6 @@ describe Cloudinary::Uploader do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
   include_context "cleanup", TIMESTAMP_TAG
 
-  TEST_IMG = "spec/logo.png"
-  TEST_IMG_W = 241
-  TEST_IMG_H = 51
-
   it "should successfully upload file" do
     result = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result["width"]).to eq(TEST_IMG_W)
