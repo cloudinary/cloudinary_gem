@@ -164,6 +164,10 @@ module Cloudinary::CarrierWave
       @resource_type ||= Cloudinary::Utils.resource_type_for_format(@filename)      
       @public_id, @format = Cloudinary::PreloadedFile.split_format(@filename)      
     end
+
+    def storage_identifier
+      identifier
+    end
     
     def delete
       public_id = @resource_type == "raw" ? self.filename : self.public_id

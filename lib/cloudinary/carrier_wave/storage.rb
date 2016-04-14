@@ -52,6 +52,10 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     nil
   end
 
+  def identifier
+    uploader.file.respond_to?(:storage_identifier) ? uploader.file.storage_identifier : super
+  end
+
   # Updates the model mounter identifier with version information.
   #
   # Carrierwave uses hooks when integrating with ORMs so it's important to
