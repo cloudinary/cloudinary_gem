@@ -1,4 +1,10 @@
 
+1.1.6 / 2016-04-20
+==================
+
+  * Fix CarrierWave integration - update without new upload saves identifier with resource_type and type
+  * Fixed tests
+
 1.1.5 / 2016-04-12
 ==================
 
