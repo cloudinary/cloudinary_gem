@@ -464,8 +464,8 @@ describe Cloudinary::Utils do
         ]
         layers_options.each do |name, options, result|
           it "should support #{name}" do
-            expect(["sample", { param => options }]).to produce_url("#{upload_path}/#{short}_#{result}/sample").and empty_options
-            expect("#{upload_path}/#{short}_#{result}/sample").to be_served_by_cloudinary
+            expect(["sample.jpg", { param => options }]).to produce_url("#{upload_path}/#{short}_#{result}/sample.jpg").and empty_options
+            expect("#{upload_path}/#{short}_#{result}/sample.jpg").to be_served_by_cloudinary
           end
           unless options.is_a? String
             op        = Hash.new

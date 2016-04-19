@@ -73,7 +73,7 @@ describe Cloudinary::Uploader do
 
 
   it "should support explicit" do
-    result = Cloudinary::Uploader.explicit("sample", :type=>"upload", :eager=>[{:crop=>"scale", :width=>"2.0"}], :tags => TEST_TAG)
+    result = Cloudinary::Uploader.explicit("sample", :type=>"upload", :eager=>[{:crop=>"scale", :width=>"2.0"}])
     url = Cloudinary::Utils.cloudinary_url("sample", :type=>"upload", :crop=>"scale", :width=>"2.0", :format=>"jpg", :version=>result["version"])
     expect(result["eager"][0]["url"]).to eq(url)
   end
