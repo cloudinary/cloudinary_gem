@@ -149,7 +149,8 @@ class Cloudinary::Uploader
   def self.exists?(public_id, options={})
     cloudinary_url = Cloudinary::Utils.cloudinary_url(public_id, options)
     begin
-      RestClient::Request.execute(:method => :head, :url => cloudinary_url, :timeout => 5).code.to_s =~ /2\d{2}/
+      code = RestClient::Request.execute(:method => :head, :url => cloudinary_url, :timeout => 5).code
+      code >= 200 && code < 300
     rescue RestClient::ResourceNotFound
       return false
     end
