@@ -1,12 +1,11 @@
-# -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
 require "cloudinary/version"
 
 Gem::Specification.new do |s|
   s.name        = "cloudinary"
   s.version     = Cloudinary::VERSION
-  s.authors     = ["Nadav Soferman","Itai Lahan","Tal Lev-Ami"]
-  s.email       = ["nadav.soferman@cloudinary.com","itai.lahan@cloudinary.com","tal.levami@cloudinary.com"]
+  s.authors     = ["Trung Lê", "Nadav Soferman", "Itai Lahan", "Tal Lev-Ami"]
+  s.email       = ["trung.le@envato.com", "nadav.soferman@cloudinary.com", "itai.lahan@cloudinary.com", "tal.levami@cloudinary.com"]
   s.homepage    = "http://cloudinary.com"
   s.license     = "MIT"
 
@@ -25,14 +24,8 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec-rails"
   s.add_development_dependency "rubyzip"
 
-  if RUBY_VERSION > "1.9"
-    s.add_dependency "rest-client"
-    s.add_development_dependency "actionpack"
-    s.add_development_dependency "simplecov"
-  else
-    s.add_dependency "i18n", "<0.7.0"
-    s.add_dependency "rest-client", "<=1.6.8"
-    s.add_development_dependency "actionpack", "~>3.2.0"
-  end
+  s.add_dependency "rest-client"
+  s.add_development_dependency "actionpack"
+  s.add_development_dependency "simplecov"
 
 end

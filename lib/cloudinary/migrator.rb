@@ -37,7 +37,6 @@ class Cloudinary::Migrator
     @debug = options[:debug] || false
     @ignore_duplicates = options[:ignore_duplicates]
     @threads = [options[:threads] || 10, 100].min
-    @threads = 1 if RUBY_VERSION < "1.9"
     @extra_options = {:api_key=>options[:api_key], :api_secret=>options[:api_secret]}
     @delete_after_done = options[:delete_after_done] || options[:private_database]
     @max_processing = @threads * 10
