@@ -164,7 +164,7 @@ class Cloudinary::Migrator
   def update_row(row, values)    
     values.merge!("updated_at"=>Time.now.to_i)
     query = ["update queue set #{values.keys.map{|key| "#{key}=?"}.join(",")} where id=?"] + values.values + [row["id"]]
-    result = @db.execute(*query)
+    @db.execute(*query)
     values.each{|key, value| row[key.to_s] = value}
     row    
   end
