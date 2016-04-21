@@ -6,7 +6,7 @@ module Cloudinary::CarrierWave
 
     def process_all_versions(*args)
       @all_versions ||= Class.new(self)
-      @all_versions.process *args
+      @all_versions.process(*args)
     end
 
     def eager
