@@ -623,7 +623,7 @@ class Cloudinary::Utils
     end
   end
 
-  IMAGE_FORMATS = %w(ai bmp bpg djvu eps eps3 flif gif h264 hdp hpx ico j2k jp2 jpc jpe jpg miff mka mp4 pdf png psd svg tif tiff wdp webm webp zip )
+  IMAGE_FORMATS = %w(ai bmp bpg djvu eps eps3 flif gif hdp hpx ico j2k jp2 jpc jpe jpg miff pdf png psd svg tif tiff wdp webp zip )
 
   AUDIO_FORMATS = %w(aac aifc aiff flac m4a mp3 ogg wav)
 
