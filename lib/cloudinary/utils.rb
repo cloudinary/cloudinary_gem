@@ -741,6 +741,7 @@ class Cloudinary::Utils
       :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]),
       :public_ids=>options[:public_ids] && Cloudinary::Utils.build_array(options[:public_ids]),
       :prefixes=>options[:prefixes] && Cloudinary::Utils.build_array(options[:prefixes]),
+      :expires_at=>options[:expires_at],
       :transformations => build_eager(options[:transformations])
     }
   end
