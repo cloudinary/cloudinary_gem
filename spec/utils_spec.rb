@@ -361,23 +361,16 @@ describe Cloudinary::Utils do
     let(:options) { { :version => authenticated_image['version'], :sign_url => true, :type => :authenticated }.merge(specific_options) }
     let(:authenticated_path) { "#{root_path}/image/authenticated" }
 
-    it "should not serve resource with the wrong signature" do
-      expect(authenticated_image["url"].sub(/(?:s--)([\w-]+)(?:--)/) { |s| s.succ })
-        .not_to be_served_by_cloudinary
-    end
-
     it "should correctly sign URL with version" do
       expect(["#{authenticated_image['public_id']}.jpg", options])
         .to produce_url(%r"#{authenticated_path}/s--[\w-]+--/#{expected_transformation}v#{authenticated_image['version']}/#{authenticated_image['public_id']}.jpg")
               .and empty_options
-                     .and be_served_by_cloudinary
     end
     it "should correctly sign URL with transformation and version" do
       options[:transformation] = { :crop => "crop", :width => 10, :height => 20 }
       expect(["#{authenticated_image['public_id']}.jpg", options])
         .to produce_url(%r"#{authenticated_path}/s--[\w-]+--/c_crop,h_20,w_10/#{expected_transformation}v#{authenticated_image['version']}/#{authenticated_image['public_id']}.jpg")
               .and empty_options
-                     .and be_served_by_cloudinary
     end
     it "should correctly sign URL with transformation" do
       options[:transformation] = { :crop => "crop", :width => 10, :height => 20 }
@@ -465,9 +458,9 @@ describe Cloudinary::Utils do
         layers_options.each do |name, options, result|
           it "should support #{name}" do
             expect(["sample.jpg", { param => options }]).to produce_url("#{upload_path}/#{short}_#{result}/sample.jpg").and empty_options
-            expect("#{upload_path}/#{short}_#{result}/sample.jpg").to be_served_by_cloudinary
+            # expect("#{upload_path}/#{short}_#{result}/sample.jpg").to be_served_by_cloudinary
           end
-          unless options.is_a? String
+          unless options.is_a? String || param == 'underlay'
             op        = Hash.new
             op[param] = options
             it_behaves_like "a signed url", op, "#{short}_#{result}"

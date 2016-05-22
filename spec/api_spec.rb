@@ -85,11 +85,9 @@ describe Cloudinary::Api do
   end
   
   it "should allow listing resources by start date", :start_at => true do
-    sleep(1)
-    response = Cloudinary::Uploader.upload("spec/logo.png", :tags => TEST_TAG)
-    start_at = Time.parse( response["created_at"]) - 0.5
-    resources = @api.resources(:type=>"upload", :start_at=>start_at, :direction => "asc")["resources"]
-    expect(resources.map{|resource| resource["public_id"]}).to eq([response["public_id"]])
+    start_at = Time.now
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :start_at] => start_at, [:payload, :direction] => "asc"}))
+    @api.resources(:type=>"upload", :start_at=>start_at, :direction => "asc")
   end
   
   it "should allow listing resources in both directions" do
@@ -102,7 +100,6 @@ describe Cloudinary::Api do
     desc_resources_alt = @api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => -1)["resources"]
     expect(asc_resources_alt.reverse).to eq(desc_resources_alt)
     expect(asc_resources).to eq(asc_resources_alt)
-    expect{@api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => "anythingelse")["resources"]}.to raise_error(Cloudinary::Api::BadRequest)
   end
 
   it "should allow get resource metadata" do
@@ -114,39 +111,24 @@ describe Cloudinary::Api do
   end
   
   it "should allow deleting derived resource" do
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test3", :eager=>[:width=>101,:crop=>:scale])
-    resource = @api.resource("api_test3")
-    expect(resource).not_to be_blank
-    expect(resource["derived"].length).to eq(1)
-    derived_resource_id = resource["derived"][0]["id"]
+    derived_resource_id = "derived_id"
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :derived_resource_ids] => derived_resource_id}))
     @api.delete_derived_resources(derived_resource_id)
-    resource = @api.resource("api_test3")
-    expect(resource).not_to be_blank
-    expect(resource["derived"].length).to eq(0)
   end
 
   it "should allow deleting resources" do
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test3")
-    resource = @api.resource("api_test3")
-    expect(resource).not_to be_blank
-    @api.delete_resources(["apit_test", test_id_2, "api_test3"])
-    expect{@api.resource("api_test3")}.to raise_error(Cloudinary::Api::NotFound)
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :public_ids] => ["apit_test", "test_id_2", "api_test3"]}))
+    @api.delete_resources(["apit_test", "test_id_2", "api_test3"])
   end
 
   it "should allow deleting resources by prefix" do
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test_by_prefix")
-    resource = @api.resource("api_test_by_prefix")
-    expect(resource).not_to be_blank
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :prefix] => "api_test_by"}))
     @api.delete_resources_by_prefix("api_test_by")
-    expect{@api.resource("api_test_by_prefix")}.to raise_error(Cloudinary::Api::NotFound)
   end
 
   it "should allow deleting resources by tags" do
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test4", :tags=>[TEST_TAG, "api_test_tag_for_delete"])
-    resource = @api.resource("api_test4")
-    expect(resource).not_to be_blank
+    expect(RestClient::Request).to receive(:execute).with(hash_including( :url => /.*\/tags\/api_test_tag_for_delete$/))
     @api.delete_resources_by_tag("api_test_tag_for_delete")
-    expect{@api.resource("api_test4")}.to raise_error(Cloudinary::Api::NotFound)
   end
 
   it "should allow listing tags" do
@@ -155,7 +137,7 @@ describe Cloudinary::Api do
   end
 
   it "should allow listing tag by prefix" do
-    tags = @api.tags(:prefix=> "api_test_tag")["tags"]
+    tags = @api.tags(:prefix=> TEST_TAG)["tags"]
     expect(tags).to include(@timestamp_tag)
     tags = @api.tags(:prefix=>"api_test_no_such_tag")["tags"]
     expect(tags).to be_blank
@@ -306,54 +288,25 @@ describe Cloudinary::Api do
   end
   
   it "should support requesting detection" do
-    result = Cloudinary::Uploader.upload("spec/logo.png", :tags => TEST_TAG)
-    expect{Cloudinary::Api.update(result["public_id"], {:detection => :illegal})}.to raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :detection] => "adv_face"))
+    Cloudinary::Api.update("public_id", {:detection => "adv_face"})
   end
   
   it "should support requesting auto_tagging" do
-    result = Cloudinary::Uploader.upload("spec/logo.png", :tags => TEST_TAG)
-    expect{Cloudinary::Api.update(result["public_id"], {:auto_tagging => 0.5})}.to raise_error(Cloudinary::Api::BadRequest, /^Must use/)
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :auto_tagging] => 0.5))
+    Cloudinary::Api.update("public_id", {:auto_tagging => 0.5})
   end
   
   it "should support listing by moderation kind and value" do
-    result1 = Cloudinary::Uploader.upload("spec/logo.png", { :moderation => :manual, :tags => TEST_TAG})
-    result2 = Cloudinary::Uploader.upload("spec/logo.png", { :moderation => :manual, :tags => TEST_TAG})
-    result3 = Cloudinary::Uploader.upload("spec/logo.png", { :moderation => :manual, :tags => TEST_TAG})
-    Cloudinary::Api.update(result1["public_id"], {:moderation_status => :approved})
-    Cloudinary::Api.update(result2["public_id"], {:moderation_status => :rejected})
-    approved = Cloudinary::Api.resources_by_moderation(:manual, :approved, :max_results => 1000)["resources"].map{|r| r["public_id"]}
-    expect(approved).to include(result1["public_id"])
-    expect(approved).not_to include(result2["public_id"])
-    expect(approved).not_to include(result3["public_id"])
-    rejected = Cloudinary::Api.resources_by_moderation(:manual, :rejected, :max_results => 1000)["resources"].map{|r| r["public_id"]}
-    expect(rejected).to include(result2["public_id"])
-    expect(rejected).not_to include(result1["public_id"])
-    expect(rejected).not_to include(result3["public_id"])
-    pending = Cloudinary::Api.resources_by_moderation(:manual, :pending, :max_results => 1000)["resources"].map{|r| r["public_id"]}
-    expect(pending).to include(result3["public_id"])
-    expect(pending).not_to include(result1["public_id"])
-    expect(pending).not_to include(result2["public_id"])
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value([:url] => /.*manual\/approved$/, [:payload, :max_results] => 1000))
+    Cloudinary::Api.resources_by_moderation(:manual, :approved, :max_results => 1000)
   end
 
   it "should support listing folders" do
-    # pending("For this test to work, 'Auto-create folders' should be enabled in the Upload Settings, " +
-    #         "and the account should be empty of folders. " +
-    #         "Comment out this line if you really want to test it.")
-    Cloudinary::Uploader.upload("spec/logo.png", {:public_id => "test_folder1/item", :tags => TEST_TAG})
-    Cloudinary::Uploader.upload("spec/logo.png", {:public_id => "test_folder2/item", :tags => TEST_TAG})
-    Cloudinary::Uploader.upload("spec/logo.png", {:public_id => "test_folder1/test_subfolder1/item", :tags => TEST_TAG})
-    Cloudinary::Uploader.upload("spec/logo.png", {:public_id => "test_folder1/test_subfolder2/item", :tags => TEST_TAG})
-    result = Cloudinary::Api.root_folders
-    expect(result["folders"]).not_to be_empty, "Folders should have been created. Make sure that 'Auto-create folders' is enabled for this cloud"
-    names = result["folders"].map{|f| f["name"]}
-    expect(names).to include("test_folder1")
-    expect(names).to include("test_folder2")
-    result = Cloudinary::Api.subfolders("test_folder1")
-
-    paths = result["folders"].map{|f| f["path"]}
-    expect(paths).to include("test_folder1/test_subfolder1")
-    expect(paths).to include("test_folder1/test_subfolder2")
-    expect{Cloudinary::Api.subfolders("test_folder")}.to raise_error(Cloudinary::Api::NotFound)
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders$/, [:method] => :get))
+    Cloudinary::Api.root_folders
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders\/test_folder1$/, [:method] => :get))
+    Cloudinary::Api.subfolders("test_folder1")
   end
 
   describe '.restore'  do
@@ -369,38 +322,18 @@ describe Cloudinary::Api do
       expect(resource["placeholder"]).to eq(true)
     end
     it 'should restore a deleted resource' do
-      response = Cloudinary::Api.restore("api_test_restore")
-      info     = response["api_test_restore"]
-      expect(info).not_to be_nil
-      expect(info["bytes"]).to eq(3381)
-      resource = Cloudinary::Api.resource("api_test_restore")
-      expect(resource).not_to be_nil
-      expect(resource["bytes"]).to eq(3381)
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :public_ids] => "api_test_restore", [:url] => /.*\/restore$/))
+      Cloudinary::Api.restore("api_test_restore")
     end
   end
 
   describe 'mapping' do
     mapping = "api_test_upload_mapping#{rand(100000)}"
-    after :all do
-      begin
-        Cloudinary::Api.delete_upload_mapping(mapping)
-      rescue
-        puts "Could not delete #{mapping}"
-      end
-    end
-
     it 'should create mapping' do
-      result = Cloudinary::Api.create_upload_mapping(mapping, :template =>"http://cloudinary.com")
-      result = Cloudinary::Api.upload_mapping(mapping)
-      expect(result['template']).to eq("http://cloudinary.com")
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :template] => "http://cloudinary.com"))
+      Cloudinary::Api.create_upload_mapping(mapping, :template =>"http://cloudinary.com")
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :template] => "http://res.cloudinary.com"))
       Cloudinary::Api.update_upload_mapping(mapping, "template" =>"http://res.cloudinary.com")
-      result = Cloudinary::Api.upload_mapping(mapping)
-      expect(result["template"]).to eq("http://res.cloudinary.com")
-      result = Cloudinary::Api.upload_mappings
-      expect(result["mappings"]).to include("folder" => mapping, "template" =>"http://res.cloudinary.com" )
-      Cloudinary::Api.delete_upload_mapping(mapping)
-      result = Cloudinary::Api.upload_mappings()
-      expect(result["mappings"]).not_to include("folder" => mapping )
     end
 
 
