@@ -10,11 +10,25 @@ describe Cloudinary::Api do
   test_id_2   = "#{prefix}_2"
   test_id_3   = "#{prefix}_3"
   before(:all) do
-    @timestamp_tag = "api_test_tag_#{Time.now.to_i}"
+    @timestamp_tag = "#{TEST_TAG}_#{Time.now.to_i}"
     @api = Cloudinary::Api
     Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_1, :tags => [TEST_TAG, @timestamp_tag], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
     Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_2, :tags => [TEST_TAG, @timestamp_tag], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
     Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_3, :tags => [TEST_TAG, @timestamp_tag], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
+  end
+
+  after(:all) do
+    # in addition to "cleanup" context
+    unless Cloudinary.config.keep_test_products
+      up = Cloudinary::Api.upload_presets max_results: 500
+      up["presets"].each do |u|
+        tags = u["settings"]["tags"]
+        name = u["name"]
+        if tags =~ /.*#{@timestamp_tag}.*/
+          Cloudinary::Api.delete_upload_preset(name)
+        end
+      end
+    end
   end
 
   it "should allow listing resource_types" do
@@ -225,14 +239,14 @@ describe Cloudinary::Api do
   it "should allow creating and listing upload_presets", :upload_preset => true do
     name = []
     3.times { |i| name.push( "api_test_#{Time.now.to_i}_#{i}")}
-    @api.create_upload_preset(:name => name[0], :folder => "folder", :tags => TEST_TAG)
-    @api.create_upload_preset(:name => name[1], :folder => "folder2", :tags => TEST_TAG)
-    @api.create_upload_preset(:name => name[2], :folder => "folder3", :tags => TEST_TAG)
+    @api.create_upload_preset(:name => name[0], :folder => "folder", :tags => [TEST_TAG, @timestamp_tag])
+    @api.create_upload_preset(:name => name[1], :folder => "folder2", :tags => [TEST_TAG, @timestamp_tag])
+    @api.create_upload_preset(:name => name[2], :folder => "folder3", :tags => [TEST_TAG, @timestamp_tag])
     expect(@api.upload_presets["presets"].first(3).map{|p| p["name"]}).to match_array(name)
   end
   
   it "should allow getting a single upload_preset", :upload_preset => true do
-    result = @api.create_upload_preset(:unsigned => true, :folder => "folder", :width => 100, :crop => :scale, :tags => ["a","b","c", TEST_TAG], :context => {:a => "b", :c => "d"})
+    result = @api.create_upload_preset(:unsigned => true, :folder => "folder", :width => 100, :crop => :scale, :tags => ["a","b","c", TEST_TAG, @timestamp_tag], :context => {:a => "b", :c => "d"})
     name = result["name"]
     preset = @api.upload_preset(name)
     expect(preset["name"]).to eq(name)
@@ -240,24 +254,24 @@ describe Cloudinary::Api do
     expect(preset["settings"]["folder"]).to eq("folder")
     expect(preset["settings"]["transformation"]).to eq([{"width" => 100, "crop" => "scale"}])
     expect(preset["settings"]["context"]).to eq({"a" => "b", "c" => "d"})
-    expect(preset["settings"]["tags"]).to eq(["a","b","c", TEST_TAG])
+    expect(preset["settings"]["tags"]).to eq(["a","b","c", TEST_TAG, @timestamp_tag])
   end
   
   it "should allow deleting upload_presets", :upload_preset => true do
-    @api.create_upload_preset(:name => "api_test_upload_preset4", :folder => "folder", :tags => TEST_TAG)
+    @api.create_upload_preset(:name => "api_test_upload_preset4", :folder => "folder", :tags => [TEST_TAG, @timestamp_tag])
     preset = @api.upload_preset("api_test_upload_preset4")
     @api.delete_upload_preset("api_test_upload_preset4")
     expect{preset = @api.upload_preset("api_test_upload_preset4")}.to raise_error
   end
   
   it "should allow updating upload_presets", :upload_preset => true do
-    name = @api.create_upload_preset(:folder => "folder", :tags => TEST_TAG)["name"]
+    name = @api.create_upload_preset(:folder => "folder", :tags => [TEST_TAG, @timestamp_tag])["name"]
     preset = @api.upload_preset(name)
     @api.update_upload_preset(name, preset["settings"].merge(:colors => true, :unsigned => true, :disallow_public_id => true))
     preset = @api.upload_preset(name)
     expect(preset["name"]).to eq(name)
     expect(preset["unsigned"]).to eq(true)
-    expect(preset["settings"]).to eq({"folder" => "folder", "colors" => true, "disallow_public_id" => true, "tags" => [TEST_TAG]})
+    expect(preset["settings"]).to eq({"folder" => "folder", "colors" => true, "disallow_public_id" => true, "tags" => [TEST_TAG, @timestamp_tag]})
   end
   
   # this test must be last because it deletes (potentially) all dependent transformations which some tests rely on. Excluded by default.
