@@ -157,9 +157,54 @@ end
 RSpec::Matchers.define :deep_hash_value do |expected|
   match do |actual|
     expected.all? do |path, value|
-      values_match? deep_fetch(actual, path), value
+      Cloudinary.values_match? deep_fetch(actual, path), value
     end
   end
 end
 
 RSpec::Matchers.alias_matcher :have_deep_hash_values_of, :deep_hash_value
+
+module Cloudinary
+  # @api private
+  def self.values_match?( actual, expected)
+    if Hash === actual
+      return hashes_match?(expected, actual) if Hash === expected
+    elsif Array === expected && Enumerable === actual && !(Struct === actual)
+      return arrays_match?(expected, actual.to_a)
+    elsif Regexp === expected
+      return expected.match actual.to_s
+    end
+
+
+    return true if actual == expected
+
+    begin
+      expected === actual
+    rescue ArgumentError
+      # Some objects, like 0-arg lambdas on 1.9+, raise
+      # ArgumentError for `expected === actual`.
+      false
+    end
+  end
+
+  # @private
+  def self.arrays_match?(expected_list, actual_list)
+    return false if expected_list.size != actual_list.size
+
+    expected_list.zip(actual_list).all? do |expected, actual|
+      values_match?(expected, actual)
+    end
+  end
+
+  # @private
+  def self.hashes_match?(expected_hash, actual_hash)
+    return false if expected_hash.size != actual_hash.size
+
+    expected_hash.all? do |expected_key, expected_value|
+      actual_value = actual_hash.fetch(expected_key) { return false }
+      values_match?(expected_value, actual_value)
+    end
+  end
+
+  private_class_method :arrays_match?, :hashes_match?
+end
