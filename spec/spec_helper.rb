@@ -5,6 +5,7 @@ require 'rest_client'
 
 TEST_IMAGE_URL = "http://cloudinary.com/images/old_logo.png"
 TEST_TAG = 'cloudinary_gem_test'
+TIMESTAMP_TAG = "#{TEST_TAG}_#{rand(999999999)}_#{RUBY_VERSION}_#{ defined? Rails::version ? Rails::version : 'no_rails'}"
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
@@ -15,12 +16,20 @@ RSpec.configure do |config|
   config.filter_run_excluding :delete_all => true
 end
 
-RSpec.shared_context "cleanup" do
+RSpec.shared_context "cleanup" do |tag|
+  tag ||= TEST_TAG
   after :all do
-    Cloudinary::Api.delete_resources_by_tag(TEST_TAG) unless Cloudinary.config.keep_test_products
+    Cloudinary::Api.delete_resources_by_tag(tag) unless Cloudinary.config.keep_test_products
   end
 
 end
+
+
+CALLS_SERVER_WITH_PARAMETERS = "calls server with parameters"
+RSpec.shared_examples CALLS_SERVER_WITH_PARAMETERS do |expected|
+  expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+end
+
 # Create a regexp with the given +tag+ name.
 def html_tag_matcher( tag)
   /<#{tag}([\s]+([-[:word:]]+)[\s]*\=\s*\"([^\"]*)\")*\s*>.*<\s*\/#{tag}\s*>/

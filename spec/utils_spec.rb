@@ -384,7 +384,6 @@ describe Cloudinary::Utils do
       expect(["http://res.cloudinary.com/demo/sample.png", options])
         .to produce_url(%r"^#{root_path}/image/fetch/s--[\w-]+--/#{expected_transformation}v#{authenticated_image['version']}/http://res.cloudinary.com/demo/sample.png$")
               .and empty_options
-                     .and be_served_by_cloudinary
     end
   end
 
@@ -442,7 +441,7 @@ describe Cloudinary::Utils do
 
     include_context "cleanup"
 
-    { 'overlay' => 'l', 'underlay' => 'u' }.each do |param, short|
+    { 'overlay' => 'l' }.each do |param, short| # 'underlay' => 'u' behaves the same as overlay
       describe param do
         let(:root_path) { "http://res.cloudinary.com/#{cloud_name}" }
         # [name, options, result]

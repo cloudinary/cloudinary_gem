@@ -3,14 +3,13 @@ require 'cloudinary'
 require 'rest_client'
 require 'zip'
 
-ARCHIVE_TAG = "archive_test_tag_#{rand}"
-
 RSpec.shared_context 'archive' do
+
   before :all do
     Cloudinary::Uploader.upload(
       "http://res.cloudinary.com/demo/image/upload/sample.jpg",
       :public_id      => 'tag_samplebw',
-      :tags           => [TEST_TAG, ARCHIVE_TAG],
+      :tags           => [TEST_TAG, TIMESTAMP_TAG],
       :transformation => {
         :effect => :blackwhite
       }
@@ -18,13 +17,13 @@ RSpec.shared_context 'archive' do
     Cloudinary::Uploader.upload(
       "http://res.cloudinary.com/demo/image/upload/sample.jpg",
       :public_id      => 'tag_sample',
-      :tags           => [TEST_TAG, ARCHIVE_TAG],
+      :tags           => [TEST_TAG, TIMESTAMP_TAG],
       :transformation => {
         :effect => :blackwhite
       }
     )
   end
-  include_context "cleanup"
+  include_context "cleanup", TIMESTAMP_TAG
 end
 
 describe Cloudinary::Utils do
@@ -37,7 +36,7 @@ describe Cloudinary::Utils do
         {
           :target_public_id => 'gem_archive_test',
           :public_ids       => %w(tag_sample tag_samplebw),
-          :target_tags      => [TEST_TAG, ARCHIVE_TAG]
+          :target_tags      => [TEST_TAG, TIMESTAMP_TAG]
         }.merge(options))
     }
 
@@ -67,7 +66,7 @@ describe Cloudinary::Uploader do
         {
           :target_public_id => 'gem_archive_test',
           :public_ids       => %w(tag_sample tag_samplebw),
-          :tags             => ARCHIVE_TAG
+          :tags             => [TEST_TAG, TIMESTAMP_TAG]
         }.merge(options))
     }
     let(:options) { { :mode => :create } }
