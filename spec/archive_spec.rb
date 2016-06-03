@@ -61,10 +61,13 @@ describe Cloudinary::Uploader do
   let(:options) { {} }
 
   describe '.create_archive' do
+    let!(:target_public_id) {
+      "gem_test#{ rand(1000000)}"
+    }
     let!(:archive_result) {
       Cloudinary::Uploader.create_archive(
         {
-          :target_public_id => 'gem_archive_test',
+          :target_public_id => target_public_id,
           :public_ids       => %w(tag_sample tag_samplebw),
           :tags             => [TEST_TAG, TIMESTAMP_TAG]
         }.merge(options))
