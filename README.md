@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/cloudinary/cloudinary_gem.svg?branch=master)](https://travis-ci.org/cloudinary/cloudinary_gem)
 Cloudinary
 ==========
 
