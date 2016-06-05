@@ -16,7 +16,8 @@ namespace :cloudinary do
   task :fetch_assets do
     index_files      = %w[jquery.ui.widget.js jquery.iframe-transport.js jquery.fileupload.js jquery.cloudinary.js]
     processing_files = %w[canvas-to-blob.min.js load-image.all.min.js jquery.fileupload-process.js jquery.fileupload-image.js jquery.fileupload-validate.js]
-    files            = index_files + processing_files
+    other_files      = %w[jquery.cloudinary.coffee jquery.cloudinary.js.map]
+    files            = index_files + processing_files + other_files
 
     release = JSON(RestClient.get("https://api.github.com/repos/cloudinary/cloudinary_js/releases/latest"))
 

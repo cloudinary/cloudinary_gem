@@ -349,6 +349,18 @@ describe Cloudinary::Utils do
             .and empty_options
   end
 
+  it "should support keyframe_interval" do
+    expect(["test", { :keyframe_interval => 10 }])
+      .to produce_url("#{upload_path}/ki_10/test")
+            .and empty_options
+  end
+
+  it "should support streaming_profile" do
+    expect(["test", { :streaming_profile => "some-profile" }])
+      .to produce_url("#{upload_path}/sp_some-profile/test")
+            .and empty_options
+  end
+
   shared_examples "a signed url" do |specific_options = {}, specific_transformation = ""|
     let(:expected_transformation) do
       (specific_transformation.blank? || specific_transformation.match(/\/$/)) ? specific_transformation : "#{specific_transformation}/"
