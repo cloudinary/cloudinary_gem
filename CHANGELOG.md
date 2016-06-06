@@ -1,4 +1,35 @@
 
+1.1.7 / 2016-06-06
+==================
+
+New functionality and features
+------------------------------
+  * Add TravisCI configuration and label
+  * Add `keyframe_interval` and `streaming_profile` transformation parameters
+  * Add `expires_at` parameter to `Utils#download_archive_url`
+  * Add `CONTRIBUTING.md`
+  * Add `next_cursor` to `transformation()`
+  * Update Readme with information on the Cloudinary JavaScript library. Related to #199
+
+Other Changes
+-------------
+  
+  * Ensuring rails environment is loaded as a dependency of running sync_static rake task, so anything initializer that sets up Cloudinary.config takes affect
+  * Refactor tests to allow parallel runs.
+  * Fix `deep_hash_values` matcher.
+  * Mock heavy tests
+  * Remove upload_presets created during the tests
+  * Merge pull request #177 from Buyapowa/fix-rake-task-config-loading
+  * Merge pull request #185 from gunterja/patch-1
+  * Merge pull request #186 from gunterja/patch-2
+  * Merge pull request #187 from gunterja/patch-3
+  * Merge pull request #189 from gunterja/patch-5
+  * Merge branch 'task/add-next-cursor-to-transformation'
+  * adding tests for next_cursor with transformation 
+  * Merge pull request #192 from thedrow/patch-1
+  * exists? must return booleans
+  * `File.exists?` is deprecated in favor of `File.exist?`
+
 1.1.6 / 2016-04-20
 ==================
 
