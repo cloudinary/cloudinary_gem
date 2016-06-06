@@ -176,9 +176,53 @@ Cloudinary's Ruby GEM includes an optional plugin for [CarrierWave](https://gith
 
 We also published an interesting blog post about [Ruby on Rails image uploads with CarrierWave and Cloudinary](http://cloudinary.com/blog/ruby_on_rails_image_uploads_with_carrierwave_and_cloudinary).
 
-## Neo4j integration
+#### Neo4j integration
 
 Starting from version 1.1.1 Cloudinary's Ruby GEM supports the use of carrierwave with Neo4j.
+
+### JavaScript support library
+
+During the installation or update of the Cloudinary GEM, the latest Cloudinary JavaScript library is automatically fetched and bundled with the GEM.
+
+To use the JavaScript files you need to include them in your application, for example:
+
+```
+<%= javascript_include_tag("jquery.ui.widget", "jquery.iframe-transport", 
+                           "jquery.fileupload", "jquery.cloudinary") %>
+```
+
+Alternatively, if you use Asset Pipeline, simply edit your application.js file and add the following line:
+
+```
+//= require cloudinary
+```
+
+To automatically set-up Cloudinary's configuration, include the following line in your view or layout:
+
+```
+<%= cloudinary_js_config %>
+```
+
+#### Uploading images from the browser
+
+The Cloudinary JavaScript library utilizes the Blueimp File Upload library to support image uploading from the browser. See the [documentation](http://cloudinary.com/documentation/jquery_image_upload) for more details.
+
+|Important|
+|---------|
+|Starting with version 2.0 of the Cloudinary JavaScript library, the Cloudinary extension to the Blueimp File Upload library is no longer initialized automatically. Instead you need to explicitly set it up as described below.|
+
+To initialize the File Upload library with Cloudinary include the following code in your page:
+
+```javascript
+$(function() {
+      if($.fn.cloudinary_fileupload !== undefined) {
+        $("input.cloudinary-fileupload[type=file]").cloudinary_fileupload();
+      }
+    });
+```
+
+
+(`cloudinary_fileupload()` internally calls Blueimp's `fileupload()` so there's no need to call both.)
 
 ### Samples
 
