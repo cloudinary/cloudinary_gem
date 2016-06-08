@@ -13,12 +13,12 @@ module Cloudinary::CarrierWave
     base.class_attribute :storage_type, :metadata
     base.send(:attr_reader, :stored_version)
     override_in_versions(base, :blank?, :full_public_id, :my_public_id, :all_versions_processors)
-  end  
-    
+  end
+
   def is_main_uploader?
     self.class.version_names.blank?
   end
-  
+
   def retrieve_from_store!(identifier)
     # Workaround cloudinary-mongoid hack of setting column to _old_ before saving it.
     mongoid_blank = defined?(Mongoid::Extensions::Object) && self.is_a?(Mongoid::Extensions::Object) && identifier == "_old_"
@@ -31,7 +31,7 @@ module Cloudinary::CarrierWave
       @stored_version = @file.version
       self.original_filename = sanitize(@file.filename)
     end
-  end  
+  end
 
   def url(*args)
     if args.first && !args.first.is_a?(Hash)
@@ -45,9 +45,9 @@ module Cloudinary::CarrierWave
         return nil if public_id.nil?
       else
         public_id = options.include?(:version) ? self.my_public_id : self.full_public_id
-      end      
+      end
       options = self.transformation.merge(options) if self.version_name.present?
-      
+
       Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :resource_type=>self.resource_type, :type=>self.storage_type}.merge(options))
     end
   end
@@ -56,7 +56,7 @@ module Cloudinary::CarrierWave
     return nil if self.blank?
     return self.my_public_id if self.stored_version.blank?
     return "v#{self.stored_version}/#{self.my_public_id}"
-  end    
+  end
 
   def filename
     return nil if self.blank?
@@ -67,60 +67,60 @@ module Cloudinary::CarrierWave
   def default_public_id
     nil
   end
-      
-  # public_id to use for uploaded file. Can be overridden by caller. Random public_id will be used otherwise.  
+
+  # public_id to use for uploaded file. Can be overridden by caller. Random public_id will be used otherwise.
   def public_id
     nil
   end
-  
+
   # If the user overrode public_id, that should be used, even if it's different from current public_id in the database.
   # Otherwise, try to use public_id from the database.
   # Otherwise, generate a new random public_id
   def my_public_id
-    @public_id ||= self.public_id 
+    @public_id ||= self.public_id
     @public_id ||= @stored_public_id
     @public_id ||= Cloudinary::Utils.random_public_id
   end
-  
+
   def rename(to_public_id = nil, overwrite=false)
-    public_id_overwrite = self.public_id 
+    public_id_overwrite = self.public_id
     to_public_id ||= public_id_overwrite
-    if public_id_overwrite && to_public_id != public_id_overwrite 
+    if public_id_overwrite && to_public_id != public_id_overwrite
       raise CloudinaryException, "The public_id method was overridden and returns #{public_id_overwrite} - can't rename to #{to_public_id}"
     elsif to_public_id.nil?
       raise CloudinaryException, "No to_public_id given"
     end
-     
+
     from_public_id = @stored_public_id || self.my_public_id
     return if from_public_id == to_public_id
-    
+
     @public_id = @stored_public_id = to_public_id
     if self.resource_type == 'raw'
-      from_public_id = [from_public_id, self.format].join(".") 
+      from_public_id = [from_public_id, self.format].join(".")
       to_public_id = [to_public_id, self.format].join(".")
     end
     Cloudinary::Uploader.rename(from_public_id, to_public_id, :type=>self.storage_type, :resource_type=>self.resource_type, :overwrite=>overwrite)
     storage.store_cloudinary_identifier(@stored_version, [@public_id, self.format].join("."))
-  end  
+  end
 
   def recreate_versions!
     # Do nothing
   end
-  
+
   def cache_versions!(new_file=nil)
     # Do nothing
   end
-  
+
   def process!(new_file=nil)
     # Do nothing
   end
-  
+
   SANITIZE_REGEXP = CarrierWave::SanitizedFile.respond_to?(:sanitize_regexp) ? CarrierWave::SanitizedFile.sanitize_regexp : /[^a-zA-Z0-9\.\-\+_]/
   def sanitize(filename)
     return nil if filename.nil?
     filename.gsub(SANITIZE_REGEXP, '_')
   end
-  
+
   # Should removed files be removed from Cloudinary as well. Can be overridden.
   def delete_remote?
     true
@@ -130,7 +130,7 @@ module Cloudinary::CarrierWave
   def cloudinary_should_handle_remote?
     true
   end
-  
+
   # Rename preloaded uploads if public_id was overridden
   def auto_rename_preloaded?
     true
@@ -140,7 +140,7 @@ module Cloudinary::CarrierWave
   def use_extended_identifier?
     true
   end
-  
+
   class CloudinaryFile
     attr_reader :identifier, :public_id, :filename, :format, :version, :storage_type, :resource_type
     def initialize(identifier, uploader)
@@ -157,35 +157,35 @@ module Cloudinary::CarrierWave
         @filename = $2
       else
         @filename = @identifier
-        @version = nil 
+        @version = nil
       end
 
       @storage_type ||= uploader.class.storage_type
-      @resource_type ||= Cloudinary::Utils.resource_type_for_format(@filename)      
-      @public_id, @format = Cloudinary::PreloadedFile.split_format(@filename)      
+      @resource_type ||= Cloudinary::Utils.resource_type_for_format(@filename)
+      @public_id, @format = Cloudinary::PreloadedFile.split_format(@filename)
     end
 
     def storage_identifier
       identifier
     end
-    
+
     def delete
       public_id = @resource_type == "raw" ? self.filename : self.public_id
-      Cloudinary::Uploader.destroy(public_id, :type=>self.storage_type, :resource_type=>self.resource_type) if @uploader.delete_remote?        
+      Cloudinary::Uploader.destroy(public_id, :type=>self.storage_type, :resource_type=>self.resource_type) if @uploader.delete_remote?
     end
-    
+
     def exists?
-      Cloudinary::Uploader.exists?(self.identifier, :type=>self.storage_type, :resource_type=>self.resource_type)
+      Cloudinary::Uploader.exists?(self.public_id, :type=>self.storage_type, :resource_type=>self.resource_type)
     end
-    
+
     def read(options={})
       parameters={:type=>self.storage_type, :resource_type=>self.resource_type}.merge(options)
       Cloudinary::Downloader.download(self.identifier, parameters)
     end
 
   end
-  
-  # @deprecated 
+
+  # @deprecated
   def self.split_format(identifier)
     return Cloudinary::PreloadedFile.split_format(identifier)
   end
@@ -201,7 +201,7 @@ module Cloudinary::CarrierWave
   def resource_type
     @file.respond_to?(:resource_type) ? @file.resource_type : Cloudinary::Utils.resource_type_for_format(requested_format || original_filename || default_format)
   end
-  
+
   # For the given methods - versions should call the main uploader method
   def self.override_in_versions(base, *methods)
     methods.each do
@@ -209,8 +209,8 @@ module Cloudinary::CarrierWave
       base.send :define_method, method do
         return super() if self.version_name.blank?
         uploader = self.model.send(self.mounted_as)
-        uploader.send(method)    
+        uploader.send(method)
       end
-    end    
+    end
   end
 end
