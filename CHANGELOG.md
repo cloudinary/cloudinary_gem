@@ -1,4 +1,19 @@
 
+1.2.0 / 2016-06-22
+==================
+
+New functionality and features
+------------------------------
+
+  * New configuration parameter `:client_hints`
+  * Enhanced auto `width` values
+  * Enhanced `quality` values
+
+Other Changes
+-------------
+
+  * Remove coffee and map files. Fixes #203
+
 1.1.7 / 2016-06-06
 ==================
 
