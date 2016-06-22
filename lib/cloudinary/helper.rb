@@ -46,9 +46,11 @@ module CloudinaryHelper
     source = cloudinary_url_internal(source, tag_options)
 
     responsive_placeholder = Cloudinary::Utils.config_option_consume(tag_options, :responsive_placeholder)
+    client_hints = Cloudinary::Utils.config_option_consume(tag_options, :client_hints)
+
     hidpi = tag_options.delete(:hidpi)
     responsive = tag_options.delete(:responsive)
-    if hidpi || responsive
+    if !client_hints && (hidpi || responsive)
       tag_options["data-src"] = source
       source = nil
       extra_class = responsive ? "cld-responsive" : "cld-hidpi"
@@ -184,6 +186,9 @@ module CloudinaryHelper
     content_tag("script", "$.cloudinary.config(#{params.to_json});".html_safe, :type=>"text/javascript")
   end
 
+  def cl_client_hints_meta_tag
+    tag "meta", "http-equiv" => "Accept-CH", :content => "DPR, Viewport-Width, Width"
+  end
   def cloudinary_url(source, options = {})
     cloudinary_url_internal(source, options.clone)
   end

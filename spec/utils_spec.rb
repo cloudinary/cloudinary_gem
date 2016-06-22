@@ -207,6 +207,18 @@ describe Cloudinary::Utils do
         .to produce_url("#{upload_path}/c_crop,h_10,w_10/test")
               .and mutate_options_to({ :width => "10", :height => "10" })
     end
+    it "should support auto width" do
+      expect(["test", { :width => "auto:20", :crop => :fill }])
+          .to produce_url("#{upload_path}/c_fill,w_auto:20/test")
+      expect(["test", { :width => "auto:20:350", :crop => :fill }])
+          .to produce_url("#{upload_path}/c_fill,w_auto:20:350/test")
+      expect(["test", { :width => "auto:breakpoints", :crop => :fill }])
+          .to produce_url("#{upload_path}/c_fill,w_auto:breakpoints/test")
+      expect(["test", { :width => "auto:breakpoints_100_1900_20_15", :crop => :fill }])
+          .to produce_url("#{upload_path}/c_fill,w_auto:breakpoints_100_1900_20_15/test")
+      expect(["test", { :width => "auto:breakpoints:json", :crop => :fill }])
+          .to produce_url("#{upload_path}/c_fill,w_auto:breakpoints:json/test")
+    end
   end
 
   it "should use x, y, radius, prefix, gravity and quality from options" do
@@ -214,7 +226,24 @@ describe Cloudinary::Utils do
       .to produce_url("#{upload_path}/g_center,p_a,q_0.4,r_3,x_1,y_2/test")
             .and empty_options
   end
+  context ":quality" do
+    it "support a percent value" do
+      expect(["test", { :x => 1, :y => 2, :radius => 3, :gravity => :center, :quality => 80, :prefix => "a" }])
+          .to produce_url("#{upload_path}/g_center,p_a,q_80,r_3,x_1,y_2/test")
 
+      expect(["test", { :x => 1, :y => 2, :radius => 3, :gravity => :center, :quality => "80:444", :prefix => "a" }])
+          .to produce_url("#{upload_path}/g_center,p_a,q_80:444,r_3,x_1,y_2/test")
+    end
+    it "should support auto value" do
+
+      expect(["test", { :x => 1, :y => 2, :radius => 3, :gravity => :center, :quality => "auto", :prefix => "a" }])
+          .to produce_url("#{upload_path}/g_center,p_a,q_auto,r_3,x_1,y_2/test")
+
+      expect(["test", { :x => 1, :y => 2, :radius => 3, :gravity => :center, :quality => "auto:good", :prefix => "a" }])
+          .to produce_url("#{upload_path}/g_center,p_a,q_auto:good,r_3,x_1,y_2/test")
+
+    end
+  end
   describe ":transformation" do
     it "should support named tranformation" do
       expect(["test", { :transformation => "blip" }])
