@@ -219,6 +219,10 @@ describe Cloudinary::Utils do
       expect(["test", { :width => "auto:breakpoints:json", :crop => :fill }])
           .to produce_url("#{upload_path}/c_fill,w_auto:breakpoints:json/test")
     end
+    it 'should support oh,ow' do
+      expect(["test", {:width => "ow", :height => "oh", :crop => :crop}])
+          .to produce_url("#{upload_path}/c_crop,h_oh,w_ow/test")
+    end
   end
 
   it "should use x, y, radius, prefix, gravity and quality from options" do
