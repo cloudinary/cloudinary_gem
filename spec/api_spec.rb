@@ -3,308 +3,347 @@ require 'cloudinary'
 
 describe Cloudinary::Api do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
+  include_context "cleanup", TIMESTAMP_TAG
 
+  prefix = "api_test_#{Time.now.to_i}"
+  test_id_1 = "#{prefix}_1"
+  test_id_2   = "#{prefix}_2"
+  test_id_3   = "#{prefix}_3"
   before(:all) do
-    @timestamp_tag = "api_test_tag_#{Time.now.to_i}"
+
     @api = Cloudinary::Api
-    Cloudinary::Uploader.destroy("api_test")
-    Cloudinary::Uploader.destroy("api_test2")
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test", :tags=> ["api_test_tag", @timestamp_tag], :context => "key=value", :eager=>[:width=>100,:crop=>:scale])
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test2", :tags=> ["api_test_tag", @timestamp_tag], :context => "key=value", :eager=>[:width=>100,:crop=>:scale])
-    @api.delete_transformation("api_test_transformation") rescue nil
-    @api.delete_transformation("api_test_transformation2") rescue nil
-    @api.delete_transformation("api_test_transformation3") rescue nil
-    @api.delete_upload_preset("api_test_upload_preset") rescue nil
-    @api.delete_upload_preset("api_test_upload_preset2") rescue nil
-    @api.delete_upload_preset("api_test_upload_preset3") rescue nil
-    @api.delete_upload_preset("api_test_upload_preset4") rescue nil
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
   end
-  
+
+  after(:all) do
+    # in addition to "cleanup" context
+    unless Cloudinary.config.keep_test_products
+      up = Cloudinary::Api.upload_presets max_results: 500
+      up["presets"].each do |u|
+        tags = u["settings"]["tags"]
+        name = u["name"]
+        if tags =~ /.*#{TIMESTAMP_TAG}.*/
+          Cloudinary::Api.delete_upload_preset(name)
+        end
+      end
+    end
+  end
+
   it "should allow listing resource_types" do
-    @api.resource_types()["resource_types"].should include("image")
+    expect(@api.resource_types()["resource_types"]).to include("image")
   end
 
   it "should allow listing resources" do
-    resource = @api.resources()["resources"].find{|resource| resource["public_id"] == "api_test"}
-    resource.should_not be_blank
-    resource["type"].should == "upload" 
+    resource = @api.resources()["resources"].find{|resource| resource["public_id"] == test_id_1
+    }
+    expect(resource).not_to be_blank
+    expect(resource["type"]).to eq("upload")
   end
 
   it "should allow listing resources with cursor" do
     result = @api.resources(:max_results=>1)
-    result["resources"].should_not be_blank
-    result["resources"].length.should == 1
-    result["next_cursor"].should_not be_blank
+    expect(result["resources"]).not_to be_blank
+    expect(result["resources"].length).to eq(1)
+    expect(result["next_cursor"]).not_to be_blank
     result2 = @api.resources(:max_results=>1, :next_cursor=>result["next_cursor"])
-    result2["resources"].should_not be_blank
-    result2["resources"].length.should == 1
-    result2["resources"][0]["public_id"].should_not == result["resources"][0]["public_id"] 
+    expect(result2["resources"]).not_to be_blank
+    expect(result2["resources"].length).to eq(1)
+    expect(result2["resources"][0]["public_id"]).not_to eq(result["resources"][0]["public_id"] )
   end
 
-
   it "should allow listing resources by type" do
-    resource = @api.resources(:type=>"upload", :tags=>true)["resources"].find{|resource| resource["public_id"] == "api_test"}
-    resource.should_not be_blank
-    resource["tags"].should == ["api_test_tag", @timestamp_tag]
+    resource = @api.resources(:type=>"upload", :tags=>true)["resources"].find{|resource| resource["public_id"] == test_id_1
+    }
+    expect(resource).not_to be_blank
+    expect(resource["tags"]).to match_array([TEST_TAG, TIMESTAMP_TAG])
   end
 
   it "should allow listing resources by prefix" do
-    resources = @api.resources(:type=>"upload", :prefix=>"api_test", :tags => true, :context => true)["resources"]
-    resources.map{|resource| resource["public_id"]}.should include("api_test", "api_test2")
-    resources.map{|resource| resource["tags"]}.should include(["api_test_tag", @timestamp_tag])
-    resources.map{|resource| resource["context"]}.should include({"custom" => {"key" => "value"}})
+    resources = @api.resources(:type =>"upload", :prefix => prefix, :tags => true, :context => true)["resources"]
+    expect(resources.map{|resource| resource["public_id"]}).to include(test_id_1, test_id_2)
+    expect(resources.map{|resource| resource["tags"]}.flatten).to include(TEST_TAG, TIMESTAMP_TAG)
+    expect(resources.map{|resource| resource["context"]}).to include({"custom" => {"key" => "value"}})
   end
 
   it "should allow listing resources by tag" do
-    resources = @api.resources_by_tag("api_test_tag", :tags => true, :context => true)["resources"]
-    resources.find{|resource| resource["public_id"] == "api_test"}.should_not be_blank
-    resources.map{|resource| resource["tags"]}.should include(["api_test_tag", @timestamp_tag])
-    resources.map{|resource| resource["context"]}.should include({"custom" => {"key" => "value"}})
+    resources = @api.resources_by_tag(TEST_TAG, :tags => true, :context => true)["resources"]
+    expect(resources.find{|resource| resource["public_id"] == test_id_1
+    }).not_to be_blank
+    expect(resources.map{|resource| resource["tags"]}.flatten).to include(TEST_TAG, TIMESTAMP_TAG)
+    expect(resources.map{|resource| resource["context"]}).to include({"custom" => {"key" => "value"}})
   end
   
   it "should allow listing resources by public ids" do
-    resources = @api.resources_by_ids(["api_test", "api_test2"], :tags => true, :context => true)["resources"]
-    resources.length.should == 2
-    resources.find{|resource| resource["public_id"] == "api_test"}.should_not be_blank
-    resources.map{|resource| resource["tags"]}.should include(["api_test_tag", @timestamp_tag])
-    resources.map{|resource| resource["context"]}.should include({"custom" => {"key" => "value"}})
+    resources = @api.resources_by_ids([test_id_1, test_id_2], :tags => true, :context => true)["resources"]
+    expect(resources.length).to eq(2)
+    expect(resources.find{|resource| resource["public_id"] == test_id_1
+    }).not_to be_blank
+    expect(resources.map{|resource| resource["tags"]}.flatten).to include(TEST_TAG, TIMESTAMP_TAG)
+    expect(resources.map{|resource| resource["context"]}).to include({"custom" => {"key" => "value"}})
   end
   
   it "should allow listing resources by start date", :start_at => true do
-    sleep(2)
-    start_at = Time.now.to_s
-    sleep(2)
-    response = Cloudinary::Uploader.upload("spec/logo.png")
-    resources = @api.resources(:type=>"upload", :start_at=>start_at, :direction => "asc")["resources"]
-    resources.map{|resource| resource["public_id"]}.should == [response["public_id"]]
+    start_at = Time.now
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :start_at] => start_at, [:payload, :direction] => "asc"}))
+    @api.resources(:type=>"upload", :start_at=>start_at, :direction => "asc")
   end
-  
-  it "should allow listing resources in both directions" do
-    asc_resources = @api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => "asc")["resources"]
-    desc_resources = @api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => "desc")["resources"]
-    # NOTE: this assumes the full list fits in a page which is the case unless resources with 'api_test' prefix were
-    # uploaded to the account against which this test runs
-    asc_resources.reverse.should == desc_resources
-    asc_resources_alt = @api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => 1)["resources"]
-    desc_resources_alt = @api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => -1)["resources"]
-    asc_resources_alt.reverse.should == desc_resources_alt
-    asc_resources.should == asc_resources_alt
-    lambda{@api.resources_by_tag(@timestamp_tag, :type=>"upload", :direction => "anythingelse")["resources"]}.should raise_error(Cloudinary::Api::BadRequest)
+
+  describe ":direction" do
+
+    it "should accept a string 'desc' and 'asc'" do
+      expected = {
+          :url => /.*\/resources\/image\/tags\/#{TIMESTAMP_TAG}/,
+          [:payload, :direction] => "asc"
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+      @api.resources_by_tag(TIMESTAMP_TAG, :type=>"upload", :direction => "asc")
+    end
+    it "should accept an integer of '1' or '-1'" do
+      expected = {
+          :url => /.*\/resources\/image\/tags\/#{TIMESTAMP_TAG}/,
+          [:payload, :direction] => "-1"
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.resources_by_tag(TIMESTAMP_TAG, :type=>"upload", :direction => "-1")
+    end
   end
 
   it "should allow get resource metadata" do
-    resource = @api.resource("api_test")
-    resource.should_not be_blank
-    resource["public_id"].should == "api_test"
-    resource["bytes"].should == 3381
-    resource["derived"].length.should == 1
+    resource = @api.resource(test_id_1)
+    expect(resource).not_to be_blank
+    expect(resource["public_id"]).to eq(test_id_1)
+    expect(resource["bytes"]).to eq(3381)
+    expect(resource["derived"].length).to eq(1)
   end
   
   it "should allow deleting derived resource" do
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test3", :eager=>[:width=>101,:crop=>:scale])
-    resource = @api.resource("api_test3")
-    resource.should_not be_blank
-    resource["derived"].length.should == 1
-    derived_resource_id = resource["derived"][0]["id"]
+    derived_resource_id = "derived_id"
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :derived_resource_ids] => derived_resource_id}))
     @api.delete_derived_resources(derived_resource_id)
-    resource = @api.resource("api_test3")
-    resource.should_not be_blank
-    resource["derived"].length.should == 0
   end
 
   it "should allow deleting resources" do
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test3")
-    resource = @api.resource("api_test3")
-    resource.should_not be_blank
-    @api.delete_resources(["apit_test", "api_test2", "api_test3"])
-    lambda{@api.resource("api_test3")}.should raise_error(Cloudinary::Api::NotFound)
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :public_ids] => ["apit_test", "test_id_2", "api_test3"]}))
+    @api.delete_resources(["apit_test", "test_id_2", "api_test3"])
   end
 
   it "should allow deleting resources by prefix" do
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test_by_prefix")
-    resource = @api.resource("api_test_by_prefix")
-    resource.should_not be_blank
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :prefix] => "api_test_by"}))
     @api.delete_resources_by_prefix("api_test_by")
-    lambda{@api.resource("api_test_by_prefix")}.should raise_error(Cloudinary::Api::NotFound)
   end
 
   it "should allow deleting resources by tags" do
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test4", :tags=>["api_test_tag_for_delete"])
-    resource = @api.resource("api_test4")
-    resource.should_not be_blank
+    expect(RestClient::Request).to receive(:execute).with(hash_including( :url => /.*\/tags\/api_test_tag_for_delete$/))
     @api.delete_resources_by_tag("api_test_tag_for_delete")
-    lambda{@api.resource("api_test4")}.should raise_error(Cloudinary::Api::NotFound)
   end
 
   it "should allow listing tags" do
     tags = @api.tags()["tags"]
-    tags.should include('api_test_tag')
+    expect(tags).to include(TEST_TAG)
   end
 
   it "should allow listing tag by prefix" do
-    tags = @api.tags(:prefix=>"api_test")["tags"]
-    tags.should include('api_test_tag')
+    tags = @api.tags(:prefix=> TEST_TAG)["tags"]
+    expect(tags).to include(TIMESTAMP_TAG)
     tags = @api.tags(:prefix=>"api_test_no_such_tag")["tags"]
-    tags.should be_blank
+    expect(tags).to be_blank
   end
   
-  it "should allow listing transformations" do
-    transformation = @api.transformations()["transformations"].find{|transformation| transformation["name"] == "c_scale,w_100"}
-    transformation.should_not be_blank
-    transformation["used"].should == true
-  end
+  describe 'transformations' do
+    it "should allow listing transformations" do
+      transformation = @api.transformations()["transformations"].find { |transformation| transformation["name"] == "c_scale,w_100" }
+      expect(transformation).not_to be_blank
+      expect(transformation["used"]).to eq(true)
+    end
 
-  it "should allow getting transformation metadata" do
-    transformation = @api.transformation("c_scale,w_100")
-    transformation.should_not be_blank  
-    transformation["info"].should == ["crop"=>"scale", "width"=>100]     
-    transformation = @api.transformation("crop"=>"scale", "width"=>100)
-    transformation.should_not be_blank  
-    transformation["info"].should == ["crop"=>"scale", "width"=>100]     
+    it "should allow getting transformation metadata" do
+      transformation = @api.transformation("c_scale,w_100")
+      expect(transformation).not_to be_blank
+      expect(transformation["info"]).to eq(["crop" => "scale", "width" => 100])
+      transformation = @api.transformation("crop" => "scale", "width" => 100)
+      expect(transformation).not_to be_blank
+      expect(transformation["info"]).to eq(["crop" => "scale", "width" => 100])
+    end
+
+    it "should allow updating transformation allowed_for_strict" do
+      @api.update_transformation("c_scale,w_100", :allowed_for_strict => true)
+      transformation = @api.transformation("c_scale,w_100")
+      expect(transformation).not_to be_blank
+      expect(transformation["allowed_for_strict"]).to eq(true)
+      @api.update_transformation("c_scale,w_100", :allowed_for_strict => false)
+      transformation = @api.transformation("c_scale,w_100")
+      expect(transformation).not_to be_blank
+      expect(transformation["allowed_for_strict"]).to eq(false)
+    end
+
+    it "should fetch two different derived images using next_cursor" do
+      result = @api.transformation("c_scale,w_100", :max_results=>1)
+      expect(result["derived"]).not_to be_blank
+      expect(result["derived"].length).to eq(1)
+      expect(result["next_cursor"]).not_to be_blank
+      result2 = @api.transformation("c_scale,w_100", :max_results=>1, :next_cursor=>result["next_cursor"])
+      expect(result2["derived"]).not_to be_blank
+      expect(result2["derived"].length).to eq(1)
+      expect(result2["derived"][0]["id"]).not_to eq(result["derived"][0]["id"] )
+    end
+
+    describe "named transformations" do
+      it "should allow creating named transformation" do
+        public_id = "api_test_transformation_#{Time.now.to_i}"
+        @api.create_transformation(public_id, "crop" => "scale", "width" => 102)
+        transformation = @api.transformation(public_id)
+        expect(transformation).not_to be_blank
+        expect(transformation["allowed_for_strict"]).to eq(true)
+        expect(transformation["info"]).to eq(["crop" => "scale", "width" => 102])
+        expect(transformation["used"]).to eq(false)
+      end
+
+      it "should allow deleting named transformation" do
+        public_id = "api_test_transformation_#{Time.now.to_i}"
+        expect(RestClient::Request).to receive(:execute).with(deep_hash_value( :url => /.*\/transformations\/#{public_id}/, :method => :delete))
+        @api.delete_transformation(public_id)
+      end
+
+      it "should allow unsafe update of named transformation" do
+        public_id = "api_test_transformation_#{Time.now.to_i}"
+        expected = {
+            :url => /.*\/transformations\/#{public_id}$/,
+            :method => :put,
+            [:payload, :unsafe_update] => "c_scale,w_103"}
+        expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+        @api.update_transformation(public_id, :unsafe_update => { "crop" => "scale", "width" => 103 })
+      end
+
+    end
+    it "should allow deleting implicit transformation" do
+      @api.transformation("c_scale,w_100")
+      @api.delete_transformation("c_scale,w_100")
+      expect { @api.transformation("c_scale,w_100") }.to raise_error(Cloudinary::Api::NotFound)
+    end
   end
   
-  it "should allow updating transformation allowed_for_strict" do
-    @api.update_transformation("c_scale,w_100", :allowed_for_strict=>true)
-    transformation = @api.transformation("c_scale,w_100")
-    transformation.should_not be_blank  
-    transformation["allowed_for_strict"].should == true
-    @api.update_transformation("c_scale,w_100", :allowed_for_strict=>false)
-    transformation = @api.transformation("c_scale,w_100")
-    transformation.should_not be_blank  
-    transformation["allowed_for_strict"].should == false
+  it "should allow creating upload_presets" do
+    expected = {:url => /.*\/upload_presets$/,
+                [:payload, :name] => "new_preset",
+                [:payload, :folder] => "some_folder"}
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+    @api.create_upload_preset(:name => "new_preset", :folder => "some_folder", :tags => [TEST_TAG, TIMESTAMP_TAG])
   end
 
-  it "should allow creating named transformation" do
-    @api.create_transformation("api_test_transformation", "crop"=>"scale", "width"=>102)
-    transformation = @api.transformation("api_test_transformation")
-    transformation.should_not be_blank  
-    transformation["allowed_for_strict"].should == true
-    transformation["info"].should == ["crop"=>"scale", "width"=>102]
-    transformation["used"].should == false
-  end
+  describe "upload_presets" do
+    it 'should not accept parameters' do
+      expected = {
+          :url => /.*\/upload_presets/,
+          [:payload, :next_cursor] => 1234567,
+          [:payload, :max_results] => 10
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.upload_presets :next_cursor => 1234567, :max_results => 10
 
-  it "should allow deleting named transformation" do
-    @api.create_transformation("api_test_transformation2", "crop"=>"scale", "width"=>103)
-    @api.transformation("api_test_transformation2")
-    @api.delete_transformation("api_test_transformation2")
-    lambda{@api.transformation("api_test_transformation2")}.should raise_error(Cloudinary::Api::NotFound)
-  end  
-
-  it "should allow unsafe update of named transformation" do
-    @api.create_transformation("api_test_transformation3", "crop"=>"scale", "width"=>102)
-    @api.update_transformation("api_test_transformation3", :unsafe_update=>{"crop"=>"scale", "width"=>103})
-    transformation = @api.transformation("api_test_transformation3")
-    transformation.should_not be_blank  
-    transformation["info"].should == ["crop"=>"scale", "width"=>103]
-    transformation["used"].should == false
+    end
   end
-
-  it "should allow deleting implicit transformation" do
-    @api.transformation("c_scale,w_100")
-    @api.delete_transformation("c_scale,w_100")
-    lambda{@api.transformation("c_scale,w_100")}.should raise_error(Cloudinary::Api::NotFound)
-  end
-  
-  it "should allow creating and listing upload_presets", :upload_preset => true do
-    @api.create_upload_preset(:name => "api_test_upload_preset", :folder => "folder")
-    @api.create_upload_preset(:name => "api_test_upload_preset2", :folder => "folder2")
-    @api.create_upload_preset(:name => "api_test_upload_preset3", :folder => "folder3")
-    @api.upload_presets["presets"].first(3).map{|p| p["name"]}.should == ["api_test_upload_preset3", "api_test_upload_preset2", "api_test_upload_preset"]
-    @api.delete_upload_preset("api_test_upload_preset")
-    @api.delete_upload_preset("api_test_upload_preset2")
-    @api.delete_upload_preset("api_test_upload_preset3")
-  end
-  
   it "should allow getting a single upload_preset", :upload_preset => true do
-    result = @api.create_upload_preset(:unsigned => true, :folder => "folder", :width => 100, :crop => :scale, :tags => ["a","b","c"], :context => {:a => "b", :c => "d"})
+    result = @api.create_upload_preset(:unsigned => true, :folder => "folder", :width => 100, :crop => :scale, :tags => ["a","b","c", TEST_TAG, TIMESTAMP_TAG], :context => {:a => "b", :c => "d"})
     name = result["name"]
     preset = @api.upload_preset(name)
-    preset["name"].should == name
-    preset["unsigned"].should == true
-    preset["settings"]["folder"].should == "folder"
-    preset["settings"]["transformation"].should == [{"width" => 100, "crop" => "scale"}]
-    preset["settings"]["context"].should == {"a" => "b", "c" => "d"}
-    preset["settings"]["tags"].should == ["a","b","c"]
-    @api.delete_upload_preset(name)
+    expect(preset["name"]).to eq(name)
+    expect(preset["unsigned"]).to eq(true)
+    expect(preset["settings"]["folder"]).to eq("folder")
+    expect(preset["settings"]["transformation"]).to eq([{"width" => 100, "crop" => "scale"}])
+    expect(preset["settings"]["context"]).to eq({"a" => "b", "c" => "d"})
+    expect(preset["settings"]["tags"]).to eq(["a","b","c", TEST_TAG, TIMESTAMP_TAG])
   end
   
   it "should allow deleting upload_presets", :upload_preset => true do
-    @api.create_upload_preset(:name => "api_test_upload_preset4", :folder => "folder")
+    @api.create_upload_preset(:name => "api_test_upload_preset4", :folder => "folder", :tags => [TEST_TAG, TIMESTAMP_TAG])
     preset = @api.upload_preset("api_test_upload_preset4")
     @api.delete_upload_preset("api_test_upload_preset4")
-    lambda{preset = @api.upload_preset("api_test_upload_preset4")}.should raise_error
+    expect{preset = @api.upload_preset("api_test_upload_preset4")}.to raise_error
   end
   
   it "should allow updating upload_presets", :upload_preset => true do
-    name = @api.create_upload_preset(:folder => "folder")["name"]
+    name = @api.create_upload_preset(:folder => "folder", :tags => [TEST_TAG, TIMESTAMP_TAG])["name"]
     preset = @api.upload_preset(name)
     @api.update_upload_preset(name, preset["settings"].merge(:colors => true, :unsigned => true, :disallow_public_id => true))
     preset = @api.upload_preset(name)
-    preset["name"].should == name
-    preset["unsigned"].should == true
-    preset["settings"].should == {"folder" => "folder", "colors" => true, "disallow_public_id" => true}
-    @api.delete_upload_preset(name)
+    expect(preset["name"]).to eq(name)
+    expect(preset["unsigned"]).to eq(true)
+    expect(preset["settings"]).to eq({"folder" => "folder", "colors" => true, "disallow_public_id" => true, "tags" => [TEST_TAG, TIMESTAMP_TAG]})
   end
   
   # this test must be last because it deletes (potentially) all dependent transformations which some tests rely on. Excluded by default.
-  it "should allow deleting all resources", :delete_all=>true do
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test5", :eager=>[:width=>101,:crop=>:scale])
+  skip "should allow deleting all resources", :delete_all=>true do
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test5", :eager=>[:width=>101,:crop=>:scale], :tags => [TEST_TAG, TIMESTAMP_TAG])
     resource = @api.resource("api_test5")
-    resource.should_not be_blank
-    resource["derived"].length.should == 1
+    expect(resource).not_to be_blank
+    expect(resource["derived"].length).to eq(1)
     @api.delete_all_resources(:keep_original => true)
     resource = @api.resource("api_test5")
-    resource.should_not be_blank
-    resource["derived"].length.should == 0
+    expect(resource).not_to be_blank
+    expect(resource["derived"].length).to eq(0)
   end
   
   it "should support setting manual moderation status" do
-    result = Cloudinary::Uploader.upload("spec/logo.png", {:moderation => :manual})
-    result["moderation"][0]["status"].should == "pending"
-    result["moderation"][0]["kind"].should == "manual"
+    result = Cloudinary::Uploader.upload("spec/logo.png", {:moderation => :manual, :tags => [TEST_TAG, TIMESTAMP_TAG]})
+    expect(result["moderation"][0]["status"]).to eq("pending")
+    expect(result["moderation"][0]["kind"]).to eq("manual")
     api_result = Cloudinary::Api.update(result["public_id"], {:moderation_status => :approved})
-    api_result["moderation"][0]["status"].should == "approved"
-    api_result["moderation"][0]["kind"].should == "manual"
+    expect(api_result["moderation"][0]["status"]).to eq("approved")
+    expect(api_result["moderation"][0]["kind"]).to eq("manual")
   end
     
   it "should support requesting raw conversion" do
-    result = Cloudinary::Uploader.upload("spec/docx.docx", :resource_type => :raw)
-    lambda{Cloudinary::Api.update(result["public_id"], {:resource_type => :raw, :raw_convert => :illegal})}.should raise_error(Cloudinary::Api::BadRequest, /^Illegal value|not a valid/)
+    result = Cloudinary::Uploader.upload("spec/docx.docx", :resource_type => :raw, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect{Cloudinary::Api.update(result["public_id"], {:resource_type => :raw, :raw_convert => :illegal})}.to raise_error(Cloudinary::Api::BadRequest, /^Illegal value|not a valid/)
   end
   
   it "should support requesting categorization" do
-    result = Cloudinary::Uploader.upload("spec/logo.png")
-    lambda{Cloudinary::Api.update(result["public_id"], {:categorization => :illegal})}.should raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
+    result = Cloudinary::Uploader.upload("spec/logo.png", :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect{Cloudinary::Api.update(result["public_id"], {:categorization => :illegal})}.to raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
   end
   
   it "should support requesting detection" do
-    result = Cloudinary::Uploader.upload("spec/logo.png")
-    lambda{Cloudinary::Api.update(result["public_id"], {:detection => :illegal})}.should raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :detection] => "adv_face"))
+    Cloudinary::Api.update("public_id", {:detection => "adv_face"})
   end
   
   it "should support requesting auto_tagging" do
-    result = Cloudinary::Uploader.upload("spec/logo.png")
-    lambda{Cloudinary::Api.update(result["public_id"], {:auto_tagging => 0.5})}.should raise_error(Cloudinary::Api::BadRequest, /^Must use/)
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :auto_tagging] => 0.5))
+    Cloudinary::Api.update("public_id", {:auto_tagging => 0.5})
   end
   
   it "should support listing by moderation kind and value" do
-    result1 = Cloudinary::Uploader.upload("spec/logo.png", {:moderation => :manual})
-    result2 = Cloudinary::Uploader.upload("spec/logo.png", {:moderation => :manual})
-    result3 = Cloudinary::Uploader.upload("spec/logo.png", {:moderation => :manual})
-    Cloudinary::Api.update(result1["public_id"], {:moderation_status => :approved})
-    Cloudinary::Api.update(result2["public_id"], {:moderation_status => :rejected})
-    approved = Cloudinary::Api.resources_by_moderation(:manual, :approved, :max_results => 1000)["resources"].map{|r| r["public_id"]}
-    approved.should include(result1["public_id"])
-    approved.should_not include(result2["public_id"])
-    approved.should_not include(result3["public_id"])
-    rejected = Cloudinary::Api.resources_by_moderation(:manual, :rejected, :max_results => 1000)["resources"].map{|r| r["public_id"]}
-    rejected.should include(result2["public_id"])
-    rejected.should_not include(result1["public_id"])
-    rejected.should_not include(result3["public_id"])
-    pending = Cloudinary::Api.resources_by_moderation(:manual, :pending, :max_results => 1000)["resources"].map{|r| r["public_id"]}
-    pending.should include(result3["public_id"])
-    pending.should_not include(result1["public_id"])
-    pending.should_not include(result2["public_id"])
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value([:url] => /.*manual\/approved$/, [:payload, :max_results] => 1000))
+    Cloudinary::Api.resources_by_moderation(:manual, :approved, :max_results => 1000)
   end
 
+  it "should support listing folders" do
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders$/, [:method] => :get))
+    Cloudinary::Api.root_folders
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders\/test_folder1$/, [:method] => :get))
+    Cloudinary::Api.subfolders("test_folder1")
+  end
+
+  describe '.restore'  do
+    it 'should restore a deleted resource' do
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :public_ids] => "api_test_restore", [:url] => /.*\/restore$/))
+      Cloudinary::Api.restore("api_test_restore")
+    end
+  end
+
+  describe 'create_upload_mapping' do
+    mapping = "api_test_upload_mapping#{rand(100000)}"
+    it 'should create mapping' do
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :template] => "http://cloudinary.com"))
+      Cloudinary::Api.create_upload_mapping(mapping, :template =>"http://cloudinary.com")
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :template] => "http://res.cloudinary.com"))
+      Cloudinary::Api.update_upload_mapping(mapping, "template" =>"http://res.cloudinary.com")
+    end
+
+
+  end
 end

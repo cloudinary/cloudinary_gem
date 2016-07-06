@@ -23,7 +23,26 @@ module Cloudinary
   OLD_AKAMAI_SHARED_CDN = "cloudinary-a.akamaihd.net"
   SHARED_CDN = AKAMAI_SHARED_CDN
 
-  USER_AGENT = "cld-ruby-" + VERSION
+  USER_AGENT = "CloudinaryRuby/" + VERSION
+  @@user_platform = ""
+
+  # Add platform information to the USER_AGENT header
+  # This is intended for platform information and not individual applications!
+  def self.user_platform=(value)
+    @@user_platform= value
+  end
+
+  def self.user_platform
+    @@user_platform
+  end
+
+  def self.USER_AGENT
+    if @@user_platform.empty?
+      "#{USER_AGENT}"
+    else
+      "#{@@user_platform} #{USER_AGENT}"
+    end
+  end
 
   FORMAT_ALIASES = {
     "gif" => "gif",
@@ -83,18 +102,26 @@ module Cloudinary
     end
   end
 
+  def self.app_root
+    if defined? Rails::root
+      # Rails 2.2 return String for Rails.root
+      Rails.root.is_a?(Pathname) ? Rails.root : Pathname.new(Rails.root)
+    else
+      Pathname.new(".")
+    end
+  end
+
   private
 
   def self.config_env
     return ENV["CLOUDINARY_ENV"] if ENV["CLOUDINARY_ENV"]
-    return Rails.env if defined?(Rails)
+    return Rails.env if defined? Rails::env
     nil
   end
 
   def self.config_dir
     return Pathname.new(ENV["CLOUDINARY_CONFIG_DIR"]) if ENV["CLOUDINARY_CONFIG_DIR"]
-    return Rails.root.join("config") if defined?(Rails)
-    Pathname.new("config")
+    self.app_root.join("config")
   end
 
   def self.set_config(new_config)
@@ -107,4 +134,3 @@ require "cloudinary/helper" if defined?(::ActionView::Base)
 require "cloudinary/controller" if defined?(::ActionController::Base)
 require "cloudinary/railtie" if defined?(Rails) && defined?(Rails::Railtie)
 require "cloudinary/engine" if defined?(Rails) && defined?(Rails::Engine)
-

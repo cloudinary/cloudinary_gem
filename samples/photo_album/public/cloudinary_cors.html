@@ -34,7 +34,13 @@ var JSON;if(!JSON){JSON={}}(function(){function str(a,b){var c,d,e,f,g=gap,h,i=b
       }
       return JSON.stringify(result);
     }
-    document.body.innerHTML=parse(window.location.search.slice(1));
+
+    // IE below version 9 doesn't have textContent, so we have to use innerText
+    if (document.body.hasOwnProperty('textContent')) {
+      document.body.textContent = parse(window.location.search.slice(1));
+    } else {
+      document.body.innerText = parse(window.location.search.slice(1));
+    }
   </script>
 </body>
 </html>

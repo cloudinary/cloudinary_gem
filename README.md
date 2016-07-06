@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/cloudinary/cloudinary_gem.svg?branch=master)](https://travis-ci.org/cloudinary/cloudinary_gem)
 Cloudinary
 ==========
 
@@ -12,33 +13,33 @@ Cloudinary provides URL and HTTP based APIs that can be easily integrated with a
 For Ruby on Rails, Cloudinary provides a GEM for simplifying the integration even further.
 
 ## Getting started guide
-![](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png)  **Take a look at our [Getting started guide of Ruby on Rails](http://cloudinary.com/documentation/rails_integration#getting_started_guide)**.
+![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png)  **Take a look at our [Getting started guide of Ruby on Rails](http://cloudinary.com/documentation/rails_integration#getting_started_guide)**.
 
 ## Setup ######################################################################
 
 To install the Cloudinary Ruby GEM, run:
 
-	$ gem install cloudinary
+    $ gem install cloudinary
 
 If you use Rails 3.x or higher, edit your `Gemfile`, add the following line and run `bundle install`
 
-    $ gem 'cloudinary'
+    gem 'cloudinary'
 
 Or in Rails 2.x, edit your `environment.rb` and add:
 
-    $ config.gem 'cloudinary'
+    config.gem 'cloudinary'
 
 If you would like to use our optional integration module of image uploads with ActiveRecord using `CarrierWave`, install CarrierWave GEM:
 
 Rails 3.x: edit your `Gemfile` and run `bundle install`:
 
-    $ gem 'carrierwave'
-    $ gem 'cloudinary'
+    gem 'carrierwave'
+    gem 'cloudinary'
 
 Rails 2.x environment.rb:
 
-    $ config.gem 'carrierwave', :version => '~> 0.4.10'
-    $ config.gem 'cloudinary'
+    config.gem 'carrierwave', :version => '~> 0.4.10'
+    config.gem 'cloudinary'
 
 
 *Note: The CarrierWave GEM should be loaded before the Cloudinary GEM.*
@@ -92,6 +93,18 @@ It contains settings for each of your deployment environments. You can always ov
 
 You can [download your customized cloudinary.yml](https://cloudinary.com/console/cloudinary.yml) configuration file using our Management Console.
 
+Passing the parameters manually looks like this:
+
+``` ruby
+auth = {
+  cloud_name: "somename",
+  api_key:    "1234567890",
+  api_secret: "FooBarBaz123"
+}
+
+Cloudinary::Uploader.upload("my_picture.jpg", auth)
+```
+
 
 ### Embedding and transforming images
 
@@ -117,7 +130,7 @@ Same goes for Twitter:
 
     twitter_name_profile_image_tag("billclinton.jpg")
 
-![](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](http://cloudinary.com/documentation/rails_image_manipulation) for more information about displaying and transforming images in Rails**.                                         
+![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](http://cloudinary.com/documentation/rails_image_manipulation) for more information about displaying and transforming images in Rails**.                                         
 
 
 
@@ -144,10 +157,13 @@ You can also specify your own public ID:
     http://res.cloudinary.com/demo/image/upload/sample_remote.jpg
 
 
-![](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](http://cloudinary.com/documentation/rails_image_upload) for plenty more options of uploading to the cloud from your Ruby code or directly from the browser**.
+![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](http://cloudinary.com/documentation/rails_image_upload) for plenty more options of uploading to the cloud from your Ruby code or directly from the browser**.
 
 
 ### CarrierWave Integration
+
+**Note:** Starting from version 1.1.0 the CarrierWave database format has changed to include the resource type and storage type. The new functionality
+is backward compatible with the previous format. To use the old format override `use_extended_identifier?` in the Uploader and return `false`.
 
 Cloudinary's Ruby GEM includes an optional plugin for [CarrierWave](https://github.com/jnicklas/carrierwave). If you already use CarrierWave, simply include `Cloudinary::CarrierWave` to switch to cloud storage and image processing in the cloud. 
 
@@ -156,15 +172,62 @@ Cloudinary's Ruby GEM includes an optional plugin for [CarrierWave](https://gith
         ...  
     end
 
-![](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **For more details on CarrierWave integration see [our documentation](http://cloudinary.com/documentation/rails_carrierwave)**.
+![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **For more details on CarrierWave integration see [our documentation](http://cloudinary.com/documentation/rails_carrierwave)**.
 
 We also published an interesting blog post about [Ruby on Rails image uploads with CarrierWave and Cloudinary](http://cloudinary.com/blog/ruby_on_rails_image_uploads_with_carrierwave_and_cloudinary).
+
+#### Neo4j integration
+
+Starting from version 1.1.1 Cloudinary's Ruby GEM supports the use of carrierwave with Neo4j.
+
+### JavaScript support library
+
+During the installation or update of the Cloudinary GEM, the latest Cloudinary JavaScript library is automatically fetched and bundled with the GEM.
+
+To use the JavaScript files you need to include them in your application, for example:
+
+```
+<%= javascript_include_tag("jquery.ui.widget", "jquery.iframe-transport", 
+                           "jquery.fileupload", "jquery.cloudinary") %>
+```
+
+Alternatively, if you use Asset Pipeline, simply edit your application.js file and add the following line:
+
+```
+//= require cloudinary
+```
+
+To automatically set-up Cloudinary's configuration, include the following line in your view or layout:
+
+```
+<%= cloudinary_js_config %>
+```
+
+#### Uploading images from the browser
+
+The Cloudinary JavaScript library utilizes the Blueimp File Upload library to support image uploading from the browser. See the [documentation](http://cloudinary.com/documentation/jquery_image_upload) for more details.
+
+|Important|
+|---------|
+|Starting with version 2.0 of the Cloudinary JavaScript library, the Cloudinary extension to the Blueimp File Upload library is no longer initialized automatically. Instead you need to explicitly set it up as described below.|
+
+To initialize the File Upload library with Cloudinary include the following code in your page:
+
+```javascript
+$(function() {
+      if($.fn.cloudinary_fileupload !== undefined) {
+        $("input.cloudinary-fileupload[type=file]").cloudinary_fileupload();
+      }
+    });
+```
+
+
+(`cloudinary_fileupload()` internally calls Blueimp's `fileupload()` so there's no need to call both.)
 
 ### Samples
 
 You can find our simple and ready-to-use samples projects, along with documentation in the [samples folder](https://github.com/cloudinary/cloudinary_gem/tree/master/samples). 
 Please consult with the [README file](https://github.com/cloudinary/cloudinary_gem/blob/master/samples/README.md), for usage and explanations.
-
 
 ## Additional resources ##########################################################
 
@@ -190,3 +253,5 @@ Stay tuned for updates, tips and tutorials: [Blog](http://cloudinary.com/blog), 
 ## License #######################################################################
 
 Released under the MIT license. 
+
+

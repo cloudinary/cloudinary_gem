@@ -1,4 +1,6 @@
 require 'digest/md5'
+require 'cloudinary/video_helper'
+
 module CloudinaryHelper
   CL_BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
 
@@ -25,34 +27,48 @@ module CloudinaryHelper
   #
   # See documentation for more details and options: http://cloudinary.com/documentation/rails_image_manipulation
   def cl_image_tag(source, options = {})
-    options = options.clone
-    source = cloudinary_url_internal(source, options)
-    options[:width] = options.delete(:html_width) if options.include?(:html_width)
-    options[:height] = options.delete(:html_height) if options.include?(:html_height)
-    options[:size] = options.delete(:html_size) if options.include?(:html_size)
-    options[:border] = options.delete(:html_border) if options.include?(:html_border)
-    responsive_placeholder = Cloudinary::Utils.config_option_consume(options, :responsive_placeholder)
-    hidpi = options.delete(:hidpi)
-    responsive = options.delete(:responsive)
-    if hidpi || responsive
-      options["data-src"] = source
+    cloudinary_tag source, options do |source, options|
+      if source
+        image_tag_without_cloudinary(source, options)
+      else
+        tag 'img', options
+      end
+    end
+
+  end
+
+  def cloudinary_tag(source, options = {})
+    tag_options = options.clone
+    tag_options[:width] = tag_options.delete(:html_width) if tag_options.include?(:html_width)
+    tag_options[:height] = tag_options.delete(:html_height) if tag_options.include?(:html_height)
+    tag_options[:size] = tag_options.delete(:html_size) if tag_options.include?(:html_size)
+    tag_options[:border] = tag_options.delete(:html_border) if tag_options.include?(:html_border)
+    source = cloudinary_url_internal(source, tag_options)
+
+    responsive_placeholder = Cloudinary::Utils.config_option_consume(tag_options, :responsive_placeholder)
+    client_hints = Cloudinary::Utils.config_option_consume(tag_options, :client_hints)
+
+    hidpi = tag_options.delete(:hidpi)
+    responsive = tag_options.delete(:responsive)
+    if !client_hints && (hidpi || responsive)
+      tag_options["data-src"] = source
       source = nil
       extra_class = responsive ? "cld-responsive" : "cld-hidpi"
-      options[:class] = [options[:class], extra_class].compact.join(" ")
+      tag_options[:class] = [tag_options[:class], extra_class].compact.join(" ")
       responsive_placeholder = CL_BLANK if responsive_placeholder == "blank"
-      options[:src] = responsive_placeholder
+      tag_options[:src] = responsive_placeholder
     end
-    if source
-      image_tag_without_cloudinary(source, options)
+    if block_given?
+      yield(source,tag_options)
     else
-      content_tag 'img', nil, options
+      tag('div', tag_options)
     end
   end
 
   def cl_blank
     CL_BLANK
   end
-  
+
   # Works similarly to cl_image_tag, however just generates the URL of the image
   def cl_image_path(source, options = {})
     options = options.clone
@@ -170,6 +186,9 @@ module CloudinaryHelper
     content_tag("script", "$.cloudinary.config(#{params.to_json});".html_safe, :type=>"text/javascript")
   end
 
+  def cl_client_hints_meta_tag
+    tag "meta", "http-equiv" => "Accept-CH", :content => "DPR, Viewport-Width, Width"
+  end
   def cloudinary_url(source, options = {})
     cloudinary_url_internal(source, options.clone)
   end
@@ -177,7 +196,7 @@ module CloudinaryHelper
   def cl_image_upload(object_name, method, options={})
     cl_image_upload_tag("#{object_name}[#{method}]", options)
   end
-
+  alias_method :cl_upload, :cl_image_upload
   def cl_unsigned_image_upload(object_name, method, upload_preset, options={})
     cl_unsigned_image_upload_tag("#{object_name}[#{method}]", upload_preset, options)
   end
@@ -207,10 +226,12 @@ module CloudinaryHelper
       :"data-url"=>cl_upload_url(options),
       :"data-form-data"=>cl_upload_tag_params(options),
       :"data-cloudinary-field"=>field,
+      :"data-max-chunk-size"=>options[:chunk_size],
       :"class" => [html_options[:class], "cloudinary-fileupload"].flatten.compact
     ).reject{|k,v| v.blank?}
     content_tag("input", nil, tag_options)
   end
+  alias_method :cl_upload_tag, :cl_image_upload_tag
 
   def cl_unsigned_image_upload_tag(field, upload_preset, options={})
     cl_image_upload_tag(field, options.merge(:unsigned => true, :upload_preset => upload_preset))
@@ -220,8 +241,21 @@ module CloudinaryHelper
     Cloudinary::Utils.private_download_url(public_id, format, options)
   end
 
+  # Helper method that uses the deprecated ZIP download API. 
+  # Replaced by cl_download_zip_url that uses the more advanced and robust archive generation and download API
+  # @deprecated
   def cl_zip_download_url(tag, options = {})
     Cloudinary::Utils.zip_download_url(tag, options)
+  end
+
+  # @see {Cloudinary::Utils.download_archive_url}
+  def cl_download_archive_url(options = {})
+    Cloudinary::Utils.download_archive_url(options)
+  end  
+
+  # @see {Cloudinary::Utils.download_zip_url}
+  def cl_download_zip_url(options = {})
+    Cloudinary::Utils.download_zip_url(options)
   end
 
   def cl_signed_download_url(public_id, options = {})
@@ -234,12 +268,12 @@ module CloudinaryHelper
       if !method_defined?(:image_tag)
         include ActionView::Helpers::AssetTagHelper
       end
-      if defined?(Rails) && !Rails.version.start_with?("2") && Cloudinary.config.enhance_image_tag
-        alias_method_chain :image_tag, :cloudinary
-        alias_method_chain :image_path, :cloudinary
+      if defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR > 2 && Cloudinary.config.enhance_image_tag
+        alias_method_chain :image_tag, :cloudinary unless public_method_defined? :image_tag_without_cloudinary
+        alias_method_chain :image_path, :cloudinary unless public_method_defined? :image_path_without_cloudinary
       else
-        alias_method :image_tag_without_cloudinary, :image_tag
-        alias_method :image_path_without_cloudinary, :image_path
+        alias_method :image_tag_without_cloudinary, :image_tag unless public_method_defined? :image_tag_without_cloudinary
+        alias_method :image_path_without_cloudinary, :image_path unless public_method_defined? :image_path_without_cloudinary
       end
     end
   end
@@ -262,7 +296,9 @@ module CloudinaryHelper
 
   def build_callback_url(options)
     callback_path = options.delete(:callback_cors) || Cloudinary.config.callback_cors || "/cloudinary_cors.html"
-    if !callback_path.match(/^https?:\/\//)
+    if callback_path.match(/^https?:\/\//)
+      callback_path
+    else
       callback_url = request.scheme + "://"
       callback_url << request.host
       if request.scheme == "https" && request.port != 443 ||
@@ -271,7 +307,6 @@ module CloudinaryHelper
       end
       callback_url << callback_path
     end
-    callback_url
   end
 end
 
@@ -279,6 +314,7 @@ module Cloudinary::FormBuilder
   def cl_image_upload(method, options={})
     @template.cl_image_upload(@object_name, method, objectify_options(options))
   end
+  alias_method :cl_upload, :cl_image_upload
   def cl_unsigned_image_upload(method, upload_preset, options={})
     @template.cl_unsigned_image_upload(@object_name, method, upload_preset, objectify_options(options))
   end
@@ -298,7 +334,7 @@ if defined? ActionView::Helpers::AssetUrlHelper
   end
 end
 
-if defined?(Rails) && Rails.version.start_with?("2")
+if defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR == 2
   ActionView::Base.send :include, ActionView::Helpers::AssetTagHelper
   ActionView::Base.send :include, CloudinaryHelper
 end

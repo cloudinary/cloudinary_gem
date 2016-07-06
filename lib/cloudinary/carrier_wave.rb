@@ -60,7 +60,7 @@ module Cloudinary::CarrierWave
 
   def filename
     return nil if self.blank?
-    return [self.full_public_id, self.format].join(".")
+    return [self.full_public_id, self.format].reject(&:blank?).join(".")
   end
 
   # default public_id to use if no uploaded file. Override with public_id of an uploaded image if you want a default image.
@@ -135,6 +135,11 @@ module Cloudinary::CarrierWave
   def auto_rename_preloaded?
     true
   end
+
+  # Use extended identifier format that includes resource type and storage type.
+  def use_extended_identifier?
+    true
+  end
   
   class CloudinaryFile
     attr_reader :identifier, :public_id, :filename, :format, :version, :storage_type, :resource_type
@@ -142,7 +147,12 @@ module Cloudinary::CarrierWave
       @uploader = uploader
       @identifier = identifier
 
-      if @identifier.match(%r(^v([0-9]+)/(.*)))
+      if @identifier.match(%r(^(image|raw|video)/(upload|private|authenticated)(?:/v([0-9]+))?/(.*)))
+        @resource_type = $1
+        @storage_type = $2
+        @version = $3.presence
+        @filename = $4
+      elsif @identifier.match(%r(^v([0-9]+)/(.*)))
         @version = $1
         @filename = $2
       else
@@ -150,9 +160,13 @@ module Cloudinary::CarrierWave
         @version = nil 
       end
 
-      @storage_type = uploader.class.storage_type
-      @resource_type = Cloudinary::Utils.resource_type_for_format(@filename)      
+      @storage_type ||= uploader.class.storage_type
+      @resource_type ||= Cloudinary::Utils.resource_type_for_format(@filename)      
       @public_id, @format = Cloudinary::PreloadedFile.split_format(@filename)      
+    end
+
+    def storage_identifier
+      identifier
     end
     
     def delete
@@ -176,8 +190,16 @@ module Cloudinary::CarrierWave
     return Cloudinary::PreloadedFile.split_format(identifier)
   end
 
+  def default_format
+    "png"
+  end
+
+  def storage_type
+    @file.respond_to?(:storage_type) ? @file.storage_type : self.class.storage_type
+  end
+
   def resource_type
-    Cloudinary::Utils.resource_type_for_format(self.filename || self.format)
+    @file.respond_to?(:resource_type) ? @file.resource_type : Cloudinary::Utils.resource_type_for_format(requested_format || original_filename || default_format)
   end
   
   # For the given methods - versions should call the main uploader method

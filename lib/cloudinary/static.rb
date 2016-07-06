@@ -32,11 +32,11 @@ class Cloudinary::Static
       end
     end
   end
-  
+
   def self.root
-    (defined?(Rails) && Rails.root) || Pathname.new(".")
+    Cloudinary.app_root
   end
-  
+
   def self.metadata_file_path
     self.root.join(METADATA_FILE)
   end
