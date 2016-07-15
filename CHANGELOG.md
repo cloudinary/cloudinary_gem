@@ -1,4 +1,10 @@
 
+1.2.1 / 2016-07-16
+==================
+
+  * Add test for width and height values "ow", "oh"
+  * Include new JavaScript files. Related to cloudinary/cloudinary_js#73
+
 1.2.0 / 2016-06-22
 ==================
 
