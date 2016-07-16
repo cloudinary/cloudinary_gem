@@ -1,4 +1,11 @@
 
+1.2.2 / 2016-07-16
+==================
+
+  * Update gemspec to differentiate between ruby 1.9 and 2.0
+  * Add `:max_results => 500` to tags test.
+  * Add json spec. Add explicit exception names to `raise_error`.
+
 1.2.1 / 2016-07-16
 ==================
 
