@@ -25,9 +25,13 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec-rails"
   s.add_development_dependency "rubyzip"
 
-  if RUBY_VERSION > "1.9"
+  if RUBY_VERSION > "2.0"
     s.add_dependency "rest-client"
     s.add_development_dependency "actionpack"
+    s.add_development_dependency "simplecov"
+  elsif RUBY_VERSION > "1.9"
+    s.add_dependency "rest-client", '< 2.0'
+    s.add_development_dependency "actionpack", '< 5.0'
     s.add_development_dependency "simplecov"
   else
     s.add_dependency "i18n", "<0.7.0"
