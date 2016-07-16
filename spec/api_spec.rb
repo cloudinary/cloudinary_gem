@@ -141,7 +141,7 @@ describe Cloudinary::Api do
   end
 
   it "should allow listing tags" do
-    tags = @api.tags()["tags"]
+    tags = @api.tags(:max_results => 500)["tags"]
     expect(tags).to include(TEST_TAG)
   end
 
