@@ -31,6 +31,7 @@ Gem::Specification.new do |s|
     s.add_development_dependency "simplecov"
   elsif RUBY_VERSION > "1.9"
     s.add_dependency "rest-client", '< 2.0'
+    s.add_dependency 'json', '~> 1.8'
     s.add_development_dependency "actionpack", '< 5.0'
     s.add_development_dependency "simplecov"
   else

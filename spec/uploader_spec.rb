@@ -50,7 +50,7 @@ describe Cloudinary::Uploader do
     it 'should not allow renaming to an existing ID' do
       id             = @resource_2_id
       @resource_2_id = @resource_1_id+"2" # if rename doesn't fail, this is the new ID
-      expect { Cloudinary::Uploader.rename(id, @resource_1_id+"2") }.to raise_error
+      expect { Cloudinary::Uploader.rename(id, @resource_1_id+"2") }.to raise_error(CloudinaryException)
       @resource_2_id = id
     end
     context ':overwrite => true' do
@@ -151,7 +151,7 @@ describe Cloudinary::Uploader do
   end
   
   it "should prevent non whitelisted formats from being uploaded if allowed_formats is specified", :allowed=>true do
-    expect{Cloudinary::Uploader.upload(TEST_IMG, :allowed_formats => ["jpg"], :tags => [TEST_TAG, TIMESTAMP_TAG])}.to raise_error
+    expect{Cloudinary::Uploader.upload(TEST_IMG, :allowed_formats => ["jpg"], :tags => [TEST_TAG, TIMESTAMP_TAG])}.to raise_error(CloudinaryException)
   end
   
   it "should allow non whitelisted formats if type is specified and convert to that type", :allowed=>true do
@@ -244,7 +244,7 @@ describe Cloudinary::Uploader do
     end
 
     it "should fail if timeout is reached" do
-      expect{Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :tags => [TEST_TAG, TIMESTAMP_TAG])}.to raise_error
+      expect{Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :tags => [TEST_TAG, TIMESTAMP_TAG])}.to raise_error(RestClient::RequestTimeout)
     end
   end
 
