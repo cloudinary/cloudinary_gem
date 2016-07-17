@@ -316,8 +316,6 @@ class Cloudinary::Utils
     url_suffix = options.delete(:url_suffix)
     use_root_path = config_option_consume(options, :use_root_path)
 
-    raise(CloudinaryException, "URL Suffix only supported in private CDN") if url_suffix.present? and not private_cdn
-
     original_source = source
     return original_source if source.blank?
     if defined?(CarrierWave::Uploader::Base) && source.is_a?(CarrierWave::Uploader::Base)
@@ -400,6 +398,9 @@ class Cloudinary::Utils
         type = nil
       when resource_type.to_s == "raw" && type.to_s == "upload"
         resource_type = "files"
+        type = nil
+      when resource_type.to_s == "video" && type.to_s == "upload"
+        resource_type = "videos"
         type = nil
       else
         raise(CloudinaryException, "URL Suffix only supported for image/upload, image/private and raw/upload")
