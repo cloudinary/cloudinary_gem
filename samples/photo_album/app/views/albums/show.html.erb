@@ -1,0 +1,73 @@
+
+<h1>Album: <%= @album.title %></h1>
+
+<div class="actions">
+  <a class="upload_link" href="<%= new_album_photo_path(@album) %>">Add photo</a>
+  <a class="upload_link" href="<%= new_album_photo_path(@album, :direct => true) %>">Add photo (direct upload)</a>
+  <a class="upload_link" href="<%= new_album_photo_path(@album, :direct => true, :unsigned => true) %>">Add photo (unsigned direct upload)</a>
+</div>
+
+<div class="albums">
+  <% if @album.photos.empty? %>
+    <p>No photos were added to the album yet.</p>
+  <% end %>
+
+  <% thumbs_params = { :format => "jpg", :height => 150, :width => 150, :class => "thumbnail inline" } %>
+  <% @album.photos.each do |photo| %>
+    <div class="photo">
+      <h2><%= photo.title %></h2>
+      <a href="<%= photo.image.url %>" target="_blank">
+        <%= image_tag(photo.image.thumbnail.url, :class => "thumbnail inline") %>
+      </a>
+
+      <div class="less_info">
+        <a href="#" class="toggle_info">Show transformations</a>
+      </div>
+
+      <div class="more_info">
+        <a href="#" class="toggle_info">Hide transformations</a>
+        <table class="thumbnails">
+          <% transformations = [
+              { :crop => "fill", :radius => 10, :height => 150, :width => 150 },
+              { :crop => "scale", :height => 150, :width => 150 },
+              { :crop => "fit", :height => 150, :width => 150 },
+              { :crop => "thumb", :gravity => "face", :height => 150, :width => 150 },
+              { :format => "png", :angle => 20, :transformation => { 
+                :crop => "fill", :gravity => "north", :effect => "sepia", :height => 150, :width => 150 } }
+            ] %>
+          <% transformations.each do |image_params| %>
+            <td>
+              <div class="thumbnail_holder">
+                <a target="_blank" href="<%= cloudinary_url(photo.image, image_params.dup) %>" > 
+                  <%= cl_image_tag(photo.image, image_params.merge(:class => "thumbnail inline")) %>
+                </a>
+              </div>
+              <table class="info">
+                <% image_params.each_pair do |key, value| %>
+                  <tr>
+                    <td><%= key %></td>
+                    <td><%= value.to_json %></td>
+                  </tr>
+                <% end %>  
+              </table>
+              <br/>
+            </td>
+          <% end %>
+        </table>
+
+        <div class="note">              
+          Take a look at our documentation of <a href="http://cloudinary.com/documentation/image_transformations" target="_blank">Image Transformations</a> for a full list of supported transformations.
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<a href="<%= albums_path %>" class="back_link">Back to albums</a>
+
+<script type='text/javascript'>
+  $('.toggle_info').click(function () {
+    $(this).closest('.photo').toggleClass('show_more_info');
+    return false;
+  });
+</script>

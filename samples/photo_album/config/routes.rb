@@ -1,7 +1,7 @@
 PhotoAlbum::Application.routes.draw do
+  resources :albums do
+    resources :photos, :only => [:index, :new, :create]
+  end
 
-  resources :photos, :only => [:index, :new, :create]
-  
-  root :to => 'photos#index'
-  
+  root :to => 'albums#index'
 end
