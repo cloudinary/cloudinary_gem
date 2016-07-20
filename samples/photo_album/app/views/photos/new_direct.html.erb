@@ -2,7 +2,7 @@
   <h1>New Photo</h1>
   <h2>Direct upload from the browser<% if @unsigned %>. Unsigned upload using a preset<% end %></h2>
   <p>You can also drag and drop an image file into the dashed area.</p>
-  <%= form_for(@photo, :url => photos_path) do |f| %>
+  <%= form_for(@photo, :url => album_photos_path(@album)) do |f| %>
     <div class="form_line">
       <%= f.label :title, "Title:" %>
       <div class="form_controls">
@@ -39,7 +39,7 @@
   <% end %>
 </div>
 
-<a href="<%= photos_path %>" class="back_link">Back to list</a>
+<a href="<%= album_path(@album) %>" class="back_link">Back to album</a>
 
 <div id="info"></div>
 
