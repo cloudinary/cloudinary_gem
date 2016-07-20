@@ -25,10 +25,11 @@ a { color: #0b63b6 }
 .inline { display: inline-block; }
 td { vertical-align: top; padding-right: 5px; }
 
-#backend_upload, #direct_upload { padding: 20px 20px; margin: 20px 0; 
-	border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; }
 
-#backend_upload h1, #direct_upload h1 { margin: 0 0 15px 0; }	
+.basic_form { padding: 20px 20px; margin: 20px 0;
+  border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; }
+
+.basic_form h1 { margin: 0 0 15px 0; }
 
 .back_link { font-weight: bold; display: block; font-size: 16px; margin: 10px 0; }
 
