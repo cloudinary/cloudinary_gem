@@ -15,7 +15,7 @@ class AlbumsController < ApplicationController
     @album = Album.new(params[:album])
 
     if !@album.save
-      @error = @photo.errors.full_messages.join('. ')
+      @error = @album.errors.full_messages.join('. ')
       render "new"
       return
     end
