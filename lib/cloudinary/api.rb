@@ -126,6 +126,16 @@ class Cloudinary::Api
     call_api(:delete, uri, { :derived_resource_ids => derived_resource_ids }, options)
   end
 
+  def self.delete_derived_by_transformation(public_ids, transformations, options={})
+    resource_type = options[:resource_type] || "image"
+    type          = options[:type] || "upload"
+    uri           = "resources/#{resource_type}/#{type}"
+    params = {:public_ids => public_ids}.merge(only(options, :invalidate))
+    params[:keep_original] = true
+    params[:transformations] = Cloudinary::Utils.build_eager(transformations)
+    call_api(:delete, uri, params, options)
+  end
+
   def self.tags(options={})
     resource_type = options[:resource_type] || "image"
     uri           = "tags/#{resource_type}"

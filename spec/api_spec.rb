@@ -125,6 +125,28 @@ describe Cloudinary::Api do
     @api.delete_derived_resources(derived_resource_id)
   end
 
+  it "should allow deleting derived resources by transformations" do
+    public_id = "public_id"
+    transformations = "c_crop,w_100"
+    expect(RestClient::Request).to receive(:execute).with(
+        deep_hash_value( {[:payload, :public_ids] => [public_id],
+                          [:payload, :transformations] => "c_crop,w_100"}))
+    @api.delete_derived_by_transformation(public_id, "c_crop,w_100")
+
+    transformations = {:crop => "crop", :width => 100}
+    expect(RestClient::Request).to receive(:execute).with(
+        deep_hash_value( {[:payload, :public_ids] => public_id,
+                          [:payload, :transformations] => "c_crop,w_100"}))
+    @api.delete_derived_by_transformation(public_id, transformations)
+
+    transformations = [{:crop => "crop", :width => 100}, {:crop => "scale", :width => 300}]
+    expect(RestClient::Request).to receive(:execute).with(
+        deep_hash_value( {[:payload, :public_ids] => public_id,
+                          [:payload, :transformations] => "c_crop,w_100|c_scale,w_300"}))
+    @api.delete_derived_by_transformation(public_id, transformations)
+
+  end
+
   it "should allow deleting resources" do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :public_ids] => ["apit_test", "test_id_2", "api_test3"]}))
     @api.delete_resources(["apit_test", "test_id_2", "api_test3"])
