@@ -749,14 +749,21 @@ class Cloudinary::Utils
     }
   end
 
+  #
   # @private
+  # @param [String|Hash|Array] an eager transformation can be a string or hash, with or without a format. The parameter also accepts an array of eager transformations.
   def self.build_eager(eager)
     return nil if eager.nil?
     Cloudinary::Utils.build_array(eager).map do
     |transformation, format|
-      transformation = transformation.clone
-      format = transformation.delete(:format) || format
-      [Cloudinary::Utils.generate_transformation_string(transformation, true), format].compact.join("/")
+      unless transformation.is_a? String
+        transformation = transformation.clone
+        if transformation.respond_to?(:delete)
+          format = transformation.delete(:format) || format
+        end
+        transformation = Cloudinary::Utils.generate_transformation_string(transformation, true)
+      end
+      [transformation, format].compact.join("/")
     end.join("|")
   end
 

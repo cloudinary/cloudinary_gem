@@ -129,7 +129,7 @@ describe Cloudinary::Api do
     public_id = "public_id"
     transformations = "c_crop,w_100"
     expect(RestClient::Request).to receive(:execute).with(
-        deep_hash_value( {[:payload, :public_ids] => [public_id],
+        deep_hash_value( {[:payload, :public_ids] => public_id,
                           [:payload, :transformations] => "c_crop,w_100"}))
     @api.delete_derived_by_transformation(public_id, "c_crop,w_100")
 

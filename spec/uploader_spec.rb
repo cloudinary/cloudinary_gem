@@ -83,7 +83,18 @@ describe Cloudinary::Uploader do
   end
   
   it "should support eager" do
-    Cloudinary::Uploader.upload(TEST_IMG, :eager =>[{ :crop =>"scale", :width =>"2.0"}], :tags => [TEST_TAG, TIMESTAMP_TAG])
+    result = Cloudinary::Uploader.upload(TEST_IMG, :eager =>[{ :crop =>"scale", :width =>"2.0"}], :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result["eager"].length).to be(1)
+    expect(result).to have_deep_hash_values_of(["eager", 0, "transformation"] => "c_scale,w_2.0")
+    result = Cloudinary::Uploader.upload(TEST_IMG, :eager =>"c_scale,w_2.0", :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result["eager"].length).to be(1)
+    expect(result).to have_deep_hash_values_of(["eager", 0, "transformation"] => "c_scale,w_2.0")
+    result = Cloudinary::Uploader.upload(TEST_IMG, :eager =>["c_scale,w_2.0", { :crop =>"crop", :width =>"0.5", :format => "tiff"}], :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result["eager"].length).to be(2)
+    expect(result).to have_deep_hash_values_of(
+                          ["eager", 0, "transformation"] => "c_scale,w_2.0",
+                          ["eager", 1, "transformation"] => "c_crop,w_0.5/tiff"
+                      )
   end
 
   it "should support headers" do

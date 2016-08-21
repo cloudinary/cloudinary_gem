@@ -126,6 +126,9 @@ class Cloudinary::Api
     call_api(:delete, uri, { :derived_resource_ids => derived_resource_ids }, options)
   end
 
+# @param [String|Array] public_ids
+# @param [Object] transformations
+# @param [Object] options
   def self.delete_derived_by_transformation(public_ids, transformations, options={})
     resource_type = options[:resource_type] || "image"
     type          = options[:type] || "upload"
@@ -154,9 +157,9 @@ class Cloudinary::Api
     call_api(:delete, "transformations/#{transformation_string(transformation)}", {}, options)
   end
 
-  # updates - supports:
-  #   "allowed_for_strict" boolean
-  #   "unsafe_update" transformation params - updates a named transformation parameters without regenerating existing images
+# updates - supports:
+#   "allowed_for_strict" boolean
+#   "unsafe_update" transformation params - updates a named transformation parameters without regenerating existing images
   def self.update_transformation(transformation, updates, options={})
     params                 = only(updates, :allowed_for_strict)
     params[:unsafe_update] = transformation_string(updates[:unsafe_update]) if updates[:unsafe_update]
@@ -167,7 +170,7 @@ class Cloudinary::Api
     call_api(:post, "transformations/#{name}", { :transformation => transformation_string(definition) }, options)
   end
 
-  # upload presets
+# upload presets
   def self.upload_presets(options={})
     call_api(:get, "upload_presets", only(options, :next_cursor, :max_results), options)
   end
