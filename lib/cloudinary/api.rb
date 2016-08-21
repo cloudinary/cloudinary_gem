@@ -126,9 +126,12 @@ class Cloudinary::Api
     call_api(:delete, uri, { :derived_resource_ids => derived_resource_ids }, options)
   end
 
-# @param [String|Array] public_ids
-# @param [Object] transformations
-# @param [Object] options
+  # Delete derived resources identified by transformation for the provided public_ids
+  # @param [String|Array] public_ids The resources the derived resources belong to
+  # @param [String|Hash|Array] transformations the transformation(s) associated with the derived resources
+  # @param [Hash] options
+  # @option options [String] :resource_type ("image")
+  # @option options [String] :type ("upload")
   def self.delete_derived_by_transformation(public_ids, transformations, options={})
     resource_type = options[:resource_type] || "image"
     type          = options[:type] || "upload"
