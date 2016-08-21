@@ -1,4 +1,13 @@
 
+1.2.3 / 2016-08-21
+==================
+
+  * Allow a string to be passed as eager transformation
+  * Add `delete_derived_by_transformation` to the Api methods.
+  * Support videos mode for url suffixes. 
+  * Support url suffixes without private cdn
+  * Fix `values_match?`
+
 1.2.2 / 2016-07-16
 ==================
 
