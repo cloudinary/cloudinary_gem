@@ -166,7 +166,7 @@ end
 RSpec::Matchers.define :deep_hash_value do |expected|
   match do |actual|
     expected.all? do |path, value|
-      Cloudinary.values_match? deep_fetch(actual, path), value
+      Cloudinary.values_match? value, deep_fetch(actual, path)
     end
   end
 end
@@ -175,7 +175,7 @@ RSpec::Matchers.alias_matcher :have_deep_hash_values_of, :deep_hash_value
 
 module Cloudinary
   # @api private
-  def self.values_match?( actual, expected)
+  def self.values_match?(expected, actual)
     if Hash === actual
       return hashes_match?(expected, actual) if Hash === expected
     elsif Array === expected && Enumerable === actual && !(Struct === actual)
