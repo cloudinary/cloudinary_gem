@@ -229,6 +229,15 @@ class Cloudinary::Api
     call_api(:post, 'upload_mappings', params, options)
   end
 
+  def self.create_streaming_profile(name, options={})
+      params = only(options, :display_name, :representations)
+      params[:representations] = params[:representations].map do |r|
+        {:transformation => Cloudinary::Utils.generate_transformation_string(r[:transformation])}
+      end.to_json
+      params[:name] = name
+      call_api(:post, 'streaming_profiles', params, options)
+  end
+
   protected
 
   def self.call_api(method, uri, params, options)
