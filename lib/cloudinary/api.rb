@@ -242,6 +242,10 @@ class Cloudinary::Api
     call_api(:get, 'streaming_profiles', {}, {})
   end
 
+  def self.delete_streaming_profile(name, options={})
+    call_api(:delete, "streaming_profiles/#{name}", {}, options)
+  end
+
   protected
 
   def self.call_api(method, uri, params, options)

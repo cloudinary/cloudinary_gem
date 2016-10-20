@@ -30,4 +30,17 @@ describe Cloudinary::Api do
       expect(result['profiles'].map{|p| p['name']}).to include(*PREDEFINED_PROFILES)
     end
   end
+
+  describe 'delete_streaming_profile' do
+    it "should delete a streaming profile" do
+      result = @api.create_streaming_profile test_id_2, :representations =>
+          [{:transformation => {:crop => 'scale', :width => "1200", :height => "1200", :bit_rate => "5m"}}]
+      expect(result).not_to be_blank
+      result = @api.delete_streaming_profile test_id_2
+      expect(result).to have_key('message')
+      expect(result['message']).to eq("deleted")
+      result = @api.list_streaming_profiles
+      expect(result['profiles'].map{|p| p['name']}).not_to include(test_id_2)
+    end
+  end
 end
