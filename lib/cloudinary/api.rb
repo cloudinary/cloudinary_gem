@@ -238,6 +238,10 @@ class Cloudinary::Api
       call_api(:post, 'streaming_profiles', params, options)
   end
 
+  def self.list_streaming_profiles
+    call_api(:get, 'streaming_profiles', {}, {})
+  end
+
   protected
 
   def self.call_api(method, uri, params, options)
