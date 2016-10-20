@@ -43,4 +43,11 @@ describe Cloudinary::Api do
       expect(result['profiles'].map{|p| p['name']}).not_to include(test_id_2)
     end
   end
+
+  describe 'get_streaming_profile' do
+    it "should get a specific streaming profile" do
+      result = @api.get_streaming_profile(PREDEFINED_PROFILES[1])
+      expect(result.keys).to include('name', 'display_name', 'representations')
+    end
+  end
 end
