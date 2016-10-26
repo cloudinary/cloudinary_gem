@@ -281,10 +281,11 @@ describe Cloudinary::Api do
   end
   
   it "should allow deleting upload_presets", :upload_preset => true do
-    @api.create_upload_preset(:name => "api_test_upload_preset4", :folder => "folder", :tags => [TEST_TAG, TIMESTAMP_TAG])
-    preset = @api.upload_preset("api_test_upload_preset4")
-    @api.delete_upload_preset("api_test_upload_preset4")
-    expect{preset = @api.upload_preset("api_test_upload_preset4")}.to raise_error(Cloudinary::Api::NotFound)
+    id = "#{prefix}_upload_preset"
+    @api.create_upload_preset(:name => id, :folder => "folder", :tags => [TEST_TAG, TIMESTAMP_TAG])
+    preset = @api.upload_preset(id)
+    @api.delete_upload_preset(id)
+    expect{preset = @api.upload_preset(id)}.to raise_error(Cloudinary::Api::NotFound)
   end
   
   it "should allow updating upload_presets", :upload_preset => true do
