@@ -1,4 +1,16 @@
 
+1.2.4 / 2016-10-30
+==================
+
+New functionality and features
+------------------------------
+
+  * Add `Api.update_streaming_profile`
+  * Add `Api.get_streaming_profile`
+  * Add `Api.delete_streaming_profile`
+  * Add `Api.list_streaming_profiles`
+  * Add `Api.create_streaming_profile`
+
 1.2.3 / 2016-08-21
 ==================
 
