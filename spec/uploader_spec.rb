@@ -171,9 +171,11 @@ describe Cloudinary::Uploader do
   end
   
   it "should allow sending face coordinates" do
+    puts Cloudinary.config
     coordinates = [[120, 30, 109, 150], [121, 31, 110, 151]]
+    result_coordinates = [[120, 30, 109, 51], [121, 31, 110, 51]]
     result = Cloudinary::Uploader.upload(TEST_IMG, { :face_coordinates => coordinates, :faces => true, :tags => [TEST_TAG, TIMESTAMP_TAG]})
-    expect(result["faces"]).to eq(coordinates)
+    expect(result["faces"]).to eq(result_coordinates)
 
     different_coordinates = [[122, 32, 111, 152]]
     Cloudinary::Uploader.explicit(result["public_id"], {:face_coordinates => different_coordinates, :faces => true, :type => "upload", :tags => [TEST_TAG, TIMESTAMP_TAG]})
