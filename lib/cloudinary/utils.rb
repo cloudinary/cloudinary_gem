@@ -110,8 +110,9 @@ class Cloudinary::Utils
       :w   => width
     }
     {
-      :ar => :aspect_ratio,
       :ac => :audio_codec,
+      :af => :audio_frequency,
+      :ar => :aspect_ratio,
       :br => :bit_rate,
       :cs => :color_space,
       :d  => :default_image,
@@ -127,7 +128,6 @@ class Cloudinary::Utils
       :pg => :page,
       :q  => :quality,
       :r  => :radius,
-      :af => :audio_frequency,
       :so => :start_offset,
       :sp => :streaming_profile,
       :vc => :video_codec,
@@ -363,7 +363,7 @@ class Cloudinary::Utils
     end
 
     prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
-      source = [prefix, resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
+    source = [prefix, resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
   end
 
   def self.finalize_source(source, format, url_suffix)
