@@ -15,6 +15,8 @@ describe Cloudinary::Api do
     Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
     Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
     Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "test-key=test", :eager =>[:width =>100, :crop =>:scale])
+    Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "test-key=tasty", :eager =>[:width =>100, :crop =>:scale])
   end
 
   after(:all) do
@@ -75,6 +77,13 @@ describe Cloudinary::Api do
     expect(resources.map{|resource| resource["context"]}).to include({"custom" => {"key" => "value"}})
   end
   
+  it "should allow listing resources by context" do
+    resources = @api.resources_by_context('test-key')["resources"]
+    expect(resources.count).to eq(2)
+    resources = @api.resources_by_context('test-key','test')["resources"]
+    expect(resources.count).to eq(1)
+  end
+
   it "should allow listing resources by public ids" do
     resources = @api.resources_by_ids([test_id_1, test_id_2], :tags => true, :context => true)["resources"]
     expect(resources.length).to eq(2)
