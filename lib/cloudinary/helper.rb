@@ -229,7 +229,7 @@ module CloudinaryHelper
       :"data-max-chunk-size"=>options[:chunk_size],
       :"class" => [html_options[:class], "cloudinary-fileupload"].flatten.compact
     ).reject{|k,v| v.blank?}
-    content_tag("input", nil, tag_options)
+    tag("input", tag_options)
   end
   alias_method :cl_upload_tag, :cl_image_upload_tag
 
