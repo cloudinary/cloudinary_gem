@@ -1,4 +1,21 @@
 
+1.3.0 / 2016-12-22
+==================
+
+New functionality and features
+------------------------------
+
+  * Search resource by context
+  * Add `:transformations` parameter to all `delete_resources`
+  * Update bundled Cloudinary Javascript library to 2.1.8 
+
+Other Changes
+-------------
+
+  * Added 'Album' for better showing a real world use case
+  * Use tag instead of content_tag when creating input tag
+  * Fix `face_coordinates` test
+
 1.2.4 / 2016-10-30
 ==================
 
