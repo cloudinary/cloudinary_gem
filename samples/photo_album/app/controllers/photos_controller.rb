@@ -1,9 +1,6 @@
 require 'digest/sha1'
 class PhotosController < ApplicationController
-
-  def index
-    @photos = Photo.order("created_at desc").to_a
-  end
+  before_filter :set_album, only: [:new, :create]
 
   def new
     @photo = Photo.new(:title => "My photo \##{1 + (Photo.maximum(:id) || 0)}")
@@ -25,7 +22,8 @@ class PhotosController < ApplicationController
   end
 
   def create
-    @photo = Photo.new(params[:photo])
+    @photo = @album.photos.build(params[:photo])
+
     # In through-the-server mode, the image is first uploaded to the Rails server.
     # When @photo is saved, Carrierwave uploads the image to Cloudinary.
     # The upload metadata (e.g. image size) is then available in the
@@ -53,6 +51,10 @@ class PhotosController < ApplicationController
   end
 
   protected
+
+  def set_album
+    @album = Album.find(params[:album_id])
+  end
   
   def direct_upload_mode?
     params[:direct].present?

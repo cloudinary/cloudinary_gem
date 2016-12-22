@@ -1,0 +1,46 @@
+<div id="posterframe">
+  <!-- This will render the fetched Facebook profile picture using Cloudinary according to the
+       requested transformations -->
+  <%= facebook_profile_image_tag("officialchucknorrispage", :format => "png",
+    :transformation => [
+      { :height => 95, :width => 95, :crop => "thumb", :gravity => "face", :effect => "sepia", :radius => 20 },
+      { "angle" => 10 } ]) %>
+</div>
+
+<h1>Welcome!</h1>
+
+<p>
+  This is the main demo page of the PhotoAlbum sample Rails application of Cloudinary.<br />
+  Here you can see all images you have uploaded to this Rails application and find some information on how
+  to implement your own Rails application storing, manipulating and serving your photos using Cloudinary!
+</p>
+
+<p>
+  All of the images you see here are transformed and served by Cloudinary. 
+  For instance, the logo and the poster frame. 
+  They are both generated in the cloud using the Cloudinary shortcut functions: fetch_image_tag and facebook_profile_image_tag. 
+  These two pictures weren't even have to be uploaded to Cloudinary, they are retrieved by the service, transformed, cached and distributed through a CDN.
+</p>
+
+<h1>Your Albums:</h1>
+
+<div class="actions">
+  <a class="upload_link" href="<%= new_album_path %>">Add album</a>
+</div>
+
+<div class="albums">
+  <% if @albums.empty? %>
+    <p>No albums were added yet.</p>
+  <% end %>
+
+  <% @albums.each do |album| %>
+    <div class="album">
+      <h2>
+        <%= link_to(album) do %>
+          <%= album.title %>
+          <%= image_tag(album.cover.image.thumbnail.url, :class => "thumbnail inline") %>
+        <% end %>
+      </h2>
+    </div>
+  <% end %>
+</div>
