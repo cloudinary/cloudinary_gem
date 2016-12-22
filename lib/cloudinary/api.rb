@@ -52,6 +52,15 @@ class Cloudinary::Api
     call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction), options)
   end
 
+  def self.resources_by_context(key, value=nil, options={})
+    resource_type = options[:resource_type] || "image"
+    uri           = "resources/#{resource_type}/context"
+    params = only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction,:key,:value)
+    params[:key] = key
+    params[:value] = value
+    call_api(:get, uri, params, options)
+  end
+
   def self.resources_by_ids(public_ids, options={})
     resource_type = options[:resource_type] || "image"
     type          = options[:type] || "upload"
