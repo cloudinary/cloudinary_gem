@@ -1,6 +1,6 @@
 module Cloudinary::CarrierWave
   def download!(uri, *args)
-    return super if !self.cloudinary_should_handle_remote?
+    return super unless self.cloudinary_should_handle_remote?
     if respond_to?(:process_uri)
       uri = process_uri(uri)
     else # Backward compatibility with old CarrierWave
