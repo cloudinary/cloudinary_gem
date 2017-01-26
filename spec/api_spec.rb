@@ -373,6 +373,10 @@ describe Cloudinary::Api do
     Cloudinary::Api.subfolders("test_folder1")
   end
 
+  it "should throw if folder is missing" do
+    Cloudinary::Api.subfolders("I_do_not_exist")
+  end
+
   describe '.restore'  do
     it 'should restore a deleted resource' do
       expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :public_ids] => "api_test_restore", [:url] => /.*\/restore$/))

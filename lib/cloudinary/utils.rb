@@ -5,8 +5,10 @@ require 'uri'
 require 'aws_cf_signer'
 require 'json'
 require 'cgi'
+require 'cloudinary/akamai'
 
 class Cloudinary::Utils
+  include Cloudinary::Akamai
   # @deprecated Use Cloudinary::SHARED_CDN
   SHARED_CDN = Cloudinary::SHARED_CDN
   DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {:width => :auto, :crop => :limit}
