@@ -1,4 +1,11 @@
 
+1.4.0 / 2017-01-30
+==================
+
+  * Add Akamai token generator
+  * Merge pull request #201 from nashby/fix-image-formats
+  * Remove video formats from the image formats array.
+
 1.3.0 / 2016-12-22
 ==================
 
