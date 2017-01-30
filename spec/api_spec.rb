@@ -374,7 +374,7 @@ describe Cloudinary::Api do
   end
 
   it "should throw if folder is missing" do
-    Cloudinary::Api.subfolders("I_do_not_exist")
+    expect{Cloudinary::Api.subfolders("I_do_not_exist")}.to raise_error(Cloudinary::Api::NotFound)
   end
 
   describe '.restore'  do
