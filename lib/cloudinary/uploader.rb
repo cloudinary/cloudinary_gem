@@ -16,6 +16,7 @@ class Cloudinary::Uploader
     options.keys.each { |key| options[key.to_sym] = options.delete(key) if key.is_a?(String) }
 
     params = {
+      :access_mode               => options[:access_mode],
       :allowed_formats           => Cloudinary::Utils.build_array(options[:allowed_formats]).join(","),
       :auto_tagging              => options[:auto_tagging] && options[:auto_tagging].to_f,
       :background_removal        => options[:background_removal],

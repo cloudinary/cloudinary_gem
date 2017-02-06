@@ -267,6 +267,21 @@ class Cloudinary::Api
     call_api(:put, "streaming_profiles/#{name}", params, options)
   end
 
+  def self.update_resources_access_mode_by_prefix(access_mode, prefix, options = {})
+
+      update_resources_access_mode(access_mode, :prefix, prefix, options)
+  end
+
+  def self.update_resources_access_mode_by_tag(access_mode, tag, options = {})
+
+      update_resources_access_mode(access_mode, :tag, tag, options)
+  end
+
+  def self.update_resources_access_mode_by_ids(access_mode, ids, options = {})
+
+      update_resources_access_mode(access_mode, :public_ids, ids, options)
+  end
+
   protected
 
   def self.call_api(method, uri, params, options)
@@ -320,4 +335,14 @@ class Cloudinary::Api
   def self.transformation_string(transformation)
     transformation.is_a?(String) ? transformation : Cloudinary::Utils.generate_transformation_string(transformation.clone)
   end
+
+  def self.update_resources_access_mode(access_mode, by_key, value, options = {})
+    resource_type = options[:resource_type] || "image"
+    type = options[:type] || "upload"
+    params = only(options, :next_cursor)
+    params[:access_mode] = access_mode
+    params[by_key] = value
+    call_api("post", "resources/#{resource_type}/#{type}/update_access_mode", params, options)
+  end
+
 end

@@ -395,4 +395,45 @@ describe Cloudinary::Api do
 
 
   end
+  describe "access_mode" do
+    i = 0
+
+    publicId = ""
+    access_mode_tag = ''
+    before(:each) do
+      i += 1
+      access_mode_tag = TEST_TAG + "access_mode" + i.to_s
+      result = Cloudinary::Uploader.upload TEST_IMG, access_mode: "authenticated", tags: [TEST_TAG, TIMESTAMP_TAG, access_mode_tag]
+      publicId = result["public_id"]
+      expect(result["access_mode"]).to eq("authenticated")
+    end
+
+    it "should update access mode by ids" do
+      result = Cloudinary::Api.update_resources_access_mode_by_ids "public", [publicId]
+
+      expect(result["updated"]).to be_an_instance_of(Array)
+      expect(result["updated"].length).to eq(1)
+      resource = result["updated"][0]
+      expect(resource["public_id"]).to eq(publicId)
+      expect(resource["access_mode"]).to eq('public')
+    end
+    it "should update access mode by prefix" do
+      result = Cloudinary::Api.update_resources_access_mode_by_prefix "public", publicId[0..-3]
+
+      expect(result["updated"]).to be_an_instance_of(Array)
+      expect(result["updated"].length).to eq(1)
+      resource = result["updated"][0]
+      expect(resource["public_id"]).to eq(publicId)
+      expect(resource["access_mode"]).to eq('public')
+    end
+    it "should update access mode by tag" do
+      result = Cloudinary::Api.update_resources_access_mode_by_tag "public", access_mode_tag
+
+      expect(result["updated"]).to be_an_instance_of(Array)
+      expect(result["updated"].length).to eq(1)
+      resource = result["updated"][0]
+      expect(resource["public_id"]).to eq(publicId)
+      expect(resource["access_mode"]).to eq('public')
+    end
+  end
 end
