@@ -267,19 +267,40 @@ class Cloudinary::Api
     call_api(:put, "streaming_profiles/#{name}", params, options)
   end
 
+  # Update resources access mode. Resources are selected by the prefix
+  # @param [String] access_mode the access mode to set the resources to
+  # @param [String] prefix The prefix by which to filter applicable resources
+  # @param [Object] options    additional options
+  # @option options [String] :resource_type ("image") the type of resources to modify
+  # @option options [Fixnum] :max_results (nil) the maximum resources to process in a single invocation
+  # @option options [String] :next_cursor (nil) provided by a previous call to the method
   def self.update_resources_access_mode_by_prefix(access_mode, prefix, options = {})
 
       update_resources_access_mode(access_mode, :prefix, prefix, options)
   end
 
+  # Update resources access mode. Resources are selected by the tag
+  # @param [String] access_mode the access mode to set the resources to
+  # @param [String] tag the tag by which to filter applicable resources
+  # @param [Object] options    additional options
+  # @option options [String] :resource_type ("image") the type of resources to modify
+  # @option options [Fixnum] :max_results (nil) the maximum resources to process in a single invocation
+  # @option options [String] :next_cursor (nil) provided by a previous call to the method
   def self.update_resources_access_mode_by_tag(access_mode, tag, options = {})
 
       update_resources_access_mode(access_mode, :tag, tag, options)
   end
 
-  def self.update_resources_access_mode_by_ids(access_mode, ids, options = {})
+  # Update resources access mode. Resources are selected by the provided public_ids
+  # @param [String] access_mode the access mode to set the resources to
+  # @param [Array<String>] public_ids The prefix by which to filter applicable resources
+  # @param [Object] options    additional options
+  # @option options [String] :resource_type ("image") the type of resources to modify
+  # @option options [Fixnum] :max_results (nil) the maximum resources to process in a single invocation
+  # @option options [String] :next_cursor (nil) provided by a previous call to the method
+  def self.update_resources_access_mode_by_ids(access_mode, public_ids, options = {})
 
-      update_resources_access_mode(access_mode, :public_ids, ids, options)
+      update_resources_access_mode(access_mode, :public_ids, public_ids, options)
   end
 
   protected

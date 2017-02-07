@@ -753,7 +753,7 @@ class Cloudinary::Utils
 
   #
   # @private
-  # @param [String|Hash|Array] an eager transformation can be a string or hash, with or without a format. The parameter also accepts an array of eager transformations.
+  # @param [String|Hash|Array] eager an transformation as a string or hash, with or without a format. The parameter also accepts an array of eager transformations.
   def self.build_eager(eager)
     return nil if eager.nil?
     Cloudinary::Utils.build_array(eager).map do
