@@ -1,4 +1,21 @@
 
+1.5.0 / 2017-02-07
+==================
+
+New functionality and features
+------------------------------
+
+  * Access mode API
+
+Other Changes
+-------------
+
+  * Fix transformation related tests.
+  * Fix archive test to use `include` instead of `match_array`.
+  * Fix "missing folder" test
+  * Add specific dependency on nokogiri
+  * Update rspec version
+
 1.4.0 / 2017-01-30
 ==================
 
