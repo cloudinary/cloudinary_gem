@@ -92,7 +92,7 @@ describe Cloudinary::Uploader do
               file_count
             )
     it "should include keys: #{expected_keys.join(', ')}" do
-      expect(archive_result.keys).to match_array(expected_keys)
+      expect(archive_result.keys).to include(*expected_keys)
     end
   end
   describe '.create_zip' do
