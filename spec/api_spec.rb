@@ -4,7 +4,8 @@ require 'cloudinary'
 describe Cloudinary::Api do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
   include_context "cleanup", TIMESTAMP_TAG
-
+  TEST_WIDTH = rand(1000)
+  TEST_TRANSFOMATION = "c_scale,w_#{TEST_WIDTH}"
   prefix = "api_test_#{Time.now.to_i}"
   test_id_1 = "#{prefix}_1"
   test_id_2   = "#{prefix}_2"
@@ -12,11 +13,11 @@ describe Cloudinary::Api do
   before(:all) do
 
     @api = Cloudinary::Api
-    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
-    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
-    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
-    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "test-key=test", :eager =>[:width =>100, :crop =>:scale])
-    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "test-key=tasty", :eager =>[:width =>100, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "test-key=test", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "test-key=tasty", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
   end
 
   after(:all) do
@@ -198,37 +199,37 @@ describe Cloudinary::Api do
   
   describe 'transformations' do
     it "should allow listing transformations" do
-      transformation = @api.transformations()["transformations"].find { |transformation| transformation["name"] == "c_scale,w_100" }
+      transformation = @api.transformations(max_results: 500)["transformations"].find { |transformation| transformation["name"] == TEST_TRANSFOMATION }
       expect(transformation).not_to be_blank
       expect(transformation["used"]).to eq(true)
     end
 
     it "should allow getting transformation metadata" do
-      transformation = @api.transformation("c_scale,w_100")
+      transformation = @api.transformation(TEST_TRANSFOMATION)
       expect(transformation).not_to be_blank
-      expect(transformation["info"]).to eq(["crop" => "scale", "width" => 100])
-      transformation = @api.transformation("crop" => "scale", "width" => 100)
+      expect(transformation["info"]).to eq(["crop" => "scale", "width" => TEST_WIDTH])
+      transformation = @api.transformation("crop" => "scale", "width" => TEST_WIDTH)
       expect(transformation).not_to be_blank
-      expect(transformation["info"]).to eq(["crop" => "scale", "width" => 100])
+      expect(transformation["info"]).to eq(["crop" => "scale", "width" => TEST_WIDTH])
     end
 
     it "should allow updating transformation allowed_for_strict" do
-      @api.update_transformation("c_scale,w_100", :allowed_for_strict => true)
-      transformation = @api.transformation("c_scale,w_100")
+      @api.update_transformation(TEST_TRANSFOMATION, :allowed_for_strict => true)
+      transformation = @api.transformation(TEST_TRANSFOMATION)
       expect(transformation).not_to be_blank
       expect(transformation["allowed_for_strict"]).to eq(true)
-      @api.update_transformation("c_scale,w_100", :allowed_for_strict => false)
-      transformation = @api.transformation("c_scale,w_100")
+      @api.update_transformation(TEST_TRANSFOMATION, :allowed_for_strict => false)
+      transformation = @api.transformation(TEST_TRANSFOMATION)
       expect(transformation).not_to be_blank
       expect(transformation["allowed_for_strict"]).to eq(false)
     end
 
     it "should fetch two different derived images using next_cursor" do
-      result = @api.transformation("c_scale,w_100", :max_results=>1)
+      result = @api.transformation(TEST_TRANSFOMATION, :max_results=>1)
       expect(result["derived"]).not_to be_blank
       expect(result["derived"].length).to eq(1)
       expect(result["next_cursor"]).not_to be_blank
-      result2 = @api.transformation("c_scale,w_100", :max_results=>1, :next_cursor=>result["next_cursor"])
+      result2 = @api.transformation(TEST_TRANSFOMATION, :max_results=>1, :next_cursor=>result["next_cursor"])
       expect(result2["derived"]).not_to be_blank
       expect(result2["derived"].length).to eq(1)
       expect(result2["derived"][0]["id"]).not_to eq(result["derived"][0]["id"] )
@@ -263,9 +264,9 @@ describe Cloudinary::Api do
 
     end
     it "should allow deleting implicit transformation" do
-      @api.transformation("c_scale,w_100")
-      @api.delete_transformation("c_scale,w_100")
-      expect { @api.transformation("c_scale,w_100") }.to raise_error(Cloudinary::Api::NotFound)
+      @api.transformation(TEST_TRANSFOMATION)
+      @api.delete_transformation(TEST_TRANSFOMATION)
+      expect { @api.transformation(TEST_TRANSFOMATION) }.to raise_error(Cloudinary::Api::NotFound)
     end
   end
   
