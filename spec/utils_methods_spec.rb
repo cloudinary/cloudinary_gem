@@ -49,4 +49,18 @@ describe Utils do
 
     end
   end
+
+  describe '.smart_escape' do
+    it 'escapes empty spaces to %20' do
+      expect(Utils.smart_escape(' ')).to eq('%20')
+    end
+
+    it 'escapes / to %252F' do
+      expect(Utils.smart_escape('/')).to eq('%252F')
+    end
+
+    it 'escapes , to %252C' do
+      expect(Utils.smart_escape(',')).to eq('%252C')
+    end
+  end
 end
