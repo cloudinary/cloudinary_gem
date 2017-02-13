@@ -1,4 +1,8 @@
 
+1.5.1 / 2017-02-13
+==================
+  * Fix Carrierwave 1.0.0 integration: broken `remote_image_url`
+
 1.5.0 / 2017-02-07
 ==================
 
