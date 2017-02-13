@@ -1,5 +1,5 @@
 module Cloudinary::CarrierWave
-  def download!(uri, remote_headers={})
+  def download!(uri, *args)
     return super if !self.cloudinary_should_handle_remote?
     if respond_to?(:process_uri)
       uri = process_uri(uri)
