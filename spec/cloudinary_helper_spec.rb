@@ -4,6 +4,8 @@ require 'cloudinary'
 require 'action_view'
 require 'cloudinary/helper'
 
+KEY     = "00112233FF99"
+
 helper_class = Class.new do
   include CloudinaryHelper
 end
@@ -126,5 +128,18 @@ RSpec.describe CloudinaryHelper do
       expect(tag['content']).to eq('DPR, Viewport-Width, Width')
       expect(tag['http-equiv']).to eq('Accept-CH')
     end
+  end
+
+  context "auth_token" do
+    it "should add token to an image tag url" do
+      tag = Cloudinary.image "sample.jpg",
+                             :sign_url => true,
+                             :type => "authenticated",
+                             :version => "1486020273",
+                             :auth_token => { key: KEY, start_time: 11111111, duration: 300 }
+      expect(tag).to match /<img.*src='http:\/\/res.cloudinary.com\/test123\/image\/authenticated\/v1486020273\/sample.jpg\?__cld_token__=st=11111111~exp=11111411~hmac=9bd6f41e2a5893da8343dc8eb648de8bf73771993a6d1457d49851250caf3b80.*>/
+
+    end
+
   end
 end

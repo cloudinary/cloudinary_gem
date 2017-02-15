@@ -116,7 +116,7 @@ module Cloudinary
 
 
   def self.isNestedKey?(key)
-    /\w+[\[\w+\]]/ =~ key
+    /\w+\[\w+\]/ =~ key
   end
 
   def self.app_root

@@ -5,7 +5,7 @@ require 'uri'
 require 'aws_cf_signer'
 require 'json'
 require 'cgi'
-require 'cloudinary/akamai'
+require 'cloudinary/auth_token'
 
 class Cloudinary::Utils
   include Cloudinary::Akamai
@@ -317,6 +317,11 @@ class Cloudinary::Utils
     sign_version = config_option_consume(options, :sign_version) # Deprecated behavior
     url_suffix = options.delete(:url_suffix)
     use_root_path = config_option_consume(options, :use_root_path)
+    if options[:auth_token] == false
+      auth_token = false
+    else
+      auth_token = Cloudinary.config.auth_token.to_h.merge { options[:auth_token].to_h }
+    end
 
     original_source = source
     return original_source if source.blank?
@@ -354,7 +359,7 @@ class Cloudinary::Utils
     version &&= "v#{version}"
 
     transformation = transformation.gsub(%r(([^:])//), '\1/')
-    if sign_url
+    if sign_url && (auth_token.nil? || !auth_token)
       to_sign = [transformation, sign_version && version, source_to_sign].reject(&:blank?).join("/")
       i = 0
       while to_sign != CGI.unescape(to_sign) && i <10
@@ -366,6 +371,12 @@ class Cloudinary::Utils
 
     prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
     source = [prefix, resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
+    if sign_url && auth_token
+      token = generate_auth_token auth_token.merge(url: URI.parse(source).path)
+      source += "?#{token}"
+    end
+
+    source
   end
 
   def self.finalize_source(source, format, url_suffix)
@@ -543,14 +554,19 @@ class Cloudinary::Utils
   end
 
   def self.signed_download_url(public_id, options = {})
-    aws_private_key_path = options[:aws_private_key_path] || Cloudinary.config.aws_private_key_path || raise(CloudinaryException, "Must supply aws_private_key_path")
-    aws_key_pair_id = options[:aws_key_pair_id] || Cloudinary.config.aws_key_pair_id || raise(CloudinaryException, "Must supply aws_key_pair_id")
-    authenticated_distribution = options[:authenticated_distribution] || Cloudinary.config.authenticated_distribution || raise(CloudinaryException, "Must supply authenticated_distribution")
-    @signers ||= Hash.new{|h,k| path, id = k; h[k] = AwsCfSigner.new(path, id)}
-    signer = @signers[[aws_private_key_path, aws_key_pair_id]]
-    url = Cloudinary::Utils.unsigned_download_url(public_id, {:type=>:authenticated}.merge(options).merge(:secure=>true, :secure_distribution=>authenticated_distribution, :private_cdn=>true))
-    expires_at = options[:expires_at] || (Time.now+3600)
-    signer.sign(url, :ending => expires_at)
+    aws_private_key_path = options[:aws_private_key_path] || Cloudinary.config.aws_private_key_path
+    if aws_private_key_path
+      aws_key_pair_id = options[:aws_key_pair_id] || Cloudinary.config.aws_key_pair_id || raise(CloudinaryException, "Must supply aws_key_pair_id")
+      authenticated_distribution = options[:authenticated_distribution] || Cloudinary.config.authenticated_distribution || raise(CloudinaryException, "Must supply authenticated_distribution")
+      @signers ||= Hash.new{|h,k| path, id = k; h[k] = AwsCfSigner.new(path, id)}
+      signer = @signers[[aws_private_key_path, aws_key_pair_id]]
+      url = Cloudinary::Utils.unsigned_download_url(public_id, {:type=>:authenticated}.merge(options).merge(:secure=>true, :secure_distribution=>authenticated_distribution, :private_cdn=>true))
+      expires_at = options[:expires_at] || (Time.now+3600)
+      return signer.sign(url, :ending => expires_at)
+    else
+      return Cloudinary::Utils.unsigned_download_url( public_id, options)
+    end
+
   end
 
   def self.cloudinary_url(public_id, options = {})
