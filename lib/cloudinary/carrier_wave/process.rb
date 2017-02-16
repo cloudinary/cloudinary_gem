@@ -154,8 +154,8 @@ module Cloudinary::CarrierWave
     format = Cloudinary::PreloadedFile.split_format(original_filename || "").last
     return format || "" if resource_type == "raw"
     format = requested_format || format || default_format
- 
+
     format = format.to_s.downcase
-    Cloudinary::FORMAT_ALIASES[format] || format
+    Cloudinary::FORMAT_ALIASES[format] || ''
   end
 end

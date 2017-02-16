@@ -15,14 +15,14 @@ module Cloudinary
   autoload :Downloader, "cloudinary/downloader"
   autoload :Blob, "cloudinary/blob"
   autoload :PreloadedFile, "cloudinary/preloaded_file"
-  autoload :Static, "cloudinary/static"  
-  autoload :CarrierWave, "cloudinary/carrier_wave"  
-  
+  autoload :Static, "cloudinary/static"
+  autoload :CarrierWave, "cloudinary/carrier_wave"
+
   CF_SHARED_CDN = "d3jpl91pxevbkh.cloudfront.net"
   AKAMAI_SHARED_CDN = "res.cloudinary.com"
   OLD_AKAMAI_SHARED_CDN = "cloudinary-a.akamaihd.net"
   SHARED_CDN = AKAMAI_SHARED_CDN
-  
+
   USER_AGENT = "CloudinaryRuby/" + VERSION
   @@user_platform = ""
 
@@ -45,19 +45,24 @@ module Cloudinary
   end
 
   FORMAT_ALIASES = {
+    "gif" => "gif",
+    "jpg" => "jpg",
     "jpeg" => "jpg",
     "jpe" => "jpg",
+    "png" => "png",
     "tif" => "tiff",
     "ps" => "eps",
-    "ept" => "eps"
+    "ept" => "eps",
+    "eps" => "eps",
+    "bmp" => "bmp"
   }
-  
+
   @@config = nil
-  
+
   def self.config(new_config=nil)
     first_time = @@config.nil?
     @@config ||= OpenStruct.new((YAML.load(ERB.new(IO.read(config_dir.join("cloudinary.yml"))).result)[config_env] rescue {}))
-        
+
     # Heroku support
     if first_time && ENV["CLOUDINARY_CLOUD_NAME"]
       set_config(
@@ -75,9 +80,9 @@ module Cloudinary
     set_config(new_config) if new_config
     yield(@@config) if block_given?
 
-    @@config    
+    @@config
   end
-  
+
   def self.config_from_url(url)
     @@config ||= OpenStruct.new
     uri = URI.parse(url)
@@ -92,9 +97,9 @@ module Cloudinary
       |param|
       key, value = param.split("=")
       set_config(key=>URI.decode(value))
-    end    
+    end
   end
-  
+
   def self.app_root
     if defined? Rails::root
       # Rails 2.2 return String for Rails.root
@@ -105,18 +110,18 @@ module Cloudinary
   end
 
   private
-  
+
   def self.config_env
     return ENV["CLOUDINARY_ENV"] if ENV["CLOUDINARY_ENV"]
     return Rails.env if defined? Rails::env
     nil
   end
-  
+
   def self.config_dir
-    return Pathname.new(ENV["CLOUDINARY_CONFIG_DIR"]) if ENV["CLOUDINARY_CONFIG_DIR"] 
+    return Pathname.new(ENV["CLOUDINARY_CONFIG_DIR"]) if ENV["CLOUDINARY_CONFIG_DIR"]
     self.app_root.join("config")
   end
-  
+
   def self.set_config(new_config)
     new_config.each{|k,v| @@config.send(:"#{k}=", v) if !v.nil?}
   end
@@ -127,4 +132,3 @@ require "cloudinary/helper" if defined?(::ActionView::Base)
 require "cloudinary/controller" if defined?(::ActionController::Base)
 require "cloudinary/railtie" if defined?(Rails) && defined?(Rails::Railtie)
 require "cloudinary/engine" if defined?(Rails) && defined?(Rails::Engine)
-
