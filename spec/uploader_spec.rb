@@ -9,10 +9,6 @@ describe Cloudinary::Uploader do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
   include_context "cleanup", TIMESTAMP_TAG
 
-  TEST_IMG = "spec/logo.png"
-  TEST_IMG_W = 241
-  TEST_IMG_H = 51
-
   it "should successfully upload file" do
     result = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result["width"]).to eq(TEST_IMG_W)
@@ -50,7 +46,7 @@ describe Cloudinary::Uploader do
     it 'should not allow renaming to an existing ID' do
       id             = @resource_2_id
       @resource_2_id = @resource_1_id+"2" # if rename doesn't fail, this is the new ID
-      expect { Cloudinary::Uploader.rename(id, @resource_1_id+"2") }.to raise_error
+      expect { Cloudinary::Uploader.rename(id, @resource_1_id+"2") }.to raise_error(CloudinaryException)
       @resource_2_id = id
     end
     context ':overwrite => true' do
@@ -83,7 +79,18 @@ describe Cloudinary::Uploader do
   end
   
   it "should support eager" do
-    Cloudinary::Uploader.upload(TEST_IMG, :eager =>[{ :crop =>"scale", :width =>"2.0"}], :tags => [TEST_TAG, TIMESTAMP_TAG])
+    result = Cloudinary::Uploader.upload(TEST_IMG, :eager =>[{ :crop =>"scale", :width =>"2.0"}], :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result["eager"].length).to be(1)
+    expect(result).to have_deep_hash_values_of(["eager", 0, "transformation"] => "c_scale,w_2.0")
+    result = Cloudinary::Uploader.upload(TEST_IMG, :eager =>"c_scale,w_2.0", :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result["eager"].length).to be(1)
+    expect(result).to have_deep_hash_values_of(["eager", 0, "transformation"] => "c_scale,w_2.0")
+    result = Cloudinary::Uploader.upload(TEST_IMG, :eager =>["c_scale,w_2.0", { :crop =>"crop", :width =>"0.5", :format => "tiff"}], :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result["eager"].length).to be(2)
+    expect(result).to have_deep_hash_values_of(
+                          ["eager", 0, "transformation"] => "c_scale,w_2.0",
+                          ["eager", 1, "transformation"] => "c_crop,w_0.5/tiff"
+                      )
   end
 
   it "should support headers" do
@@ -151,7 +158,7 @@ describe Cloudinary::Uploader do
   end
   
   it "should prevent non whitelisted formats from being uploaded if allowed_formats is specified", :allowed=>true do
-    expect{Cloudinary::Uploader.upload(TEST_IMG, :allowed_formats => ["jpg"], :tags => [TEST_TAG, TIMESTAMP_TAG])}.to raise_error
+    expect{Cloudinary::Uploader.upload(TEST_IMG, :allowed_formats => ["jpg"], :tags => [TEST_TAG, TIMESTAMP_TAG])}.to raise_error(CloudinaryException)
   end
   
   it "should allow non whitelisted formats if type is specified and convert to that type", :allowed=>true do
@@ -161,8 +168,9 @@ describe Cloudinary::Uploader do
   
   it "should allow sending face coordinates" do
     coordinates = [[120, 30, 109, 150], [121, 31, 110, 151]]
+    result_coordinates = [[120, 30, 109, 51], [121, 31, 110, 51]]
     result = Cloudinary::Uploader.upload(TEST_IMG, { :face_coordinates => coordinates, :faces => true, :tags => [TEST_TAG, TIMESTAMP_TAG]})
-    expect(result["faces"]).to eq(coordinates)
+    expect(result["faces"]).to eq(result_coordinates)
 
     different_coordinates = [[122, 32, 111, 152]]
     Cloudinary::Uploader.explicit(result["public_id"], {:face_coordinates => different_coordinates, :faces => true, :type => "upload", :tags => [TEST_TAG, TIMESTAMP_TAG]})
@@ -244,7 +252,7 @@ describe Cloudinary::Uploader do
     end
 
     it "should fail if timeout is reached" do
-      expect{Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :tags => [TEST_TAG, TIMESTAMP_TAG])}.to raise_error
+      expect{Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :tags => [TEST_TAG, TIMESTAMP_TAG])}.to raise_error(RestClient::RequestTimeout)
     end
   end
 

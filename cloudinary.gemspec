@@ -21,18 +21,25 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency "aws_cf_signer"
-  s.add_development_dependency "rspec", '>=3.2'
+  s.add_development_dependency "rspec", '>=3.5'
   s.add_development_dependency "rspec-rails"
   s.add_development_dependency "rubyzip"
 
-  if RUBY_VERSION > "1.9"
+  if RUBY_VERSION > "2.0"
     s.add_dependency "rest-client"
     s.add_development_dependency "actionpack"
     s.add_development_dependency "simplecov"
+  elsif RUBY_VERSION >= "1.9"
+    s.add_dependency "rest-client", '< 2.0'
+    s.add_dependency 'json', '~> 1.8'
+    s.add_development_dependency "actionpack", '< 5.0'
+    s.add_development_dependency "simplecov"
+    s.add_development_dependency "nokogiri", "<1.7.0"
   else
     s.add_dependency "i18n", "<0.7.0"
     s.add_dependency "rest-client", "<=1.6.8"
     s.add_development_dependency "actionpack", "~>3.2.0"
+    s.add_development_dependency "nokogiri", "<1.6.0"
   end
 
 end

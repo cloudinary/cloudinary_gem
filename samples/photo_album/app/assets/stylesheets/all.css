@@ -1,18 +1,20 @@
 body { font-family: Helvetica, Arial, sans-serif; color: #333; margin: 10px; width: 960px }
 #posterframe { position: absolute; right: 10px; top: 10px; }
-h1 { color: #0e2953; font-size: 18px; }
+h1 { color: #0e2953; font-size: 22px; margin-top: 50px }
 h2 { color: #666; font-size: 16px; }
 p { font-size: 14px; line-height: 18px; }
 #logo { height: 51px; width: 241px; }
 a { color: #0b63b6 }
 
+.photos, .albums { border-bottom: 1px solid #aaa }
+.content { margin-top: 50px; }
 .actions { margin: 20px 0; }
 .upload_link { color: #000; border: 1px solid #aaa; background-color: #e0e0e0; 
 	font-size: 18px; padding: 5px 10px; width: 250px; margin: 10px 0 20px 0; 
 	font-weight: bold; text-align: center; text-decoration: none; margin: 5px; }
 
-.photo { margin: 10px; padding: 10px; border-top: 2px solid #ccc; }
-.photo .thumbnail { margin-top: 10px; display: block; max-width: 200px; border: none; }
+.photo, .album { margin: 10px; padding: 10px; border-top: 2px solid #ccc; }
+.photo .thumbnail, .album .thumbnail { margin-top: 10px; display: block; max-width: 200px; border: none; }
 .toggle_info { margin-top: 10px; font-weight: bold; color: #e62401; display: block; }
 .thumbnail_holder { height: 182px; margin-bottom: 5px; margin-right: 10px; }
 .info td, .uploaded_info td { font-size: 12px }
@@ -23,10 +25,11 @@ a { color: #0b63b6 }
 .inline { display: inline-block; }
 td { vertical-align: top; padding-right: 5px; }
 
-#backend_upload, #direct_upload { padding: 20px 20px; margin: 20px 0; 
-	border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; }
-	
-#backend_upload h1, #direct_upload h1 { margin: 0 0 15px 0; }	
+
+.basic_form { padding: 20px 20px; margin: 20px 0;
+  border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; }
+
+.basic_form h1 { margin: 0 0 15px 0; }
 
 .back_link { font-weight: bold; display: block; font-size: 16px; margin: 10px 0; }
 

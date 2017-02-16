@@ -1,4 +1,83 @@
 
+1.5.1 / 2017-02-13
+==================
+  * Fix Carrierwave 1.0.0 integration: broken `remote_image_url`
+
+1.5.0 / 2017-02-07
+==================
+
+New functionality and features
+------------------------------
+
+  * Access mode API
+
+Other Changes
+-------------
+
+  * Fix transformation related tests.
+  * Fix archive test to use `include` instead of `match_array`.
+  * Fix "missing folder" test
+  * Add specific dependency on nokogiri
+  * Update rspec version
+
+1.4.0 / 2017-01-30
+==================
+
+  * Add Akamai token generator
+  * Merge pull request #201 from nashby/fix-image-formats
+  * Remove video formats from the image formats array.
+
+1.3.0 / 2016-12-22
+==================
+
+New functionality and features
+------------------------------
+
+  * Search resource by context
+  * Add `:transformations` parameter to all `delete_resources`
+  * Update bundled Cloudinary Javascript library to 2.1.8 
+
+Other Changes
+-------------
+
+  * Added 'Album' for better showing a real world use case
+  * Use tag instead of content_tag when creating input tag
+  * Fix `face_coordinates` test
+
+1.2.4 / 2016-10-30
+==================
+
+New functionality and features
+------------------------------
+
+  * Add `Api.update_streaming_profile`
+  * Add `Api.get_streaming_profile`
+  * Add `Api.delete_streaming_profile`
+  * Add `Api.list_streaming_profiles`
+  * Add `Api.create_streaming_profile`
+
+1.2.3 / 2016-08-21
+==================
+
+  * Allow a string to be passed as eager transformation
+  * Add `delete_derived_by_transformation` to the Api methods.
+  * Support videos mode for url suffixes. 
+  * Support url suffixes without private cdn
+  * Fix `values_match?`
+
+1.2.2 / 2016-07-16
+==================
+
+  * Update gemspec to differentiate between ruby 1.9 and 2.0
+  * Add `:max_results => 500` to tags test.
+  * Add json spec. Add explicit exception names to `raise_error`.
+
+1.2.1 / 2016-07-16
+==================
+
+  * Add test for width and height values "ow", "oh"
+  * Include new JavaScript files. Related to cloudinary/cloudinary_js#73
+
 1.2.0 / 2016-06-22
 ==================
 

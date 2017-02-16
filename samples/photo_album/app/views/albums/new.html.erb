@@ -1,0 +1,20 @@
+<div class='basic_form'>
+  <h1>New Album</h1>
+  <%= form_for(@album) do |f| %>
+    <div class="form_line">
+      <%= f.label :title, "Title:" %>
+      <div class="form_controls">
+        <%= f.text_field :title %>
+      </div>
+    </div>
+    <div class="form_line">
+      <div class="form_controls">
+        <%= f.submit "Submit Album" %>
+        <% if @error %><span class="error"><%= @error %></span><% end %>
+      </div>
+    </div>
+    <%= hidden_field_tag :direct, params[:direct] %>
+  <% end %>
+</div>
+
+<a href="<%= albums_path %>" class="back_link">Back to albums</a>

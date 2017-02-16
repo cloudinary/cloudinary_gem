@@ -12,6 +12,7 @@ group :assets do
   gem 'uglifier', '>= 1.0.3'
 end
 
+gem 'test-unit'
 # Optional - turbolinks support
 #gem 'turbolinks'
 #gem 'jquery-turbolinks'

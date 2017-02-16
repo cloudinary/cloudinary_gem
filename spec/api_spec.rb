@@ -4,7 +4,8 @@ require 'cloudinary'
 describe Cloudinary::Api do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
   include_context "cleanup", TIMESTAMP_TAG
-
+  TEST_WIDTH = rand(1000)
+  TEST_TRANSFOMATION = "c_scale,w_#{TEST_WIDTH}"
   prefix = "api_test_#{Time.now.to_i}"
   test_id_1 = "#{prefix}_1"
   test_id_2   = "#{prefix}_2"
@@ -12,9 +13,11 @@ describe Cloudinary::Api do
   before(:all) do
 
     @api = Cloudinary::Api
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>100, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "test-key=test", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "test-key=tasty", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
   end
 
   after(:all) do
@@ -75,6 +78,13 @@ describe Cloudinary::Api do
     expect(resources.map{|resource| resource["context"]}).to include({"custom" => {"key" => "value"}})
   end
   
+  it "should allow listing resources by context" do
+    resources = @api.resources_by_context('test-key')["resources"]
+    expect(resources.count).to eq(2)
+    resources = @api.resources_by_context('test-key','test')["resources"]
+    expect(resources.count).to eq(1)
+  end
+
   it "should allow listing resources by public ids" do
     resources = @api.resources_by_ids([test_id_1, test_id_2], :tags => true, :context => true)["resources"]
     expect(resources.length).to eq(2)
@@ -125,9 +135,44 @@ describe Cloudinary::Api do
     @api.delete_derived_resources(derived_resource_id)
   end
 
+  it "should allow deleting derived resources by transformations" do
+    public_id = "public_id"
+    transformations = "c_crop,w_100"
+    expect(RestClient::Request).to receive(:execute).with(
+        deep_hash_value( {[:payload, :public_ids] => public_id,
+                          [:payload, :transformations] => "c_crop,w_100"}))
+    @api.delete_derived_by_transformation(public_id, "c_crop,w_100")
+
+    transformations = {:crop => "crop", :width => 100}
+    expect(RestClient::Request).to receive(:execute).with(
+        deep_hash_value( {[:payload, :public_ids] => public_id,
+                          [:payload, :transformations] => "c_crop,w_100"}))
+    @api.delete_derived_by_transformation(public_id, transformations)
+
+    transformations = [{:crop => "crop", :width => 100}, {:crop => "scale", :width => 300}]
+    expect(RestClient::Request).to receive(:execute).with(
+        deep_hash_value( {[:payload, :public_ids] => public_id,
+                          [:payload, :transformations] => "c_crop,w_100|c_scale,w_300"}))
+    @api.delete_derived_by_transformation(public_id, transformations)
+
+  end
+
   it "should allow deleting resources" do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :public_ids] => ["apit_test", "test_id_2", "api_test3"]}))
     @api.delete_resources(["apit_test", "test_id_2", "api_test3"])
+  end
+
+  it "should allow deleting resource transformations" do
+    resource = Cloudinary::Uploader.upload(TEST_IMG, :eager => [{:width=>101,:crop=>:scale}, {:width=>200,:crop=>:crop}])
+    public_id = resource["public_id"]
+    expect(resource).not_to be_blank
+    derived = resource["eager"].map{|d| d["transformation"]}
+    expect(derived).to include("c_scale,w_101", "c_crop,w_200")
+    @api.delete_resources([public_id], :transformations => "c_crop,w_200")
+    resource = @api.resource(public_id)
+    derived = resource["derived"].map{|d| d["transformation"]}
+    expect(derived).not_to include("c_crop,w_200")
+    expect(derived).to include("c_scale,w_101")
   end
 
   it "should allow deleting resources by prefix" do
@@ -141,7 +186,7 @@ describe Cloudinary::Api do
   end
 
   it "should allow listing tags" do
-    tags = @api.tags()["tags"]
+    tags = @api.tags(:max_results => 500)["tags"]
     expect(tags).to include(TEST_TAG)
   end
 
@@ -154,37 +199,37 @@ describe Cloudinary::Api do
   
   describe 'transformations' do
     it "should allow listing transformations" do
-      transformation = @api.transformations()["transformations"].find { |transformation| transformation["name"] == "c_scale,w_100" }
+      transformation = @api.transformations(max_results: 500)["transformations"].find { |transformation| transformation["name"] == TEST_TRANSFOMATION }
       expect(transformation).not_to be_blank
       expect(transformation["used"]).to eq(true)
     end
 
     it "should allow getting transformation metadata" do
-      transformation = @api.transformation("c_scale,w_100")
+      transformation = @api.transformation(TEST_TRANSFOMATION)
       expect(transformation).not_to be_blank
-      expect(transformation["info"]).to eq(["crop" => "scale", "width" => 100])
-      transformation = @api.transformation("crop" => "scale", "width" => 100)
+      expect(transformation["info"]).to eq(["crop" => "scale", "width" => TEST_WIDTH])
+      transformation = @api.transformation("crop" => "scale", "width" => TEST_WIDTH)
       expect(transformation).not_to be_blank
-      expect(transformation["info"]).to eq(["crop" => "scale", "width" => 100])
+      expect(transformation["info"]).to eq(["crop" => "scale", "width" => TEST_WIDTH])
     end
 
     it "should allow updating transformation allowed_for_strict" do
-      @api.update_transformation("c_scale,w_100", :allowed_for_strict => true)
-      transformation = @api.transformation("c_scale,w_100")
+      @api.update_transformation(TEST_TRANSFOMATION, :allowed_for_strict => true)
+      transformation = @api.transformation(TEST_TRANSFOMATION)
       expect(transformation).not_to be_blank
       expect(transformation["allowed_for_strict"]).to eq(true)
-      @api.update_transformation("c_scale,w_100", :allowed_for_strict => false)
-      transformation = @api.transformation("c_scale,w_100")
+      @api.update_transformation(TEST_TRANSFOMATION, :allowed_for_strict => false)
+      transformation = @api.transformation(TEST_TRANSFOMATION)
       expect(transformation).not_to be_blank
       expect(transformation["allowed_for_strict"]).to eq(false)
     end
 
     it "should fetch two different derived images using next_cursor" do
-      result = @api.transformation("c_scale,w_100", :max_results=>1)
+      result = @api.transformation(TEST_TRANSFOMATION, :max_results=>1)
       expect(result["derived"]).not_to be_blank
       expect(result["derived"].length).to eq(1)
       expect(result["next_cursor"]).not_to be_blank
-      result2 = @api.transformation("c_scale,w_100", :max_results=>1, :next_cursor=>result["next_cursor"])
+      result2 = @api.transformation(TEST_TRANSFOMATION, :max_results=>1, :next_cursor=>result["next_cursor"])
       expect(result2["derived"]).not_to be_blank
       expect(result2["derived"].length).to eq(1)
       expect(result2["derived"][0]["id"]).not_to eq(result["derived"][0]["id"] )
@@ -219,9 +264,9 @@ describe Cloudinary::Api do
 
     end
     it "should allow deleting implicit transformation" do
-      @api.transformation("c_scale,w_100")
-      @api.delete_transformation("c_scale,w_100")
-      expect { @api.transformation("c_scale,w_100") }.to raise_error(Cloudinary::Api::NotFound)
+      @api.transformation(TEST_TRANSFOMATION)
+      @api.delete_transformation(TEST_TRANSFOMATION)
+      expect { @api.transformation(TEST_TRANSFOMATION) }.to raise_error(Cloudinary::Api::NotFound)
     end
   end
   
@@ -259,10 +304,11 @@ describe Cloudinary::Api do
   end
   
   it "should allow deleting upload_presets", :upload_preset => true do
-    @api.create_upload_preset(:name => "api_test_upload_preset4", :folder => "folder", :tags => [TEST_TAG, TIMESTAMP_TAG])
-    preset = @api.upload_preset("api_test_upload_preset4")
-    @api.delete_upload_preset("api_test_upload_preset4")
-    expect{preset = @api.upload_preset("api_test_upload_preset4")}.to raise_error
+    id = "#{prefix}_upload_preset"
+    @api.create_upload_preset(:name => id, :folder => "folder", :tags => [TEST_TAG, TIMESTAMP_TAG])
+    preset = @api.upload_preset(id)
+    @api.delete_upload_preset(id)
+    expect{preset = @api.upload_preset(id)}.to raise_error(Cloudinary::Api::NotFound)
   end
   
   it "should allow updating upload_presets", :upload_preset => true do
@@ -277,7 +323,7 @@ describe Cloudinary::Api do
   
   # this test must be last because it deletes (potentially) all dependent transformations which some tests rely on. Excluded by default.
   skip "should allow deleting all resources", :delete_all=>true do
-    Cloudinary::Uploader.upload("spec/logo.png", :public_id=>"api_test5", :eager=>[:width=>101,:crop=>:scale], :tags => [TEST_TAG, TIMESTAMP_TAG])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id=>"api_test5", :eager=>[:width=>101,:crop=>:scale], :tags => [TEST_TAG, TIMESTAMP_TAG])
     resource = @api.resource("api_test5")
     expect(resource).not_to be_blank
     expect(resource["derived"].length).to eq(1)
@@ -288,7 +334,7 @@ describe Cloudinary::Api do
   end
   
   it "should support setting manual moderation status" do
-    result = Cloudinary::Uploader.upload("spec/logo.png", {:moderation => :manual, :tags => [TEST_TAG, TIMESTAMP_TAG]})
+    result = Cloudinary::Uploader.upload(TEST_IMG, {:moderation => :manual, :tags => [TEST_TAG, TIMESTAMP_TAG]})
     expect(result["moderation"][0]["status"]).to eq("pending")
     expect(result["moderation"][0]["kind"]).to eq("manual")
     api_result = Cloudinary::Api.update(result["public_id"], {:moderation_status => :approved})
@@ -302,7 +348,7 @@ describe Cloudinary::Api do
   end
   
   it "should support requesting categorization" do
-    result = Cloudinary::Uploader.upload("spec/logo.png", :tags => [TEST_TAG, TIMESTAMP_TAG])
+    result = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect{Cloudinary::Api.update(result["public_id"], {:categorization => :illegal})}.to raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
   end
   
@@ -328,6 +374,10 @@ describe Cloudinary::Api do
     Cloudinary::Api.subfolders("test_folder1")
   end
 
+  it "should throw if folder is missing" do
+    expect{Cloudinary::Api.subfolders("I_do_not_exist")}.to raise_error(Cloudinary::Api::NotFound)
+  end
+
   describe '.restore'  do
     it 'should restore a deleted resource' do
       expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :public_ids] => "api_test_restore", [:url] => /.*\/restore$/))
@@ -345,5 +395,46 @@ describe Cloudinary::Api do
     end
 
 
+  end
+  describe "access_mode" do
+    i = 0
+
+    publicId = ""
+    access_mode_tag = ''
+    before(:each) do
+      i += 1
+      access_mode_tag = TEST_TAG + "access_mode" + i.to_s
+      result = Cloudinary::Uploader.upload TEST_IMG, access_mode: "authenticated", tags: [TEST_TAG, TIMESTAMP_TAG, access_mode_tag]
+      publicId = result["public_id"]
+      expect(result["access_mode"]).to eq("authenticated")
+    end
+
+    it "should update access mode by ids" do
+      result = Cloudinary::Api.update_resources_access_mode_by_ids "public", [publicId]
+
+      expect(result["updated"]).to be_an_instance_of(Array)
+      expect(result["updated"].length).to eq(1)
+      resource = result["updated"][0]
+      expect(resource["public_id"]).to eq(publicId)
+      expect(resource["access_mode"]).to eq('public')
+    end
+    it "should update access mode by prefix" do
+      result = Cloudinary::Api.update_resources_access_mode_by_prefix "public", publicId[0..-3]
+
+      expect(result["updated"]).to be_an_instance_of(Array)
+      expect(result["updated"].length).to eq(1)
+      resource = result["updated"][0]
+      expect(resource["public_id"]).to eq(publicId)
+      expect(resource["access_mode"]).to eq('public')
+    end
+    it "should update access mode by tag" do
+      result = Cloudinary::Api.update_resources_access_mode_by_tag "public", access_mode_tag
+
+      expect(result["updated"]).to be_an_instance_of(Array)
+      expect(result["updated"].length).to eq(1)
+      resource = result["updated"][0]
+      expect(resource["public_id"]).to eq(publicId)
+      expect(resource["access_mode"]).to eq('public')
+    end
   end
 end

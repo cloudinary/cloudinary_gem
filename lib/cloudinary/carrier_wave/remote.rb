@@ -1,5 +1,5 @@
 module Cloudinary::CarrierWave
-  def download!(uri)
+  def download!(uri, *args)
     return super if !self.cloudinary_should_handle_remote?
     if respond_to?(:process_uri)
       uri = process_uri(uri)
@@ -17,9 +17,9 @@ module Cloudinary::CarrierWave
       @uri = uri
       @original_filename = filename
     end
-    
+
     def delete
       # Do nothing. This is a virtual file.
     end
   end
-end  
+end

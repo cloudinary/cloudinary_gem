@@ -2,7 +2,7 @@
 <div id='backend_upload'>
   <h1>New Photo</h1>
   <h2>Image file is uploaded through the server</h2>
-  <%= form_for(@photo, :url => photos_path) do |f| %>
+  <%= form_for(@photo, :url => album_photos_path(@album)) do |f| %>
     <div class="form_line">
       <%= f.label :title, "Title:" %>
       <div class="form_controls">
@@ -26,4 +26,4 @@
   <% end %>
 </div>
 
-<a href="<%= photos_path %>" class="back_link">Back to list</a>
+<a href="<%= album_path(@album) %>" class="back_link">Back to album</a>

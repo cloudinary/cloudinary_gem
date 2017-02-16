@@ -87,8 +87,13 @@ describe Cloudinary::Utils do
             .and empty_options
   end
 
-  it "should disallow url_suffix in shared distribution" do
-    expect { Cloudinary::Utils.cloudinary_url("test", { :url_suffix => "hello" }) }.to raise_error(CloudinaryException)
+  it "should support url_suffix in shared distribution" do
+    expect(["test", { :url_suffix => "hello" }])
+      .to produce_url("http://res.cloudinary.com/#{cloud_name}/images/test/hello")
+            .and empty_options
+    expect(["test", { :url_suffix => "hello", :angle => 0 }])
+      .to produce_url("http://res.cloudinary.com/#{cloud_name}/images/a_0/test/hello")
+            .and empty_options
   end
 
   it "should disallow url_suffix in non upload types" do
@@ -130,6 +135,12 @@ describe Cloudinary::Utils do
   it "should support url_suffix for raw uploads" do
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :resource_type => :raw }])
       .to produce_url("http://#{cloud_name}-res.cloudinary.com/files/test/hello")
+            .and empty_options
+  end
+
+  it "should support url_suffix for videos" do
+    expect(["test", { :url_suffix => "hello", :private_cdn => true, :resource_type => :video }])
+      .to produce_url("http://#{cloud_name}-res.cloudinary.com/videos/test/hello")
             .and empty_options
   end
 
@@ -218,6 +229,10 @@ describe Cloudinary::Utils do
           .to produce_url("#{upload_path}/c_fill,w_auto:breakpoints_100_1900_20_15/test")
       expect(["test", { :width => "auto:breakpoints:json", :crop => :fill }])
           .to produce_url("#{upload_path}/c_fill,w_auto:breakpoints:json/test")
+    end
+    it 'should support oh,ow' do
+      expect(["test", {:width => "ow", :height => "oh", :crop => :crop}])
+          .to produce_url("#{upload_path}/c_crop,h_oh,w_ow/test")
     end
   end
 

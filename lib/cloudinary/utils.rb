@@ -5,8 +5,10 @@ require 'uri'
 require 'aws_cf_signer'
 require 'json'
 require 'cgi'
+require 'cloudinary/akamai'
 
 class Cloudinary::Utils
+  include Cloudinary::Akamai
   # @deprecated Use Cloudinary::SHARED_CDN
   SHARED_CDN = Cloudinary::SHARED_CDN
   DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {:width => :auto, :crop => :limit}
@@ -110,8 +112,9 @@ class Cloudinary::Utils
       :w   => width
     }
     {
-      :ar => :aspect_ratio,
       :ac => :audio_codec,
+      :af => :audio_frequency,
+      :ar => :aspect_ratio,
       :br => :bit_rate,
       :cs => :color_space,
       :d  => :default_image,
@@ -127,7 +130,6 @@ class Cloudinary::Utils
       :pg => :page,
       :q  => :quality,
       :r  => :radius,
-      :af => :audio_frequency,
       :so => :start_offset,
       :sp => :streaming_profile,
       :vc => :video_codec,
@@ -316,8 +318,6 @@ class Cloudinary::Utils
     url_suffix = options.delete(:url_suffix)
     use_root_path = config_option_consume(options, :use_root_path)
 
-    raise(CloudinaryException, "URL Suffix only supported in private CDN") if url_suffix.present? and not private_cdn
-
     original_source = source
     return original_source if source.blank?
     if defined?(CarrierWave::Uploader::Base) && source.is_a?(CarrierWave::Uploader::Base)
@@ -365,7 +365,7 @@ class Cloudinary::Utils
     end
 
     prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
-      source = [prefix, resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
+    source = [prefix, resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
   end
 
   def self.finalize_source(source, format, url_suffix)
@@ -400,6 +400,9 @@ class Cloudinary::Utils
         type = nil
       when resource_type.to_s == "raw" && type.to_s == "upload"
         resource_type = "files"
+        type = nil
+      when resource_type.to_s == "video" && type.to_s == "upload"
+        resource_type = "videos"
         type = nil
       else
         raise(CloudinaryException, "URL Suffix only supported for image/upload, image/private and raw/upload")
@@ -625,7 +628,7 @@ class Cloudinary::Utils
     end
   end
 
-  IMAGE_FORMATS = %w(ai bmp bpg djvu eps eps3 flif gif h264 hdp hpx ico j2k jp2 jpc jpe jpg miff mka mp4 pdf png psd svg tif tiff wdp webm webp zip )
+  IMAGE_FORMATS = %w(ai bmp bpg djvu eps eps3 flif gif hdp hpx ico j2k jp2 jpc jpe jpg miff pdf png psd svg tif tiff wdp webp zip )
 
   AUDIO_FORMATS = %w(aac aifc aiff flac m4a mp3 ogg wav)
 
@@ -748,14 +751,21 @@ class Cloudinary::Utils
     }
   end
 
+  #
   # @private
+  # @param [String|Hash|Array] eager an transformation as a string or hash, with or without a format. The parameter also accepts an array of eager transformations.
   def self.build_eager(eager)
     return nil if eager.nil?
     Cloudinary::Utils.build_array(eager).map do
     |transformation, format|
-      transformation = transformation.clone
-      format = transformation.delete(:format) || format
-      [Cloudinary::Utils.generate_transformation_string(transformation, true), format].compact.join("/")
+      unless transformation.is_a? String
+        transformation = transformation.clone
+        if transformation.respond_to?(:delete)
+          format = transformation.delete(:format) || format
+        end
+        transformation = Cloudinary::Utils.generate_transformation_string(transformation, true)
+      end
+      [transformation, format].compact.join("/")
     end.join("|")
   end
 
