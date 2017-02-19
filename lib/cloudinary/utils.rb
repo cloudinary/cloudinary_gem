@@ -320,7 +320,7 @@ class Cloudinary::Utils
     if options[:auth_token] == false
       auth_token = false
     else
-      auth_token = Cloudinary.config.auth_token.to_h.merge { options[:auth_token].to_h }
+      auth_token = Cloudinary.config.auth_token.to_h.merge(  options[:auth_token].to_h )
     end
 
     original_source = source

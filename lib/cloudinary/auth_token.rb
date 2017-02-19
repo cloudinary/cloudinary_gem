@@ -21,8 +21,8 @@ module Cloudinary
         duration = options[:duration]
         url = options[:url]
         start = Time.new.getgm.to_i if start == 'now'
-        unless expiration
-          if duration
+        if expiration.nil? || expiration == 0
+          if !(duration.nil? || duration == 0)
             expiration = (start || Time.new.getgm.to_i) + duration
           else
             throw 'Must provide either expiration or duration'
@@ -33,15 +33,17 @@ module Cloudinary
         token << "ip=#{ip}" if ip
         token << "st=#{start}" if start
         token << "exp=#{expiration}"
-        token << "acl=#{acl}" if acl
+        token << "acl=#{escape_to_lower(acl)}" if acl
         to_sign = token.clone
-        if url
-          url = CGI::escape(url).gsub(/%../){|h| h.downcase}
-          to_sign << "url=#{url}"
-        end
+        to_sign << "url=#{escape_to_lower(url)}" if url
         auth = digest(to_sign.join(SEPARATOR), key)
         token << "hmac=#{auth}"
         "#{name}=#{token.join(SEPARATOR)}"
+      end
+
+      # escape URI pattern using lowercase hex. For example "/" -> "%2f".
+      def escape_to_lower(url)
+        CGI::escape(url).gsub(/%../) { |h| h.downcase }
       end
 
       private
