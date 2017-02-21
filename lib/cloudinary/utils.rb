@@ -8,7 +8,6 @@ require 'cgi'
 require 'cloudinary/auth_token'
 
 class Cloudinary::Utils
-  include Cloudinary::Akamai
   # @deprecated Use Cloudinary::SHARED_CDN
   SHARED_CDN = Cloudinary::SHARED_CDN
   DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {:width => :auto, :crop => :limit}
@@ -41,7 +40,7 @@ class Cloudinary::Utils
 
     symbolize_keys!(options)
 
-    responsive_width = config_option_consume(options, :responsive_width) 
+    responsive_width = config_option_consume(options, :responsive_width)
     size = options.delete(:size)
     options[:width], options[:height] = size.split("x") if size
     width = options[:width]
@@ -282,7 +281,7 @@ class Cloudinary::Utils
         transformation =  breakpoint_settings.delete(:transformation) || breakpoint_settings.delete("transformation")
         if transformation
           breakpoint_settings[:transformation] = Cloudinary::Utils.generate_transformation_string(transformation.clone, true)
-        end 
+        end
       end
       breakpoint_settings
 
@@ -317,10 +316,9 @@ class Cloudinary::Utils
     sign_version = config_option_consume(options, :sign_version) # Deprecated behavior
     url_suffix = options.delete(:url_suffix)
     use_root_path = config_option_consume(options, :use_root_path)
-    if options[:auth_token] == false
-      auth_token = false
-    else
-      auth_token = Cloudinary.config.auth_token.to_h.merge(  options[:auth_token].to_h )
+    auth_token = config_option_consume(options, :auth_token)
+    unless auth_token == false
+      auth_token = Cloudinary::AuthToken.merge_auth_token(Cloudinary.config.auth_token, auth_token)
     end
 
     original_source = source
@@ -359,7 +357,7 @@ class Cloudinary::Utils
     version &&= "v#{version}"
 
     transformation = transformation.gsub(%r(([^:])//), '\1/')
-    if sign_url && (auth_token.nil? || !auth_token)
+    if sign_url && ( !auth_token || auth_token.empty?)
       to_sign = [transformation, sign_version && version, source_to_sign].reject(&:blank?).join("/")
       i = 0
       while to_sign != CGI.unescape(to_sign) && i <10
@@ -371,8 +369,9 @@ class Cloudinary::Utils
 
     prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
     source = [prefix, resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
-    if sign_url && auth_token
-      token = generate_auth_token auth_token.merge(url: URI.parse(source).path)
+    if sign_url && auth_token && !auth_token.empty?
+      auth_token[:url] = URI.parse(source).path
+      token = Cloudinary::AuthToken.generate auth_token
       source += "?#{token}"
     end
 
@@ -507,7 +506,7 @@ class Cloudinary::Utils
     return Cloudinary::Utils.cloudinary_api_url("download", options) + "?" + hash_query_params(cloudinary_params)
   end
 
-  # Utility method that uses the deprecated ZIP download API. 
+  # Utility method that uses the deprecated ZIP download API.
   # @deprecated Replaced by {download_zip_url} that uses the more advanced and robust archive generation and download API
   def self.zip_download_url(tag, options = {})
     warn "zip_download_url is deprecated. Please use download_zip_url instead."
@@ -785,6 +784,11 @@ class Cloudinary::Utils
     end.join("|")
   end
 
+  def self.generate_auth_token(options)
+    options = Cloudinary::AuthToken.merge_auth_token Cloudinary.config.auth_token, options
+    Cloudinary::AuthToken.generate options
+
+  end
   private
 
   def self.hash_query_params(hash)

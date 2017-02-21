@@ -1,5 +1,10 @@
 # Copyright Cloudinary
-require "ostruct"
+if RUBY_VERSION > "2"
+  require "ostruct"
+else
+  require "cloudinary/ostruct2"
+end
+
 require "pathname"
 require "yaml"
 require "uri"
