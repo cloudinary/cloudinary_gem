@@ -1,4 +1,14 @@
 
+1.5.2 / 2017-02-22
+==================
+
+  * Support URL Authorization token. 
+  * Rename auth_token. 
+  * Support nested keys in CLOUDINARY_URL
+  * Support "authenticated" url without a signature.
+  * Add OpenStruct from ruby 2.0.
+  * Add specific rubyzip version for ruby 1.9
+
 1.5.1 / 2017-02-13
 ==================
   * Fix Carrierwave 1.0.0 integration: broken `remote_image_url`
