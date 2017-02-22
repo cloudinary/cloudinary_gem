@@ -12,20 +12,20 @@ module Cloudinary
 
     def self.generate(options = {})
       key = options[:key]
-      throw "Missing auth token key configuration" unless key
-        name = options[:token_name] || "__cld_token__"
-        start = options[:start_time]
-        expiration = options[:expiration]
-        ip = options[:ip]
-        acl = options[:acl]
-        duration = options[:duration]
-        url = options[:url]
+      raise "Missing auth token key configuration" unless key
+      name = options[:token_name] || "__cld_token__"
+      start = options[:start_time]
+      expiration = options[:expiration]
+      ip = options[:ip]
+      acl = options[:acl]
+      duration = options[:duration]
+      url = options[:url]
       start = Time.new.getgm.to_i if start == 'now'
       if expiration.nil? || expiration == 0
         if !(duration.nil? || duration == 0)
           expiration = (start || Time.new.getgm.to_i) + duration
         else
-          throw 'Must provide either expiration or duration'
+          raise 'Must provide either expiration or duration'
         end
       end
 

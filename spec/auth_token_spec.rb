@@ -58,9 +58,14 @@ describe 'auth_token' do
       expect(url).to eq("http://test123-res.cloudinary.com/image/authenticated/v1486020273/sample.jpg?__cld_token__=st=11111111~exp=11111411~hmac=8db0d753ee7bbb9e2eaf8698ca3797436ba4c20e31f44527e43b6a6e995cfdb3")
 
     end
-    it "should throw if expiration and duration are not provided" do
+    it "should raise if key is not provided" do
+      Cloudinary.config.auth_token[:key] = nil
+      token = { :expiration => 111111, :duration => 0 }
+      expect{Cloudinary::Utils.generate_auth_token(token)}.to raise_error
+    end
+    it "should raise if expiration and duration are not provided" do
       token = { :key => KEY, :expiration => 0, :duration => 0 }
-      expect{Cloudinary::Utils.generate_auth_token(token)}.to raise_exception
+      expect{Cloudinary::Utils.generate_auth_token(token)}.to raise_error
     end
   end
   describe "authentication token" do
