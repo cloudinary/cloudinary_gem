@@ -18,6 +18,7 @@ class Cloudinary::Uploader
     params = {
       :access_mode               => options[:access_mode],
       :allowed_formats           => Cloudinary::Utils.build_array(options[:allowed_formats]).join(","),
+      :async                     => Cloudinary::Utils.as_safe_bool(options[:async]),
       :auto_tagging              => options[:auto_tagging] && options[:auto_tagging].to_f,
       :background_removal        => options[:background_removal],
       :backup                    => Cloudinary::Utils.as_safe_bool(options[:backup]),

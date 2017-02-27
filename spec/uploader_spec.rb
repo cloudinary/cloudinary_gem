@@ -30,6 +30,11 @@ describe Cloudinary::Uploader do
     expect(result["signature"]).to eq(expected_signature)
   end
 
+  it "should successfully upload file asynchronously" do
+    result = Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :async => true)
+    expect(result["status"]).to eq("pending")
+  end
+
   describe '.rename' do
     before(:all) do
       @result        = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
