@@ -11,6 +11,14 @@ TEST_IMG_H = 51
 TEST_TAG = 'cloudinary_gem_test'
 TIMESTAMP_TAG = "#{TEST_TAG}_#{rand(999999999)}_#{RUBY_VERSION}_#{ defined? Rails::version ? Rails::version : 'no_rails'}"
 
+Dir[File.join(File.dirname(__FILE__), '/support/**/*.rb')].each {|f| require f}
+
+module RSpec
+  def self.project_root
+    File.join(File.dirname(__FILE__), '..')
+  end
+end
+
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
   unless RSpec::Version::STRING.match( /^3/)
@@ -131,7 +139,13 @@ end
 RSpec::Matchers.define :be_served_by_cloudinary do
   match do |url|
     if url.is_a? Array
-      url = Cloudinary::Utils.cloudinary_url( url[0], url[1])
+      url, options = url
+      url = Cloudinary::Utils.cloudinary_url(url, options.clone)
+      if Cloudinary.config.upload_prefix
+        res_prefix_uri = URI.parse(Cloudinary.config.upload_prefix)
+        res_prefix_uri.path = '/res'
+        url.gsub!(/https?:\/\/res.cloudinary.com/, res_prefix_uri.to_s)
+      end
     end
     code = 0
     @url = url
