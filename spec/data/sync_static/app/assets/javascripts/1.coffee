@@ -1,1 +1,1 @@
-coffeescript = true;
+coffeescript = true
