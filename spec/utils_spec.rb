@@ -771,21 +771,51 @@ describe Cloudinary::Utils do
       end
       it "should support and translate operators:  '=', '!=', '<', '>', '<=', '>=', '&&', '||'" do
 
-        allOperators =
-          'if_'           +
-            'w_eq_0_and'    +
-            '_w_ne_0_or'    +
-            '_h_lt_0_and'   +
-            '_ar_gt_0_and'   +
-            '_pc_lte_0_and'  +
-            '_fc_gte_0'      +
+        all_operators =
+          'if_' +
+            'w_eq_0_and' +
+            '_w_ne_0_or' +
+            '_h_lt_0_and' +
+            '_ar_gt_0_and' +
+            '_pc_lte_0_and' +
+            '_fc_gte_0' +
             ',e_grayscale'
 
         expect( ["sample",
                  :if =>"width = 0 && w != 0 || height < 0 and aspect_ratio > 0 and page_count <= 0 and face_count >= 0",
                  :effect =>"grayscale"])
-          .to produce_url("#{upload_path}/#{allOperators}/sample")
+          .to produce_url("#{upload_path}/#{all_operators}/sample")
     end
+
+    end
+  end
+
+  describe "variables" do
+    it "array should define a set of variables" do
+      options = {
+          :if => "face_count > 2",
+          :variables => [ ["$z", 5], ["$foo", "$z * 2"] ],
+          :crop => "scale", :width => "$foo * 200"
+        }
+      t = Cloudinary::Utils.generate_transformation_string options
+      expect(t).to eq("if_fc_gt_2,$z_5,$foo_$z_mul_2,c_scale,w_$foo_mul_200")
+    end
+    it "'$key' should define a variable" do
+      options = { :transformation => [
+        {"$foo" => 10 },
+        {:if => "face_count > 2"},
+        {:crop => "scale", :width => "$foo * 200 / face_count"},
+        {:if => "end"}
+      ] }
+      t = Cloudinary::Utils.generate_transformation_string options
+      expect(t).to eq("$foo_10/if_fc_gt_2/c_scale,w_$foo_mul_200_div_fc/if_end")
+    end
+    it "should support text values" do
+      expect( ["sample", :effect => "$efname:100", "$efname" => "!blur!"]).to produce_url "#{upload_path}/$efname_!blur!,e_$efname:100/sample"
+
+    end
+    it "should support string interpolation" do
+      expect( ["sample", :crop => "scale", :overlay => {:text => "$(start)Hello $(name)$(ext), $(no ) $( no)$(end)", :font_family => "Arial", :font_size => "18"} ]).to produce_url "#{upload_path}/c_scale,l_text:Arial_18:$(start)Hello%20$(name)$(ext)%252C%20%24%28no%20%29%20%24%28%20no%29$(end)/sample"
 
     end
   end

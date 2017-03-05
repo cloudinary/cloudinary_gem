@@ -19,15 +19,26 @@ class Cloudinary::Utils
     "<=" => 'lte',
     ">=" => 'gte',
     "&&" => 'and',
-    "||" => 'or'
+    "||" => 'or',
+    "*" => 'mul',
+    "/" => 'div',
+    "+" => 'add',
+    "-" => 'sub'
   }
 
-  CONDITIONAL_PARAMETERS = {
-    "width" => "w",
-    "height" => "h",
-    "aspect_ratio" => "ar",
-    "page_count" => "pc",
-    "face_count" => "fc"
+  PREDEFINED_VARS = {
+    "aspect_ratio"         => "ar",
+    "current_page"         => "cp",
+    "face_count"           => "fc",
+    "height"               => "h",
+    "initial_aspect_ratio" => "iar",
+    "initial_height"       => "ih",
+    "initial_width"        => "iw",
+    "page_count"           => "pc",
+    "page_x"               => "px",
+    "page_y"               => "py",
+    "tags"                 => "tags",
+    "width"                => "w"
   }
   # Warning: options are being destructively updated!
   def self.generate_transformation_string(options={}, allow_implicit_crop_mode = false)
@@ -96,24 +107,30 @@ class Cloudinary::Utils
     ifValue = process_if(options.delete(:if))
 
     params = {
-      :a   => angle,
+      :a   => normalize_expression(angle),
+      :ar => normalize_expression(options.delete(:aspect_ratio)),
       :b   => background,
       :bo  => border,
       :c   => crop,
       :co  => color,
-      :dpr => dpr,
-      :e   => effect,
+      :dpr => normalize_expression(dpr),
+      :e   => normalize_expression(effect),
       :fl  => flags,
-      :h   => height,
+      :h   => normalize_expression(height),
       :l  => overlay,
+      :o => normalize_expression(options.delete(:opacity)),
+      :q => normalize_expression(options.delete(:quality)),
+      :r => normalize_expression(options.delete(:radius)),
       :t   => named_transformation,
       :u  => underlay,
-      :w   => width
+      :w   => normalize_expression(width),
+      :x => normalize_expression(options.delete(:x)),
+      :y => normalize_expression(options.delete(:y)),
+      :z => normalize_expression(options.delete(:zoom))
     }
     {
       :ac => :audio_codec,
       :af => :audio_frequency,
-      :ar => :aspect_ratio,
       :br => :bit_rate,
       :cs => :color_space,
       :d  => :default_image,
@@ -124,18 +141,12 @@ class Cloudinary::Utils
       :f  => :fetch_format,
       :g  => :gravity,
       :ki => :keyframe_interval,
-      :o  => :opacity,
       :p  => :prefix,
       :pg => :page,
-      :q  => :quality,
-      :r  => :radius,
       :so => :start_offset,
       :sp => :streaming_profile,
       :vc => :video_codec,
-      :vs => :video_sampling,
-      :x  => :x,
-      :y  => :y,
-      :z  => :zoom
+      :vs => :video_sampling
     }.each do
       |param, option|
       params[param] = options.delete(option)
@@ -146,10 +157,25 @@ class Cloudinary::Utils
       params[range_value] = norm_range_value params[range_value] if params[range_value].present?
     end
 
+    variables = options.delete(:variables)
+    var_params = []
+    options.each_pair do |key, value|
+      if key =~ /^\$/
+        var_params.push "#{key}_#{normalize_expression(value.to_s)}"
+      end
+    end
+    var_params.sort!
+    unless variables.nil? || variables.empty?
+      for name, value in variables
+        var_params.push "#{name}_#{normalize_expression(value.to_s)}"
+      end
+    end
+    variables = var_params.join(',')
+
     raw_transformation = options.delete(:raw_transformation)
     transformation = params.reject{|_k,v| v.blank?}.map{|k,v| "#{k}_#{v}"}.sort
     transformation = transformation.join(",")
-    transformation = [ifValue, transformation, raw_transformation].reject(&:blank?).join(",")
+    transformation = [ifValue, variables, transformation, raw_transformation].reject(&:blank?).join(",")
 
     transformations = base_transformations << transformation
     if responsive_width
@@ -173,12 +199,20 @@ class Cloudinary::Utils
   # @private
   def self.process_if(ifValue)
     if ifValue
-      ifValue = ifValue.gsub(
-        /(#{CONDITIONAL_PARAMETERS.keys.join("|")}|[=<>&|!]+)/,
-        CONDITIONAL_PARAMETERS.merge(CONDITIONAL_OPERATORS))
-        .gsub(/[ _]+/, "_")
+      ifValue = normalize_expression(ifValue)
 
       ifValue = "if_" + ifValue
+    end
+  end
+
+  def self.normalize_expression(expression)
+    if expression =~ /^!.+!$/ # quoted string
+      expression
+    else
+      expression.to_s.gsub(
+        Regexp.union(*PREDEFINED_VARS.keys, *CONDITIONAL_OPERATORS.keys.reverse),
+        PREDEFINED_VARS.merge(CONDITIONAL_OPERATORS)
+      ).gsub(/[ _]+/, "_")
     end
   end
 
@@ -218,8 +252,16 @@ class Cloudinary::Utils
            unless public_id.blank? ^ text_style.blank?
              raise(CloudinaryException, "Must supply either style parameters or a public_id when providing text parameter in a text overlay/underlay")
            end
-           text = smart_escape smart_escape(text, %r"([,/])")
 
+           result = ""
+           # Don't encode interpolation expressions e.g. $(variable)
+           while(/\$\([a-zA-Z]\w+\)/.match text) do
+             match = Regexp.last_match
+             result += smart_escape smart_escape(match.pre_match, %r"([,/])") # append encoded pre-match
+             result += match.to_s # append match
+             text = match.post_match
+           end
+           text = result + smart_escape( smart_escape(text, %r"([,/])"))
          end
        end
        components.push(resource_type) if resource_type != "image"
