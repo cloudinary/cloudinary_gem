@@ -240,8 +240,12 @@ describe Cloudinary::Utils do
     expect(["test", { :x => 1, :y => 2, :radius => 3, :gravity => :center, :quality => 0.4, :prefix => "a" }])
       .to produce_url("#{upload_path}/g_center,p_a,q_0.4,r_3,x_1,y_2/test")
             .and empty_options
+
+    expect(["test", { :width => 0.5, :crop => :crop, :gravity => :auto }])
+      .to produce_url("#{upload_path}/c_crop,g_auto,w_0.5/test")
+            .and empty_options
   end
-  context ":quality" do
+  describe ":quality" do
     it "support a percent value" do
       expect(["test", { :x => 1, :y => 2, :radius => 3, :gravity => :center, :quality => 80, :prefix => "a" }])
           .to produce_url("#{upload_path}/g_center,p_a,q_80,r_3,x_1,y_2/test")
