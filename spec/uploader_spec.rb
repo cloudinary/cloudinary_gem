@@ -99,11 +99,18 @@ describe Cloudinary::Uploader do
     result = Cloudinary::Uploader.upload(TEST_IMG, :eager =>"c_scale,w_2.0", :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result["eager"].length).to be(1)
     expect(result).to have_deep_hash_values_of(["eager", 0, "transformation"] => "c_scale,w_2.0")
-    result = Cloudinary::Uploader.upload(TEST_IMG, :eager =>["c_scale,w_2.0", { :crop =>"crop", :width =>"0.5", :format => "tiff"}], :tags => [TEST_TAG, TIMESTAMP_TAG])
-    expect(result["eager"].length).to be(2)
+    result = Cloudinary::Uploader.upload(TEST_IMG, :eager =>[
+                          "c_scale,w_2.0",
+                          { :crop =>"crop", :width =>"0.5", :format => "tiff"},
+                          [[{:crop =>"crop", :width =>"0.5"},{:angle =>90}]],
+                          [[{:crop =>"crop", :width =>"0.5"},{:angle =>90}],"tiff"]
+                      ], :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result["eager"].length).to be(4)
     expect(result).to have_deep_hash_values_of(
                           ["eager", 0, "transformation"] => "c_scale,w_2.0",
-                          ["eager", 1, "transformation"] => "c_crop,w_0.5/tiff"
+                          ["eager", 1, "transformation"] => "c_crop,w_0.5/tiff",
+                          ["eager", 2, "transformation"] => "c_crop,w_0.5/a_90",
+                          ["eager", 3, "transformation"] => "c_crop,w_0.5/a_90/tiff"
                       )
   end
 
