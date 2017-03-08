@@ -273,6 +273,28 @@ class Cloudinary::Uploader
     end
   end
 
+  def self.add_context(context, public_ids = [], options = {})
+    return self.call_context_api(context, "add", public_ids, options)
+  end
+
+  def self.remove_all_context(public_ids = [], options = {})
+    return self.call_context_api(nil, "remove_all", public_ids, options)
+  end
+
+  private
+
+  def self.call_context_api(context, command, public_ids = [], options = {})
+    return call_api("context", options) do
+      {
+        :timestamp  => (options[:timestamp] || Time.now.to_i),
+        :context    => Cloudinary::Utils.encode_hash(context),
+        :public_ids => Cloudinary::Utils.build_array(public_ids),
+        :command    => command,
+        :type       => options[:type]
+      }
+    end
+  end
+
   def self.call_api(action, options)
     options      = options.clone
     return_error = options.delete(:return_error)

@@ -184,6 +184,39 @@ describe Cloudinary::Uploader do
   end
 
 
+  describe "context", :focus => true do
+    describe "add_context" do
+      it "should correctly add context", :focus => true do
+        expected ={
+            :url => /.*\/context/,
+            [:payload, :context] => "key1=value1|key2=value2",
+            [:payload, :public_ids] => ["some_public_id1", "some_public_id2"],
+            [:payload, :command] => "add"
+        }
+        expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+        Cloudinary::Uploader.add_context( {:key1 => :value1, :key2 => :value2}, ["some_public_id1", "some_public_id2"])
+      end
+    end
+
+    describe "remove_all_context" do
+      it "should correctly remove all context", :focus => true do
+        expected ={
+            :url => /.*\/context/,
+            [:payload, :public_ids] => ["some_public_id1", "some_public_id2"],
+            [:payload, :command] => "remove_all",
+            [:payload, :type] => "private"
+
+        }
+        expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+        Cloudinary::Uploader.remove_all_context(["some_public_id1", "some_public_id2"], :type => "private")
+      end
+    end
+
+  end
+
+
   
   it "should correctly handle unique_filename" do
     result = Cloudinary::Uploader.upload(TEST_IMG, :use_filename => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
