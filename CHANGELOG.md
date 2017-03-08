@@ -1,4 +1,20 @@
 
+1.6.0 / 2017-03-08
+==================
+
+New functionality and features
+------------------------------
+
+  * Support user defined variables
+  * Add `to_type` parameter to the rename method (#236)
+  * Add `async` parameter to the upload method (#235)
+
+Other Changes
+-------------
+
+  * Switch ow & oh to iw & ih on respective test case
+  * test auto gravity transformation in URL build
+
 1.5.2 / 2017-02-22
 ==================
 
