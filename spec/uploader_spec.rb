@@ -39,6 +39,7 @@ describe Cloudinary::Uploader do
     before(:all) do
       @result        = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
       @resource_1_id = @result["public_id"]
+      @resource_1_type = @result["type"]
       result         = Cloudinary::Uploader.upload("spec/favicon.ico", :tags => [TEST_TAG, TIMESTAMP_TAG])
       @resource_2_id = result["public_id"]
     end
@@ -53,6 +54,14 @@ describe Cloudinary::Uploader do
       @resource_2_id = @resource_1_id+"2" # if rename doesn't fail, this is the new ID
       expect { Cloudinary::Uploader.rename(id, @resource_1_id+"2") }.to raise_error(CloudinaryException)
       @resource_2_id = id
+    end
+    it 'should allow changing type of an uploaded resource' do
+      id = @resource_2_id
+      from_type = @resource_1_type
+      to_type = "private"
+      Cloudinary::Uploader.rename(id, id, :type => from_type, :to_type => to_type)
+      expect(Cloudinary::Api.resource(id, type: to_type)).to_not be_empty
+      Cloudinary::Uploader.rename(id, id, :type => to_type, :to_type => from_type)
     end
     context ':overwrite => true' do
       it 'should rename to an existing ID' do
