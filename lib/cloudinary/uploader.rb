@@ -255,6 +255,10 @@ class Cloudinary::Uploader
     return self.call_tags_api(tag, "replace", public_ids, options)
   end
 
+  def self.remove_all_tags(public_ids = [], options = {})
+    return self.call_tags_api(nil, "remove_all", public_ids, options)
+  end
+
   private
 
   def self.call_tags_api(tag, command, public_ids = [], options = {})

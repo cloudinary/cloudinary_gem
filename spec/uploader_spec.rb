@@ -127,42 +127,61 @@ describe Cloudinary::Uploader do
 
   describe "tag" do
     describe "add_tag" do
-      it "should correctly handle tags" do
+      it "should correctly add tags" do
         expected ={
             :url => /.*\/tags/,
             [:payload, :tag] => "new_tag",
-            [:payload, :public_ids] => ["some_public_id"],
+            [:payload, :public_ids] => ["some_public_id1", "some_public_id2"],
             [:payload, :command] => "add"
         }
         expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
 
-        Cloudinary::Uploader.add_tag( "new_tag", "some_public_id")
+        Cloudinary::Uploader.add_tag( "new_tag", ["some_public_id1", "some_public_id2"])
       end
-      describe ":exclusive" do
-        it "should support :exclusive" do
-          expected ={
-              :url => /.*\/tags/,
-              [:payload, :tag] => "new_tag",
-              [:payload, :public_ids] => ["some_public_id"],
-              [:payload, :command] => "set_exclusive"
-          }
-          expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-
-          Cloudinary::Uploader.add_tag( "new_tag", "some_public_id", :exclusive => true)
-        end
-      end
-
-
-
     end
 
-      # Cloudinary::Uploader.add_tag("#{new_tag}_2", result["public_id"])
-      # expect(Cloudinary::Api.resource(result["public_id"])["tags"]).to match_array(["#{new_tag}_1", "#{new_tag}_2", TEST_TAG, TIMESTAMP_TAG])
-      # Cloudinary::Uploader.remove_tag("#{new_tag}_1", result["public_id"])
-      # expect(Cloudinary::Api.resource(result["public_id"])["tags"]).to match_array(["#{new_tag}_2", TEST_TAG, TIMESTAMP_TAG])
-      # Cloudinary::Uploader.replace_tag("#{new_tag}_3", result["public_id"])
-      # expect(Cloudinary::Api.resource(result["public_id"])["tags"]).to match_array(["#{new_tag}_3"])
+    describe "remove_tag" do
+      it "should correctly remove tag" do
+        expected ={
+            :url => /.*\/tags/,
+            [:payload, :tag] => "tag",
+            [:payload, :public_ids] => ["some_public_id1", "some_public_id2"],
+            [:payload, :command] => "remove"
+        }
+        expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+        Cloudinary::Uploader.remove_tag("tag", ["some_public_id1", "some_public_id2"])
+      end
     end
+
+    describe "replace_tag" do
+      it "should correctly replace tag" do
+        expected ={
+            :url => /.*\/tags/,
+            [:payload, :tag] => "tag",
+            [:payload, :public_ids] => ["some_public_id1", "some_public_id2"],
+            [:payload, :command] => "replace"
+        }
+        expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+        Cloudinary::Uploader.replace_tag("tag", ["some_public_id1", "some_public_id2"])
+      end
+    end
+
+    describe "remove_all_tags" do
+      it "should correctly remove all tags" do
+        expected ={
+            :url => /.*\/tags/,
+            [:payload, :public_ids] => ["some_public_id1", "some_public_id2"],
+            [:payload, :command] => "remove_all"
+        }
+        expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+        Cloudinary::Uploader.remove_all_tags(["some_public_id1", "some_public_id2"])
+      end
+    end
+
+  end
 
 
   
