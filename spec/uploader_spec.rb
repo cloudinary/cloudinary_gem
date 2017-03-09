@@ -252,7 +252,7 @@ describe Cloudinary::Uploader do
   end
   
   it "should allow sending context" do
-    context = {"caption" => "some caption", "alt" => "alternative"}
+    context = {"key1"=>'value1', "key2" => 'valu\e2', "key3" => 'val=u|e3', "key4" => 'val\=ue'}
     result = Cloudinary::Uploader.upload(TEST_IMG, { :context => context, :tags => [TEST_TAG, TIMESTAMP_TAG]})
     info = Cloudinary::Api.resource(result["public_id"], {:context => true})
     expect(info["context"]).to eq({"custom" => context})
