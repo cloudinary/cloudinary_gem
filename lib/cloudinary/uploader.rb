@@ -25,7 +25,7 @@ class Cloudinary::Uploader
       :callback                  => options[:callback],
       :categorization            => options[:categorization],
       :colors                    => Cloudinary::Utils.as_safe_bool(options[:colors]),
-      :context                   => Cloudinary::Utils.encode_hash(options[:context]),
+      :context                   => Cloudinary::Utils.encode_context(options[:context]),
       :custom_coordinates        => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
       :detection                 => options[:detection],
       :discard_original_filename => Cloudinary::Utils.as_safe_bool(options[:discard_original_filename]),
