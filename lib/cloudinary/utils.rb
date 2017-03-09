@@ -670,7 +670,7 @@ class Cloudinary::Utils
 
   def self.encode_context(hash)
     case hash
-      when Hash then hash.map{|k,v| "#{k}=#{v}"}.join("|")
+      when Hash then hash.map{|k,v| "#{k}=#{v.gsub(/([=|])/, '\\\\\1')}"}.join("|")
       when nil then ""
       else hash
     end
