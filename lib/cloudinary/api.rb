@@ -88,7 +88,7 @@ class Cloudinary::Api
     uri            = "resources/#{resource_type}/#{type}/#{public_id}"
     update_options = {
       :tags               => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
-      :context            => Cloudinary::Utils.encode_hash(options[:context]),
+      :context            => Cloudinary::Utils.encode_context(options[:context]),
       :face_coordinates   => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
       :custom_coordinates => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
       :moderation_status  => options[:moderation_status],
