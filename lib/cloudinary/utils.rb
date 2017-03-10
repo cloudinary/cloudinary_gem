@@ -668,6 +668,10 @@ class Cloudinary::Utils
     end
   end
 
+  # encodes a hash into pipe-delimited key-value pairs string
+  # @hash [Hash] key-value hash to be encoded
+  # @return [String] a joined string of all keys and values separated by a pipe character
+  # @private
   def self.encode_hash(hash)
     case hash
       when Hash then hash.map{|k,v| "#{k}=#{v}"}.join("|")
@@ -676,6 +680,10 @@ class Cloudinary::Utils
     end
   end
 
+  # Same like encode_hash, with additional escaping of | and = characters
+  # @hash [Hash] key-value hash to be encoded
+  # @return [String] a joined string of all keys and values properly escaped and separated by a pipe character
+  # @private
   def self.encode_context(hash)
     case hash
       when Hash then hash.map{|k,v| "#{k}=#{v.gsub(/([=|])/, '\\\\\1')}"}.join("|")
