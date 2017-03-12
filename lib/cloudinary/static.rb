@@ -11,7 +11,6 @@ class Cloudinary::Static
   class << self
     def sync(options={})
       options = options.clone
-      @verbose = options.delete(:verbose)
       delete_missing = options.delete(:delete_missing)
       found_paths = Set.new
       found_public_paths = {}
@@ -234,10 +233,6 @@ class Cloudinary::Static
     
     def print(s)
       $stderr.print(s)
-    end
-
-    def verbose?
-      @verbose
     end
   end
 end
