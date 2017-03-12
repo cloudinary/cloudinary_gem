@@ -6,18 +6,9 @@ require 'pathname'
 
 describe 'cloudinary:sync_static' do
   include_context 'rake' # context needs to have the exact rake task as name
-  include Helpers::TempFileHelpers
-
-  before(:all) do
-    copy_to_temp('spec/data/sync_static/')
-  end
-
-  after(:all) do
-    clean_up_temp_files!
-  end
 
   before (:each) do
-    allow(Cloudinary).to receive(:app_root).and_return(Pathname.new(temp_root))
+    allow(Cloudinary).to receive(:app_root).and_return(Pathname.new(File.join(RSpec.project_root, 'spec/data/sync_static/')))
     Cloudinary::Static.send(:reset_static_file_config!)
   end
 
