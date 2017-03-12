@@ -410,6 +410,7 @@ class Cloudinary::Utils
 
     transformation = transformation.gsub(%r(([^:])//), '\1/')
     if sign_url && ( !auth_token || auth_token.empty?)
+      raise(CloudinaryException, "Must supply api_secret") if (secret.nil? || secret.empty?)
       to_sign = [transformation, sign_version && version, source_to_sign].reject(&:blank?).join("/")
       to_sign = fully_unescape(to_sign)
       signature = 's--' + Base64.urlsafe_encode64(Digest::SHA1.digest(to_sign + secret))[0,8] + '--'
