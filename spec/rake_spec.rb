@@ -89,7 +89,7 @@ describe 'cloudinary:sync_static' do
     RSpec::Matchers.define :be_asset_mapped_by_cloudinary_url_to do |expected|
       match do |actual|
         actual.all? do |public_path|
-          Cloudinary::Utils.cloudinary_url(public_path, :type => 'asset') == expected
+          Cloudinary::Utils.cloudinary_url(public_path, :cloud_name => 'test', :type => 'asset') == expected
         end
       end
     end
