@@ -75,6 +75,7 @@ module CloudinaryHelper
     url = cloudinary_url_internal(source, options)
     image_path_without_cloudinary(url)
   end
+  alias_method :cl_path, :cl_image_path
 
   def image_tag_with_cloudinary(*args)
     source, options = args
@@ -200,6 +201,7 @@ module CloudinaryHelper
   def cl_unsigned_image_upload(object_name, method, upload_preset, options={})
     cl_unsigned_image_upload_tag("#{object_name}[#{method}]", upload_preset, options)
   end
+  alias_method :cl_unsigned_upload, :cl_unsigned_image_upload
 
   def cl_upload_url(options={})
     Cloudinary::Utils.cloudinary_api_url("upload", {:resource_type=>:auto}.merge(options))
@@ -236,6 +238,7 @@ module CloudinaryHelper
   def cl_unsigned_image_upload_tag(field, upload_preset, options={})
     cl_image_upload_tag(field, options.merge(:unsigned => true, :upload_preset => upload_preset))
   end
+  alias_method :cl_unsigned_upload_tag, :cl_unsigned_image_upload_tag
 
   def cl_private_download_url(public_id, format, options = {})
     Cloudinary::Utils.private_download_url(public_id, format, options)
@@ -317,6 +320,7 @@ module Cloudinary::FormBuilder
   def cl_unsigned_image_upload(method, upload_preset, options={})
     @template.cl_unsigned_image_upload(@object_name, method, upload_preset, objectify_options(options))
   end
+  alias_method :cl_unsigned_upload, :cl_unsigned_image_upload
 end
 
 if defined? ActionView::Helpers::AssetUrlHelper
