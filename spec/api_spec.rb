@@ -444,7 +444,7 @@ describe Cloudinary::Api do
     end
   end
 
-  context "resource of type authenticated", :focus => true do
+  context "resource of type authenticated" do
     i = 0
     version = nil
     publicId = ""
