@@ -358,6 +358,12 @@ class Cloudinary::Api
     transformation.is_a?(String) ? transformation : Cloudinary::Utils.generate_transformation_string(transformation.clone)
   end
 
+  def self.publish_resources(options = {})
+    resource_type = options[:resource_type] || "image"
+    params = only(options, :public_ids, :prefix, :tag, :type, :overwrite, :invalidate)
+    call_api("post", "resources/#{resource_type}/publish_resources", params, options)
+  end
+
   def self.update_resources_access_mode(access_mode, by_key, value, options = {})
     resource_type = options[:resource_type] || "image"
     type = options[:type] || "upload"

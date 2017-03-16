@@ -443,4 +443,60 @@ describe Cloudinary::Api do
       expect(resource["access_mode"]).to eq('public')
     end
   end
+
+  context "resource of type authenticated", :focus => true do
+    i = 0
+    version = nil
+    publicId = ""
+    publish_resource_tag = "publish_resource_tag"
+    before(:each) do
+      i += 1
+      result = Cloudinary::Uploader.upload TEST_IMG, type: "authenticated", tags: [TEST_TAG, TIMESTAMP_TAG, publish_resource_tag], transformation: {width: 100*i, crop: "scale"}
+      publicId = result["public_id"]
+      expect(result["type"]).to eq("authenticated")
+    end
+
+    it "should publish resources by ids" do
+      result = Cloudinary::Api.publish_resources(public_ids: [publicId])
+
+      expect(result["published"]).to be_an_instance_of(Array)
+      expect(result["published"].length).to eq(1)
+      
+      resource = result["published"][0]
+      
+      expect(resource["public_id"]).to eq(publicId)
+      expect(resource["type"]).to eq('upload')
+      
+      version = resource["version"]
+    end
+    it "should publish resources by prefix and overwrite" do
+      result = Cloudinary::Api.publish_resources(prefix: publicId[0..-3], overwrite: true)
+
+      expect(result["published"]).to be_an_instance_of(Array)
+      expect(result["published"].length).to eq(1)
+      
+      resource = result["published"][0]
+      
+      expect(resource["public_id"]).to eq(publicId)
+      expect(resource["version"]).not_to eq(version)
+      expect(resource["type"]).to eq('upload')
+      
+      version = resource["version"]
+    end
+    it "should publish resources by tag and overwrite" do
+      result = Cloudinary::Api.publish_resources(tag: publish_resource_tag, overwrite: true)
+
+      expect(result["published"]).to be_an_instance_of(Array)
+      expect(result["published"].length).to eq(1)
+      
+      resource = result["published"][0]
+      
+      expect(resource["public_id"]).to eq(publicId)
+      expect(resource["version"]).not_to eq(version)
+      expect(resource["type"]).to eq('upload')
+      
+      version = resource["version"]
+    end
+
+  end
 end
