@@ -440,7 +440,7 @@ describe Cloudinary::Api do
 
   context "resource of type authenticated" do
     i = 0
-    version = nil
+    bytes = nil
     publicId = ""
     publish_resource_tag = "publish_resource_tag"
     before(:each) do
@@ -461,7 +461,7 @@ describe Cloudinary::Api do
       expect(resource["public_id"]).to eq(publicId)
       expect(resource["type"]).to eq('upload')
       
-      version = resource["version"]
+      bytes = resource["bytes"]
     end
     it "should publish resources by prefix and overwrite" do
       result = Cloudinary::Api.publish_resources(prefix: publicId[0..-3], overwrite: true)
@@ -472,10 +472,10 @@ describe Cloudinary::Api do
       resource = result["published"][0]
       
       expect(resource["public_id"]).to eq(publicId)
-      expect(resource["version"]).not_to eq(version)
+      expect(resource["bytes"]).not_to eq(bytes)
       expect(resource["type"]).to eq('upload')
       
-      version = resource["version"]
+      bytes = resource["bytes"]
     end
     it "should publish resources by tag and overwrite" do
       result = Cloudinary::Api.publish_resources(tag: publish_resource_tag, overwrite: true)
@@ -486,10 +486,10 @@ describe Cloudinary::Api do
       resource = result["published"][0]
       
       expect(resource["public_id"]).to eq(publicId)
-      expect(resource["version"]).not_to eq(version)
+      expect(resource["bytes"]).not_to eq(bytes)
       expect(resource["type"]).to eq('upload')
       
-      version = resource["version"]
+      bytes = resource["bytes"]
     end
 
   end
