@@ -210,7 +210,7 @@ class Cloudinary::Utils
       expression
     else
       expression.to_s.gsub(
-        Regexp.union(*PREDEFINED_VARS.keys, *CONDITIONAL_OPERATORS.keys.reverse),
+        Regexp.new(PREDEFINED_VARS.keys.join("|")+'|('+CONDITIONAL_OPERATORS.keys.reverse.map{|k| Regexp.escape(k)}.join('|')+')(?=[ _])'),
         PREDEFINED_VARS.merge(CONDITIONAL_OPERATORS)
       ).gsub(/[ _]+/, "_")
     end

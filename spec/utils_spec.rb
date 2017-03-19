@@ -386,8 +386,8 @@ describe Cloudinary::Utils do
   end
 
   it "should support effect with hash param" do
-    expect(["test", { :effect => { "sepia" => 10 } }])
-      .to produce_url("#{upload_path}/e_sepia:10/test")
+    expect(["test", { :effect => { "sepia" => -10 } }])
+      .to produce_url("#{upload_path}/e_sepia:-10/test")
             .and empty_options
   end
 
