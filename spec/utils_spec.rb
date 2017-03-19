@@ -144,7 +144,7 @@ describe Cloudinary::Utils do
             .and empty_options
   end
 
-  it "should support url_suffix for private uploads" do
+  it "should support url_suffix for private images" do
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :resource_type => :image, :type => :private }])
       .to produce_url("http://#{cloud_name}-res.cloudinary.com/private_images/test/hello")
             .and empty_options
@@ -152,6 +152,13 @@ describe Cloudinary::Utils do
       .to produce_url("http://#{cloud_name}-res.cloudinary.com/private_images/test/hello.jpg")
             .and empty_options
   end
+
+  it "should support url_suffix for authenticated images" do
+    expect(["test", { :url_suffix => "hello", :format => "jpg", :resource_type => :image, :type => :authenticated }])
+      .to produce_url("http://res.cloudinary.com/#{cloud_name}/authenticated_images/test/hello.jpg")
+            .and empty_options
+  end
+
 
   describe 'root_path support' do
 
