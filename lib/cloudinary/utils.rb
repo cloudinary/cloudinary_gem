@@ -450,6 +450,9 @@ class Cloudinary::Utils
       when resource_type.to_s == "image" && type.to_s == "private"
         resource_type = "private_images"
         type = nil
+      when resource_type.to_s == "image" && type.to_s == "authenticated"
+        resource_type = "authenticated_images"
+        type = nil
       when resource_type.to_s == "raw" && type.to_s == "upload"
         resource_type = "files"
         type = nil
@@ -457,7 +460,7 @@ class Cloudinary::Utils
         resource_type = "videos"
         type = nil
       else
-        raise(CloudinaryException, "URL Suffix only supported for image/upload, image/private and raw/upload")
+        raise(CloudinaryException, "URL Suffix only supported for image/upload, image/private, image/authenticated, video/upload and raw/upload")
       end
     end
     if use_root_path
