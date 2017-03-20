@@ -22,6 +22,12 @@ RSpec.shared_context 'archive' do
         :effect => :blackwhite
       }
     )
+    Cloudinary::Uploader.upload(
+      "http://res.cloudinary.com/demo/image/upload/sample.jpg",
+      :public_id      => 'tag_sample_raw.jpg',
+      :resource_type  => 'raw',
+      :tags           => [TEST_TAG, TIMESTAMP_TAG],
+    )
   end
   include_context "cleanup", TIMESTAMP_TAG
 end
@@ -64,18 +70,6 @@ describe Cloudinary::Uploader do
     let!(:target_public_id) {
       "gem_test#{ rand(1000000)}"
     }
-    let!(:archive_result) {
-      Cloudinary::Uploader.create_archive(
-        {
-          :target_public_id => target_public_id,
-          :public_ids       => %w(tag_sample tag_samplebw),
-          :tags             => [TEST_TAG, TIMESTAMP_TAG]
-        }.merge(options))
-    }
-    let(:options) { { :mode => :create } }
-    it 'should return a Hash' do
-      expect(archive_result).to be_a(Hash)
-    end
     expected_keys = %w(
               resource_type
               type
@@ -91,8 +85,39 @@ describe Cloudinary::Uploader do
               resource_count
               file_count
             )
-    it "should include keys: #{expected_keys.join(', ')}" do
+    let!(:archive_result) {
+      Cloudinary::Uploader.create_archive(
+        {
+          :target_public_id => target_public_id,
+          :public_ids       => %w(tag_sample tag_samplebw),
+          :tags             => [TEST_TAG, TIMESTAMP_TAG],
+          :transformations   => [{width: 100, height: 100, crop: "fill"},{effect: "grayscale"}],
+          :skip_transformation_name => true
+        }.merge(options))
+    }
+    let(:options) { { :mode => :create } }
+    it 'should return a Hash with suitable set of keys' do
+      expect(archive_result).to be_a(Hash)
       expect(archive_result.keys).to include(*expected_keys)
+    end
+  end
+  describe 'create archive based on raw resources and missing public IDs' do
+    let!(:target_public_id) {
+      "gem_test#{ rand(1000000)}"
+    }
+    let!(:archive_result) {
+      Cloudinary::Uploader.create_archive(
+        {
+          :target_public_id => target_public_id,
+          :public_ids       => %w(tag_sample_raw.jpg non-wxisting-resource),
+          :resource_type    => 'raw',
+          :allow_missing    => true
+        }.merge(options))
+    }
+    let(:options) { { :mode => :create } }
+    it 'should skip missing public IDs and successfully generate the archive containing raw resources' do
+      expect(archive_result).to be_a(Hash)
+      expect(archive_result["resource_count"]).to equal(1)
     end
   end
   describe '.create_zip' do
