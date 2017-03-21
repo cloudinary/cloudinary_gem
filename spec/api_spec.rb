@@ -352,9 +352,13 @@ describe Cloudinary::Api do
     expect{Cloudinary::Api.update(result["public_id"], {:categorization => :illegal})}.to raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
   end
   
-  it "should support requesting detection" do
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :detection] => "adv_face"))
-    Cloudinary::Api.update("public_id", {:detection => "adv_face"})
+  it "should support requesting detection with server notification", :focus => true do
+    expected = {
+      [:payload, :detection] => "adv_face",
+      [:payload, :notification_url] => "http://example.com"
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    Cloudinary::Api.update("public_id", {:detection => "adv_face", notification_url:"http://example.com"})
   end
   
   it "should support requesting auto_tagging" do
