@@ -98,7 +98,8 @@ class Cloudinary::Api
       :detection          => options[:detection],
       :similarity_search  => options[:similarity_search],
       :background_removal => options[:background_removal],
-      :auto_tagging       => options[:auto_tagging] && options[:auto_tagging].to_f
+      :auto_tagging       => options[:auto_tagging] && options[:auto_tagging].to_f,
+      :notification_url   => options[:notification_url]
     }
     call_api(:post, uri, update_options, options)
   end
