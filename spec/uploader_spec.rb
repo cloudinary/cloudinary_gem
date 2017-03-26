@@ -295,6 +295,14 @@ describe Cloudinary::Uploader do
     expect(result["height"]).to eq(1400)
     expect(result["format"]).to eq("bmp")
   end
+
+  it "should allow fallback of upload large with remote url to regular upload", :focus => true do
+    file = "http://cloudinary.com/images/old_logo.png"
+    result = Cloudinary::Uploader.upload_large(file, :chunk_size => 5243000, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result).to_not be_nil
+    expect(result["width"]).to eq(TEST_IMG_W)
+    expect(result["height"]).to eq(TEST_IMG_H)
+  end
   
   context "unsigned" do
     after do

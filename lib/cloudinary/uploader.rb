@@ -4,6 +4,8 @@ require 'json'
 
 class Cloudinary::Uploader
 
+  REMOTE_URL_REGEX = %r(^ftp:|^https?:|^s3:|^data:[^;]*;base64,([a-zA-Z0-9\/+\n=]+)$)
+
   # @deprecated use {Cloudinary::Utils.build_eager} instead
   def self.build_eager(eager)
     Cloudinary::Utils.build_eager(eager)
@@ -71,7 +73,7 @@ class Cloudinary::Uploader
       params = build_upload_params(options)
       if file.is_a?(Pathname)
         params[:file] = File.open(file, "rb")
-      elsif file.respond_to?(:read) || file =~ /^ftp:|^https?:|^s3:|^data:[^;]*;base64,([a-zA-Z0-9\/+\n=]+)$/
+      elsif file.respond_to?(:read) || file.match(REMOTE_URL_REGEX)
         params[:file] = file
       else
         params[:file] = File.open(file, "rb")
@@ -89,7 +91,9 @@ class Cloudinary::Uploader
       public_id = public_id_or_options
       options   = old_options
     end
-    if file.is_a?(Pathname) || !file.respond_to?(:read)
+    if file.match(REMOTE_URL_REGEX)
+      return upload(file, options.merge(:public_id => public_id))
+    elsif file.is_a?(Pathname) || !file.respond_to?(:read)
       filename = file
       file     = File.open(file, "rb")
     else
