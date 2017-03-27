@@ -157,9 +157,11 @@ describe Cloudinary::Api do
 
   end
 
-  it "should allow deleting resources" do
+  it "should allow deleting multiple resources and comma inclusive public IDs", :focus => true do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :public_ids] => ["apit_test", "test_id_2", "api_test3"]}))
     @api.delete_resources(["apit_test", "test_id_2", "api_test3"])
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :public_ids] => "apit_test,test_id_2,api_test3"}))
+    @api.delete_resources("apit_test,test_id_2,api_test3")
   end
 
   it "should allow deleting resource transformations" do
