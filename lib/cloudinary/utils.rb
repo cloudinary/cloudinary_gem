@@ -321,12 +321,13 @@ class Cloudinary::Utils
       unless breakpoint_settings.nil?
         breakpoint_settings = breakpoint_settings.clone
         transformation =  breakpoint_settings.delete(:transformation) || breakpoint_settings.delete("transformation")
+        format =  breakpoint_settings.delete(:format) || breakpoint_settings.delete("format")
         if transformation
-          breakpoint_settings[:transformation] = Cloudinary::Utils.generate_transformation_string(transformation.clone, true)
+          transformation = Cloudinary::Utils.generate_transformation_string(transformation.clone, true)
         end
+        breakpoint_settings[:transformation] = [transformation, format].compact.join("/")
       end
       breakpoint_settings
-
     end.to_json
   end
 

@@ -330,13 +330,22 @@ describe Cloudinary::Uploader do
   end
 
   context ":responsive_breakpoints" do
-    context ":create_derived" do
-      result = Cloudinary::Uploader.upload(TEST_IMG, :responsive_breakpoints => { :create_derived => false }, :tags => [TEST_TAG, TIMESTAMP_TAG])
-      it 'should return a responsive_breakpoints in the response' do
-        expect(result).to include('responsive_breakpoints')
+    context ":create_derived with transformation and format conversion" do
+      expected ={
+          :url => /.*\/upload$/,
+          [:payload, :responsive_breakpoints] => %r("transformation":"e_sepia/jpg"),
+          [:payload, :responsive_breakpoints] => %r("transformation":"gif"),
+          [:payload, :responsive_breakpoints] => %r("create_derived":true)
+      }
+      it 'should return a proper responsive_breakpoints hash in the response' do
+        expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+        Cloudinary::Uploader.upload(TEST_IMG, responsive_breakpoints:[{transformation:{effect: "sepia"}, format:"jpg", bytes_step:20000, create_derived: true, :min_width => 200, :max_width => 1000, :max_images => 20},{format:"gif", create_derived:true, bytes_step:20000, :min_width => 200, :max_width => 1000, :max_images => 20}], :tags => [TEST_TAG, TIMESTAMP_TAG])
       end
     end
   end
+
+
+
   describe 'explicit' do
 
     context ":invalidate" do
