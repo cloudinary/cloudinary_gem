@@ -363,6 +363,18 @@ class Cloudinary::Api
     call_api("post", "resources/#{resource_type}/publish_resources", params, options)
   end
 
+  def self.publish_by_prefix(prefix, options = {})
+    return self.publish_resources(options.merge(:prefix => prefix))
+  end
+
+  def self.publish_by_tag(tag, options = {})
+    return self.publish_resources(options.merge(:tag => tag))
+  end
+
+  def self.publish_by_ids(publicIds, options = {})
+    return self.publish_resources(options.merge(:public_ids => publicIds))
+  end
+
   def self.update_resources_access_mode(access_mode, by_key, value, options = {})
     resource_type = options[:resource_type] || "image"
     type = options[:type] || "upload"
