@@ -457,7 +457,7 @@ describe Cloudinary::Api do
     end
 
     it "should publish resources by ids" do
-      result = Cloudinary::Api.publish_resources(public_ids: [publicId])
+      result = Cloudinary::Api.publish_by_ids( [publicId])
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
@@ -470,7 +470,7 @@ describe Cloudinary::Api do
       bytes = resource["bytes"]
     end
     it "should publish resources by prefix and overwrite" do
-      result = Cloudinary::Api.publish_resources(prefix: publicId[0..-3], overwrite: true)
+      result = Cloudinary::Api.publish_by_prefix(publicId[0..-3], overwrite: true)
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
@@ -484,7 +484,7 @@ describe Cloudinary::Api do
       bytes = resource["bytes"]
     end
     it "should publish resources by tag and overwrite" do
-      result = Cloudinary::Api.publish_resources(tag: publish_resource_tag, overwrite: true)
+      result = Cloudinary::Api.publish_by_tag(publish_resource_tag, overwrite: true)
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
