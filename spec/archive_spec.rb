@@ -68,7 +68,7 @@ describe Cloudinary::Uploader do
 
   describe '.create_archive' do
     let!(:target_public_id) {
-      "gem_test#{ rand(1000000)}"
+      "gem_test#{ SUFFIX}"
     }
     expected_keys = %w(
               resource_type
@@ -103,7 +103,7 @@ describe Cloudinary::Uploader do
   end
   describe 'create archive based on raw resources and missing public IDs' do
     let!(:target_public_id) {
-      "gem_test#{ rand(1000000)}"
+      "gem_test#{ SUFFIX}"
     }
     let!(:archive_result) {
       Cloudinary::Uploader.create_archive(

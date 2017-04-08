@@ -6,7 +6,7 @@ describe Cloudinary::Api do
   include_context "cleanup", TIMESTAMP_TAG
   TEST_WIDTH = rand(1000)
   TEST_TRANSFOMATION = "c_scale,w_#{TEST_WIDTH}"
-  prefix = "api_test_#{Time.now.to_i}"
+  prefix = "api_test_#{SUFFIX}"
   test_id_1 = "#{prefix}_1"
   test_id_2   = "#{prefix}_2"
   test_id_3   = "#{prefix}_3"
@@ -360,7 +360,7 @@ describe Cloudinary::Api do
       [:payload, :notification_url] => "http://example.com"
     }
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-    Cloudinary::Api.update("public_id", {:detection => "adv_face", notification_url:"http://example.com"})
+    Cloudinary::Api.update("public_id", {:detection => "adv_face", :notification_url => "http://example.com"})
   end
   
   it "should support requesting auto_tagging" do
