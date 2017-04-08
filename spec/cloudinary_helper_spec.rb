@@ -4,8 +4,6 @@ require 'cloudinary'
 require 'action_view'
 require 'cloudinary/helper'
 
-KEY     = "00112233FF99"
-
 helper_class = Class.new do
   include CloudinaryHelper
 end

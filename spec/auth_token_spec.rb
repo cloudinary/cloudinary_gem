@@ -2,9 +2,6 @@ require 'rspec'
 require 'spec_helper'
 require 'cloudinary'
 
-KEY     = "00112233FF99"
-ALT_KEY = "CCBB2233FF00"
-
 describe 'auth_token' do
   before :all do
     @url_backup = ENV["CLOUDINARY_URL"]
