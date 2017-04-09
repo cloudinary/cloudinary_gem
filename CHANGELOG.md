@@ -1,4 +1,43 @@
 
+1.7.0 / 2017-04-09
+==================
+
+New functionality and features
+------------------------------
+
+  * Added resource publishing API
+    * `Api.publish_by_prefix`
+    * `Api.publish_by_tag`
+    * `Api.publish_by_ids`
+  * Support remote URLs in `Uploader.upload_large` API
+  * Add missing parameters to generate-archive
+    * `skip_transformation_name`
+    * `allow_missing`
+  * Added context API methods
+    * `Api.add_context`
+    * `Api.remove_all_context`
+  * Added `Uploader.remove_all_tags` method
+  * Support URL SEO suffix for authenticated images
+  * Add support of "format" parameter to responsive-breakpoints hash
+  * Add notification_url to update API
+  
+
+Other Changes
+-------------
+
+  * Remove tag from test
+  * Change test criteria from changing versions to bytes
+  * Use `TRAVIS_JOB_ID` if available or random. Move auth test constants to spec_helper.
+  * Add test for deleting public IDs which contain commas
+  * Move expression and replacement to constants
+  * Don't normalize negative numbers
+  * Added generic aliasing to methods named with image
+  * Added Private annotation to certain utility methods
+  * Add `encode_context` method to `Utils`
+  * Escape = and | characters in context values + test
+  * Add more complex eager test cases
+  * Switch alias_method_chain to alias_method to support Rails version >5.1
+
 1.6.0 / 2017-03-08
 ==================
 
