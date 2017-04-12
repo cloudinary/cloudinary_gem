@@ -6,9 +6,24 @@ require 'pathname'
 
 describe 'cloudinary:sync_static' do
   include_context 'rake' # context needs to have the exact rake task as name
+  include Helpers::TempFileHelpers
+
+  before(:all) do
+    copy_root_to_temp('spec/data/sync_static/')
+
+    # Reuse some existing spec assets so as not to add weight to the project
+    copy_file_to_temp('spec/logo.png', 'app/assets/images/logo1.png')
+    copy_file_to_temp('spec/logo.png', 'app/assets/images/logo2.png')
+    copy_file_to_temp('samples/basic/lake.jpg', 'app/assets/images/lake1.jpg')
+    copy_file_to_temp('samples/basic/lake.jpg', 'public/images/lake2.jpg')
+  end
+
+  after(:all) do
+    clean_up_temp_files!
+  end
 
   before (:each) do
-    allow(Cloudinary).to receive(:app_root).and_return(Pathname.new(File.join(RSpec.project_root, 'spec/data/sync_static/')))
+    allow(Cloudinary).to receive(:app_root).and_return(Pathname.new(temp_root))
     Cloudinary::Static.send(:reset_static_file_config!)
   end
 
@@ -107,19 +122,19 @@ describe 'cloudinary:sync_static' do
       allow(Cloudinary.config).to receive(:static_file_support).and_return(true)
       subject.invoke
 
-      expect(all_asset_forms_of('images/cloudinary_logo.png')).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/image/asset/cloudinary_logo-7dc60722d4653261648038b579fdb89e.png')
+      expect(all_asset_forms_of('images/logo1.png')).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/image/asset/logo1-7dc60722d4653261648038b579fdb89e.png')
       expect(all_asset_forms_of('javascripts/1.js')).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/raw/asset/1-b01de57adb485efdde843154d030644e.js')
       expect(all_asset_forms_of('stylesheets/1.css')).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/raw/asset/1-f24cc6123afd401ab86d8596cabc619f.css')
 
       # without :type => 'asset'
-      expect(Cloudinary::Utils.cloudinary_url('cloudinary_logo.png')).not_to include('7dc60722d4653261648038b579fdb89e')
+      expect(Cloudinary::Utils.cloudinary_url('logo1.png')).not_to include('7dc60722d4653261648038b579fdb89e')
     end
 
     it 'should return Cloudinary asset urls for assets when Cloudinary.config.static_image_support is true (backwards compatibility)' do
       allow(Cloudinary.config).to receive(:static_image_support).and_return(true)
       subject.invoke
 
-      expect(all_asset_forms_of('images/cloudinary_logo.png')).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/image/asset/cloudinary_logo-7dc60722d4653261648038b579fdb89e.png')
+      expect(all_asset_forms_of('images/logo1.png')).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/image/asset/logo1-7dc60722d4653261648038b579fdb89e.png')
     end
   end
 
