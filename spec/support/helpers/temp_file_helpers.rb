@@ -14,7 +14,9 @@ module Helpers
     end
 
     def copy_file_to_temp(source, dest)
-      FileUtils.copy_entry File.join(RSpec.project_root, source), File.join(temp_root, dest)
+      dest_path = File.join(temp_root, dest)
+      FileUtils.mkdir_p(File.dirname(dest_path))
+      FileUtils.copy_entry(File.join(RSpec.project_root, source), dest_path)
     end
   end
 end
