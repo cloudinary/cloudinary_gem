@@ -44,8 +44,9 @@ module Cloudinary::CarrierWave
         public_id = self.default_public_id
         return nil if public_id.nil?
       else
-        public_id = options.include?(:version) ? self.my_public_id : self.full_public_id
-      end      
+        public_id = self.my_public_id
+        options[:version] ||= self.stored_version
+      end
       options = self.transformation.merge(options) if self.version_name.present?
       
       Cloudinary::Utils.cloudinary_url(public_id, {:format=>self.format, :resource_type=>self.resource_type, :type=>self.storage_type}.merge(options))
