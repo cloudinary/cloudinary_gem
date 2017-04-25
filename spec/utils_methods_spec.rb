@@ -15,5 +15,4 @@ describe Utils do
   it "should parse a percent range value" do
     expect(Utils.instance_eval { norm_range_value("20p") }).to eq("20p")
   end
-
 end

@@ -376,20 +376,19 @@ class Cloudinary::Utils
     source = source.to_s
     if !force_remote
       return original_source if (type.nil? || type == "asset") && source.match(%r(^https?:/)i)
-      if source.start_with?("/")
+      if type == "asset"
+        # config.static_image_support left for backwards compatibility
+        if (Cloudinary.config.static_file_support || Cloudinary.config.static_image_support) && defined?(Cloudinary::Static)
+          source, resource_type = Cloudinary::Static.public_id_and_resource_type_from_path(source)
+        end
+        return original_source unless source
+        source += File.extname(original_source) if !format
+      elsif source.start_with?("/")
         if source.start_with?("/images/")
           source = source.sub(%r(/images/), '')
         else
           return original_source
         end
-      end
-      @metadata ||= defined?(Cloudinary::Static) ? Cloudinary::Static.metadata : {}
-      if type == "asset" && @metadata["images/#{source}"]
-        return original_source if !Cloudinary.config.static_image_support
-        source = @metadata["images/#{source}"]["public_id"]
-        source += File.extname(original_source) if !format
-      elsif type == "asset"
-        return original_source # requested asset, but no metadata - probably local file. return.
       end
     end
 
