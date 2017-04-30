@@ -10,14 +10,15 @@ describe Cloudinary::Api do
   test_id_1 = "#{prefix}_1"
   test_id_2   = "#{prefix}_2"
   test_id_3   = "#{prefix}_3"
+  test_key = "test_key_#{SUFFIX}"
   before(:all) do
 
     @api = Cloudinary::Api
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
-    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "test-key=test", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
-    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "test-key=tasty", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "#{test_key}=test", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "#{test_key}=tasty", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
   end
 
   after(:all) do
@@ -79,9 +80,9 @@ describe Cloudinary::Api do
   end
   
   it "should allow listing resources by context" do
-    resources = @api.resources_by_context('test-key')["resources"]
+    resources = @api.resources_by_context(test_key)["resources"]
     expect(resources.count).to eq(2)
-    resources = @api.resources_by_context('test-key','test')["resources"]
+    resources = @api.resources_by_context(test_key,'test')["resources"]
     expect(resources.count).to eq(1)
   end
 

@@ -1,4 +1,5 @@
 require 'rest_client'
+require 'json'
 
 class Cloudinary::Api
   class Error < CloudinaryException; end
@@ -316,7 +317,14 @@ class Cloudinary::Api
     # Add authentication
     api_url.sub!(%r(^(https?://)), "\\1#{api_key}:#{api_secret}@")
 
-    RestClient::Request.execute(:method => method, :url => api_url, :payload => params.reject { |k, v| v.nil? || v=="" }, :timeout => timeout, :headers => { "User-Agent" => Cloudinary::USER_AGENT }) do
+    headers = { "User-Agent" => Cloudinary::USER_AGENT }
+    if options[:content_type]== :json
+      payload = params.to_json
+      headers.merge!("Content-Type"=> 'application/json', "Accept"=> 'application/json')
+    else
+      payload = params.reject { |k, v| v.nil? || v=="" }
+    end
+    RestClient::Request.execute(:method => method, :url => api_url, :payload => payload, :timeout => timeout, :headers => headers) do
     |response, request, tmpresult|
       return Response.new(response) if response.code == 200
       exception_class = case response.code
