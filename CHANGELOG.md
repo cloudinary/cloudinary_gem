@@ -1,4 +1,18 @@
 
+1.8.0 / 2017-05-01
+==================
+
+New functionality and features
+------------------------------
+
+  * Add Search API
+  * Sync static for non image assets (#241) fixes #27
+
+Other Changes
+-------------
+
+  * Fix Carrierwave signed URL.
+
 1.7.0 / 2017-04-09
 ==================
 
