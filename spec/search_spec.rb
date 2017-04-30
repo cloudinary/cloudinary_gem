@@ -27,13 +27,13 @@ describe Cloudinary::Search do
     end
 
     it 'should add max_results to query' do
-      query = Cloudinary::Search.max_results('format:jpg').to_h
-      expect(query).to eq(max_results: 'format:jpg')
+      query = Cloudinary::Search.max_results(10).to_h
+      expect(query).to eq(max_results: 10)
     end
 
     it 'should add next_cursor to query' do
-      query = Cloudinary::Search.next_cursor('format:jpg').to_h
-      expect(query).to eq(next_cursor: 'format:jpg')
+      query = Cloudinary::Search.next_cursor('ASDFIUHASF9832HAFSOF').to_h
+      expect(query).to eq(next_cursor: 'ASDFIUHASF9832HAFSOF')
     end
 
     it 'should add aggregations arguments as array to query' do
