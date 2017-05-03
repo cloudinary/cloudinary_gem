@@ -252,6 +252,40 @@ describe Cloudinary::Utils do
       .to produce_url("#{upload_path}/c_crop,g_auto,w_0.5/test")
             .and empty_options
   end
+
+  describe "gravity" do
+    it "should support auto" do
+      expect(["test", {width: 100, height: 100, crop: 'crop', gravity: 'auto'}])
+          .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto,h_100,w_100/test")
+                  .and mutate_options_to({width: 100, height: 100})
+      expect(["test", {width: 100, height: 100, crop: 'crop', gravity: 'auto'}])
+          .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto,h_100,w_100/test")
+                  .and mutate_options_to({width: 100, height: 100})
+    end
+    it "should support focal gravity" do
+      ["adv_face", "adv_faces", "adv_eyes", "face", "faces", "body", "no_faces"].each do |focal|
+        expect(["test", {width: 100, height: 100, crop: 'crop', gravity: "auto:#{focal}"}])
+            .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto:#{focal},h_100,w_100/test")
+                    .and mutate_options_to({width: 100, height: 100})
+      end
+    end
+    it "should support auto level with thumb cropping" do
+      [0, 10, 100].each do |level|
+        expect(["test", {width: 100, height: 100, crop: 'thumb', gravity: "auto:#{level}"}])
+            .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_thumb,g_auto:#{level},h_100,w_100/test")
+                    .and mutate_options_to({width: 100, height: 100})
+        expect(["test", {width: 100, height: 100, crop: 'thumb', gravity: "auto:adv_faces:#{level}"}])
+            .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_thumb,g_auto:adv_faces:#{level},h_100,w_100/test")
+                    .and mutate_options_to({width: 100, height: 100})
+      end
+    end
+    it "should support custom_no_override" do
+      expect(["test", {width: 100, height: 100, crop: 'crop', gravity: "auto:custom_no_override"}])
+          .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto:custom_no_override,h_100,w_100/test")
+                  .and mutate_options_to({width: 100, height: 100})
+    end
+  end
+
   describe ":quality" do
     it "support a percent value" do
       expect(["test", { :x => 1, :y => 2, :radius => 3, :gravity => :center, :quality => 80, :prefix => "a" }])
@@ -270,6 +304,7 @@ describe Cloudinary::Utils do
 
     end
   end
+
   describe ":transformation" do
     it "should support named tranformation" do
       expect(["test", { :transformation => "blip" }])
