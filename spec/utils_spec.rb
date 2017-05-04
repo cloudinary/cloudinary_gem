@@ -571,8 +571,8 @@ describe Cloudinary::Utils do
   end
 
   it "should support extenal cname with cdn_subdomain on" do
-    expect(["test", { :cname => "hello.com", :cdn_subdomain => true }])
-      .to produce_url("http://a2.hello.com/#{cloud_name}/image/upload/test")
+    expect(["test", { :cname => "hello.com", :private_cdn => true, :cdn_subdomain => true,  }])
+      .to produce_url("http://a2.hello.com/image/upload/test")
             .and empty_options
   end
 
