@@ -450,6 +450,12 @@ describe Cloudinary::Utils do
             .and empty_options
   end
 
+  it "should support blur effect with ocr gravity" do
+    expect(["test", { :effect => ["blur_region", 5000], :gravity => "ocr_text" }])
+      .to produce_url("#{upload_path}/e_blur_region:5000,g_ocr_text/test")
+            .and empty_options
+  end
+
   it "should support keyframe_interval" do
     expect(["test", { :keyframe_interval => 10 }])
       .to produce_url("#{upload_path}/ki_10/test")
