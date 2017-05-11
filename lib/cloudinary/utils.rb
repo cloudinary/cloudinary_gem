@@ -230,9 +230,13 @@ class Cloudinary::Utils
        text_style    = nil
        components    = []
 
-       unless public_id.blank?
-         public_id = public_id.gsub("/", ":")
-         public_id = "#{public_id}.#{format}" unless format.nil?
+       if public_id.present?
+          if type == "fetch" && public_id.match(%r(^https?:/)i)
+            public_id = Base64.urlsafe_encode64(public_id)
+          else
+            public_id = public_id.gsub("/", ":")
+            public_id = "#{public_id}.#{format}" if format
+          end
        end
 
        if text.blank? && resource_type != "text"
