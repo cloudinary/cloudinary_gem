@@ -99,6 +99,7 @@ class Cloudinary::Uploader
     else
       filename = "cloudinaryfile"
     end
+    unique_upload_id = Cloudinary::Utils.random_public_id
     upload     = nil
     index      = 0
     chunk_size = options[:chunk_size] || 20_000_000
@@ -106,8 +107,7 @@ class Cloudinary::Uploader
       buffer      = file.read(chunk_size)
       current_loc = index*chunk_size
       range       = "bytes #{current_loc}-#{current_loc+buffer.size - 1}/#{file.size}"
-      upload      = upload_large_part(Cloudinary::Blob.new(buffer, :original_filename => filename), options.merge(:public_id => public_id, :content_range => range))
-      public_id   = upload["public_id"]
+      upload      = upload_large_part(Cloudinary::Blob.new(buffer, :original_filename => filename), options.merge(:public_id => public_id, :unique_upload_id => unique_upload_id, :content_range => range))
       index       += 1
     end
     upload
@@ -319,6 +319,7 @@ class Cloudinary::Uploader
     api_url                  = Cloudinary::Utils.cloudinary_api_url(action, options)
     headers                  = { "User-Agent" => Cloudinary::USER_AGENT }
     headers['Content-Range'] = options[:content_range] if options[:content_range]
+    headers['X-Unique-Upload-Id'] = options[:unique_upload_id] if options[:unique_upload_id]
     headers.merge!(options[:extra_headers]) if options[:extra_headers]
     RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject { |k, v| v.nil? || v=="" }, :timeout => timeout, :headers => headers) do
     |response, request, tmpresult|
