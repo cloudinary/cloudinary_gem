@@ -241,7 +241,7 @@ describe Cloudinary::Uploader do
   
   it "should allow sending face coordinates" do
     coordinates = [[120, 30, 109, 150], [121, 31, 110, 151]]
-    result_coordinates = [[120, 30, 109, 51], [121, 31, 110, 51]]
+    result_coordinates = [[120, 30, 109, 51], [121, 31, 110, 51]] # actual boundaries fitted by the server
     result = Cloudinary::Uploader.upload(TEST_IMG, { :face_coordinates => coordinates, :faces => true, :tags => [TEST_TAG, TIMESTAMP_TAG]})
     expect(result["faces"]).to eq(result_coordinates)
 
@@ -305,6 +305,14 @@ describe Cloudinary::Uploader do
     expect(result).to_not be_nil
     expect(result["width"]).to eq(TEST_IMG_W)
     expect(result["height"]).to eq(TEST_IMG_H)
+  end
+
+  it "should include special headers in upload_large" do
+    expect(RestClient::Request).to receive(:execute) do |options|
+      expect(options[:headers]["Content-Range"]).to_not be_empty
+      expect(options[:headers]["X-Unique-Upload-Id"]).to_not be_empty
+    end
+    Cloudinary::Uploader.upload_large(TEST_IMG, { :tags => [TEST_TAG, TIMESTAMP_TAG]})
   end
   
   context "unsigned" do
