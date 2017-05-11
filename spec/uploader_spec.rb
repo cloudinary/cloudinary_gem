@@ -184,9 +184,9 @@ describe Cloudinary::Uploader do
   end
 
 
-  describe "context", :focus => true do
+  describe "context" do
     describe "add_context" do
-      it "should correctly add context", :focus => true do
+      it "should correctly add context" do
         expected ={
             :url => /.*\/context/,
             [:payload, :context] => "key1=value1|key2=value2",
@@ -200,7 +200,7 @@ describe Cloudinary::Uploader do
     end
 
     describe "remove_all_context" do
-      it "should correctly remove all context", :focus => true do
+      it "should correctly remove all context" do
         expected ={
             :url => /.*\/context/,
             [:payload, :public_ids] => ["some_public_id1", "some_public_id2"],
@@ -292,7 +292,7 @@ describe Cloudinary::Uploader do
     expect(result["format"]).to eq("bmp")
   end
 
-  it "should allow fallback of upload large with remote url to regular upload", :focus => true do
+  it "should allow fallback of upload large with remote url to regular upload" do
     file = "http://cloudinary.com/images/old_logo.png"
     result = Cloudinary::Uploader.upload_large(file, :chunk_size => 5243000, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result).to_not be_nil

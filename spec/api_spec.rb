@@ -269,7 +269,7 @@ describe Cloudinary::Api do
         expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :named ]=> true))
         @api.transformations :named => true
       end
-      
+
     end
     it "should allow deleting implicit transformation" do
       @api.transformation(TEST_TRANSFOMATION)
@@ -467,12 +467,12 @@ describe Cloudinary::Api do
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
-
+      
       resource = result["published"][0]
-
+      
       expect(resource["public_id"]).to eq(publicId)
       expect(resource["type"]).to eq('upload')
-
+      
       bytes = resource["bytes"]
     end
     it "should publish resources by prefix and overwrite" do
@@ -480,13 +480,13 @@ describe Cloudinary::Api do
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
-
+      
       resource = result["published"][0]
-
+      
       expect(resource["public_id"]).to eq(publicId)
       expect(resource["bytes"]).not_to eq(bytes)
       expect(resource["type"]).to eq('upload')
-
+      
       bytes = resource["bytes"]
     end
     it "should publish resources by tag and overwrite" do
@@ -494,13 +494,13 @@ describe Cloudinary::Api do
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
-
+      
       resource = result["published"][0]
-
+      
       expect(resource["public_id"]).to eq(publicId)
       expect(resource["bytes"]).not_to eq(bytes)
       expect(resource["type"]).to eq('upload')
-
+      
       bytes = resource["bytes"]
     end
   end
