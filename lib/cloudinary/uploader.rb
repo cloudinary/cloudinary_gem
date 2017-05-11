@@ -3,6 +3,8 @@ require 'rest_client'
 require 'json'
 
 class Cloudinary::Uploader
+  class Error < CloudinaryException; end
+  class GeneralError < Error; end
 
   REMOTE_URL_REGEX = %r(^ftp:|^https?:|^s3:|^data:[^;]*;base64,([a-zA-Z0-9\/+\n=]+)$)
 
@@ -320,23 +322,28 @@ class Cloudinary::Uploader
     headers                  = { "User-Agent" => Cloudinary::USER_AGENT }
     headers['Content-Range'] = options[:content_range] if options[:content_range]
     headers.merge!(options[:extra_headers]) if options[:extra_headers]
-    RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject { |k, v| v.nil? || v=="" }, :timeout => timeout, :headers => headers) do
-    |response, request, tmpresult|
-      raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" unless [200, 400, 401, 403, 404, 500].include?(response.code)
-      begin
-        result = Cloudinary::Utils.json_decode(response.body)
-      rescue => e
-        # Error is parsing json
-        raise CloudinaryException, "Error parsing server response (#{response.code}) - #{response.body}. Got - #{e}"
-      end
-      if result["error"]
-        if return_error
-          result["error"]["http_code"] = response.code
-        else
-          raise CloudinaryException, result["error"]["message"]
+    begin
+      RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject { |k, v| v.nil? || v=="" }, :timeout => timeout, :headers => headers) do
+      |response, request, tmpresult|
+        raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" unless [200, 400, 401, 403, 404, 500].include?(response.code)
+        begin
+          result = Cloudinary::Utils.json_decode(response.body)
+        rescue => e
+          # Error is parsing json
+          raise CloudinaryException, "Error parsing server response (#{response.code}) - #{response.body}. Got - #{e}"
+        end
+        if result["error"]
+          if return_error
+            result["error"]["http_code"] = response.code
+          else
+            raise CloudinaryException, result["error"]["message"]
+          end
         end
       end
+    rescue RestClient::Exception, RestClient::RequestTimeout => e
+      raise GeneralError.new("Request was aborted with the following error - #{e}")
     end
+
 
     result
   end

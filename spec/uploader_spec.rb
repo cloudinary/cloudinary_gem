@@ -333,7 +333,7 @@ describe Cloudinary::Uploader do
     end
 
     it "should fail if timeout is reached" do
-      expect{Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :tags => [TEST_TAG, TIMESTAMP_TAG])}.to raise_error(RestClient::RequestTimeout)
+      expect{Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :tags => [TEST_TAG, TIMESTAMP_TAG])}.to raise_error(CloudinaryException, /Timed out connecting to server/)
     end
   end
 

@@ -324,21 +324,25 @@ class Cloudinary::Api
     else
       payload = params.reject { |k, v| v.nil? || v=="" }
     end
-    RestClient::Request.execute(:method => method, :url => api_url, :payload => payload, :timeout => timeout, :headers => headers) do
-    |response, request, tmpresult|
-      return Response.new(response) if response.code == 200
-      exception_class = case response.code
-      when 400 then BadRequest
-      when 401 then AuthorizationRequired
-      when 403 then NotAllowed
-      when 404 then NotFound
-      when 409 then AlreadyExists
-      when 420 then RateLimited
-      when 500 then GeneralError
-      else raise GeneralError.new("Server returned unexpected status code - #{response.code} - #{response.body}")
+    begin
+      RestClient::Request.execute(:method => method, :url => api_url, :payload => payload, :timeout => timeout, :headers => headers) do
+      |response, request, tmpresult|
+        return Response.new(response) if response.code == 200
+        exception_class = case response.code
+        when 400 then BadRequest
+        when 401 then AuthorizationRequired
+        when 403 then NotAllowed
+        when 404 then NotFound
+        when 409 then AlreadyExists
+        when 420 then RateLimited
+        when 500 then GeneralError
+        else raise GeneralError.new("Server returned unexpected status code - #{response.code} - #{response.body}")
+        end
+        json = parse_json_response(response)
+        raise exception_class.new(json["error"]["message"])
       end
-      json = parse_json_response(response)
-      raise exception_class.new(json["error"]["message"])
+    rescue RestClient::Exception, RestClient::RequestTimeout => e
+      raise GeneralError.new("Request was aborted with the following error - #{e}")
     end
   end
 
