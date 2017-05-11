@@ -263,6 +263,13 @@ describe Cloudinary::Uploader do
     expect(result["moderation"][0]["status"]).to eq("pending")
     expect(result["moderation"][0]["kind"]).to eq("manual")
   end
+  
+  it "should support requesting ocr anlysis" do
+    expect(RestClient::Request).to receive(:execute) do |options|
+      expect(options[:payload][:ocr]).to eq(:adv_ocr)
+    end
+    Cloudinary::Uploader.upload(TEST_IMG, { :ocr => :adv_ocr, :tags => [TEST_TAG, TIMESTAMP_TAG]})
+  end
     
   it "should support requesting raw conversion" do
     expect{Cloudinary::Uploader.upload("spec/docx.docx", {:resource_type => :raw, :raw_convert => :illegal, :tags => [TEST_TAG, TIMESTAMP_TAG]})}.to raise_error(CloudinaryException, /Illegal value|not a valid/)
