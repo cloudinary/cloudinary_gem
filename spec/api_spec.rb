@@ -158,7 +158,7 @@ describe Cloudinary::Api do
 
   end
 
-  it "should allow deleting multiple resources and comma inclusive public IDs", :focus => true do
+  it "should allow deleting multiple resources and comma inclusive public IDs" do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :public_ids] => ["apit_test", "test_id_2", "api_test3"]}))
     @api.delete_resources(["apit_test", "test_id_2", "api_test3"])
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :public_ids] => "apit_test,test_id_2,api_test3"}))
@@ -355,7 +355,7 @@ describe Cloudinary::Api do
     expect{Cloudinary::Api.update(result["public_id"], {:categorization => :illegal})}.to raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
   end
   
-  it "should support requesting detection with server notification", :focus => true do
+  it "should support requesting detection with server notification" do
     expected = {
       [:payload, :detection] => "adv_face",
       [:payload, :notification_url] => "http://example.com"

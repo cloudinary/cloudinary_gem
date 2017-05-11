@@ -571,7 +571,7 @@ describe Cloudinary::Utils do
   end
 
   it "should support extenal cname with cdn_subdomain on" do
-    expect(["test", { :cname => "hello.com", :private_cdn => true, :cdn_subdomain => true,  }])
+    expect(["test", { :cname => "hello.com", :private_cdn => true, :cdn_subdomain => true}])
       .to produce_url("http://a2.hello.com/image/upload/test")
             .and empty_options
   end
@@ -749,6 +749,12 @@ describe Cloudinary::Utils do
                                            { if: "w_gt_400", crop: "fit", width: 150, height: 150 },
                                            { effect: "sepia" }]])
           .to produce_url("#{upload_path}/if_w_lt_200,c_fill,h_120,w_80/if_w_gt_400,c_fit,h_150,w_150/e_sepia/sample")
+      end
+      it "should allow multiple tags condition" do
+        expect(["sample", transformation: [{ if: "!tag1:tag2:tag3!_in_tags", crop: "fill", height: 120, width: 80 },
+                                           { if: "else", crop: "fit", width: 150, height: 150 },
+                                           { effect: "sepia" }]])
+          .to produce_url("#{upload_path}/if_!tag1:tag2:tag3!_in_tags,c_fill,h_120,w_80/if_else,c_fit,h_150,w_150/e_sepia/sample")
       end
 
       describe "including spaces and operators" do
