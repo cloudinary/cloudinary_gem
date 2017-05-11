@@ -525,7 +525,8 @@ describe Cloudinary::Utils do
           ["text with font family and size parameters", { :text => text_layer, :font_family => "Arial", :font_size => "18" }, "text:Arial_18:#{text_encoded}"],
           ["text with text style parameter", { :text => text_layer, :font_family => "Arial", :font_size => "18", :font_weight => "bold", :font_style => "italic", :letter_spacing => 4, :line_spacing => 2 }, "text:Arial_18_bold_italic_letter_spacing_4_line_spacing_2:#{text_encoded}"],
           ["subtitles", { :resource_type => "subtitles", :public_id => "subtitles.srt" }, "subtitles:subtitles.srt"],
-          ["subtitles with font family and size", { :resource_type => "subtitles", :public_id => "subtitles.srt", :font_family => "Arial", :font_size => "40" }, "subtitles:Arial_40:subtitles.srt"]
+          ["subtitles with font family and size", { :resource_type => "subtitles", :public_id => "subtitles.srt", :font_family => "Arial", :font_size => "40" }, "subtitles:Arial_40:subtitles.srt"],
+          ["image of type fetch", { :public_id => "http://res.cloudinary.com/demo/image/upload/ci", :type => "fetch" }, "fetch:aHR0cDovL3Jlcy5jbG91ZGluYXJ5LmNvbS9kZW1vL2ltYWdlL3VwbG9hZC9jaQ=="]
         ]
         layers_options.each do |name, options, result|
           it "should support #{name}" do
