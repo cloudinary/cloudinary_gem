@@ -89,15 +89,31 @@ describe 'cloudinary:sync_static' do
 
   context 'Cloudinary::Utils.cloudinary_url' do
     def all_asset_forms_of(public_id)
-      [public_id, "/#{public_id}", public_id.split('/').last]
+      [ "/#{public_id}", public_id.split('/').last]
     end
 
     RSpec::Matchers.define :be_asset_mapped_by_cloudinary_url_to do |expected|
       match do |actual|
+        actual = [actual] unless actual.respond_to? :all?
         actual.all? do |public_path|
-          Cloudinary::Utils.cloudinary_url(public_path, :cloud_name => 'test', :type => 'asset') == expected
+          @public_path = public_path
+          @actual = Cloudinary::Utils.cloudinary_url(public_path, :cloud_name => 'test', :type => 'asset')
+          @actual == expected
         end
       end
+      failure_message do |actual|
+        "URL for '#{@public_path}' should have been '#{expected}' but was '#{@actual}'.#{ differ.diff_as_string(@actual, expected)}"
+      end
+      failure_message_when_negated do |actual|
+        "URL for '#{@public_path}' should not have been '#{expected}'."
+      end
+      def differ
+        RSpec::Support::Differ.new(
+            :object_preparer => lambda { |object| RSpec::Matchers::Composable.surface_descriptions_in(object) },
+            :color => RSpec::Matchers.configuration.color?
+        )
+      end
+
     end
 
     before(:each) do
@@ -122,9 +138,12 @@ describe 'cloudinary:sync_static' do
       allow(Cloudinary.config).to receive(:static_file_support).and_return(true)
       subject.invoke
 
-      expect(all_asset_forms_of('images/logo1.png')).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/image/asset/logo1-7dc60722d4653261648038b579fdb89e.png')
-      expect(all_asset_forms_of('javascripts/1.js')).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/raw/asset/1-b01de57adb485efdde843154d030644e.js')
-      expect(all_asset_forms_of('stylesheets/1.css')).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/raw/asset/1-f24cc6123afd401ab86d8596cabc619f.css')
+      expect(['logo1.png', '/images/logo1.png']).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/image/asset/logo1-7dc60722d4653261648038b579fdb89e.png')
+      expect('images/logo1.png').not_to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/image/asset/logo1-7dc60722d4653261648038b579fdb89e.png')
+      expect('1.js').to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/raw/asset/1-b01de57adb485efdde843154d030644e.js')
+      expect(['javascripts/1.js', '/javascripts/1.js']).not_to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/raw/asset/1-b01de57adb485efdde843154d030644e.js')
+      expect('1.css').to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/raw/asset/1-f24cc6123afd401ab86d8596cabc619f.css')
+      expect(['stylesheets/1.css', '/stylesheets/1.css']).not_to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/raw/asset/1-f24cc6123afd401ab86d8596cabc619f.css')
 
       # without :type => 'asset'
       expect(Cloudinary::Utils.cloudinary_url('logo1.png')).not_to include('7dc60722d4653261648038b579fdb89e')
@@ -134,7 +153,7 @@ describe 'cloudinary:sync_static' do
       allow(Cloudinary.config).to receive(:static_image_support).and_return(true)
       subject.invoke
 
-      expect(all_asset_forms_of('images/logo1.png')).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/image/asset/logo1-7dc60722d4653261648038b579fdb89e.png')
+      expect(['logo1.png', '/images/logo1.png']).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/image/asset/logo1-7dc60722d4653261648038b579fdb89e.png')
     end
   end
 

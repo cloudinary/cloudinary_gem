@@ -77,19 +77,14 @@ class Cloudinary::Static
 
     # ## Cloudinary::Utils support ###
     def public_id_and_resource_type_from_path(path)
-      metadata = build_metadata
+      @metadata ||= build_metadata
       path = path.sub(/^\//, '')
-      data = metadata[path]
-      unless data
-        public_prefixes.each do |prefix|
-          if metadata[File.join(prefix, path)]
-            data = metadata[File.join(prefix, path)]
-            break
-          end
-        end
+      prefix = public_prefixes.find {|prefix| @metadata[File.join(prefix, path)]}
+      if prefix
+        [@metadata[File.join(prefix, path)]['public_id'], resource_type(path)]
+      else
+        nil
       end
-      return unless data
-      [data['public_id'], resource_type(path)]
     end
 
     private

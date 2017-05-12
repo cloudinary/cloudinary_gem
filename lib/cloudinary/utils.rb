@@ -375,20 +375,16 @@ class Cloudinary::Utils
     resource_type ||= "image"
     source = source.to_s
     if !force_remote
+      static_support = Cloudinary.config.static_file_support || Cloudinary.config.static_image_support
+      return original_source if !static_support && type == "asset"
       return original_source if (type.nil? || type == "asset") && source.match(%r(^https?:/)i)
+      return original_source if source.match(%r(^/(?!images/).*)) # starts with / but not /images/
+
+      source = source.sub(%r(^/images/), '') # remove /images/ prefix  - backwards compatibility
       if type == "asset"
-        # config.static_image_support left for backwards compatibility
-        if (Cloudinary.config.static_file_support || Cloudinary.config.static_image_support) && defined?(Cloudinary::Static)
-          source, resource_type = Cloudinary::Static.public_id_and_resource_type_from_path(source)
-        end
-        return original_source unless source
-        source += File.extname(original_source) if !format
-      elsif source.start_with?("/")
-        if source.start_with?("/images/")
-          source = source.sub(%r(/images/), '')
-        else
-          return original_source
-        end
+        source, resource_type = Cloudinary::Static.public_id_and_resource_type_from_path(source)
+        return original_source unless source # asset not found in Static
+        source += File.extname(original_source) unless format
       end
     end
 
