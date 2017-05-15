@@ -292,7 +292,7 @@ class Cloudinary::Uploader
     return call_api("context", options) do
       {
         :timestamp  => (options[:timestamp] || Time.now.to_i),
-        :context    => Cloudinary::Utils.encode_hash(context),
+        :context    => Cloudinary::Utils.encode_context(context),
         :public_ids => Cloudinary::Utils.build_array(public_ids),
         :command    => command,
         :type       => options[:type]

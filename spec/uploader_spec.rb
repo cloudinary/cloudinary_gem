@@ -189,13 +189,13 @@ describe Cloudinary::Uploader do
       it "should correctly add context" do
         expected ={
             :url => /.*\/context/,
-            [:payload, :context] => "key1=value1|key2=value2",
+            [:payload, :context] => "key1=value1|key2=val\\|ue2",
             [:payload, :public_ids] => ["some_public_id1", "some_public_id2"],
             [:payload, :command] => "add"
         }
         expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
 
-        Cloudinary::Uploader.add_context( {:key1 => :value1, :key2 => :value2}, ["some_public_id1", "some_public_id2"])
+        Cloudinary::Uploader.add_context( {:key1 => "value1", :key2 => "val|ue2"}, ["some_public_id1", "some_public_id2"])
       end
     end
 
