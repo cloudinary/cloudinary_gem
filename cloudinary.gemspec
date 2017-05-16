@@ -33,11 +33,11 @@ Gem::Specification.new do |s|
   elsif RUBY_VERSION >= "1.9"
     s.add_dependency "rest-client", '< 2.0'
     s.add_dependency 'json', '~> 1.8'
-    s.add_development_dependency "actionpack", '< 5.0'
+    s.add_development_dependency "actionpack", '<~5.0'
     s.add_development_dependency "simplecov"
     s.add_development_dependency "nokogiri", "<1.7.0"
     s.add_development_dependency "rubyzip", '<1.2.1'
-    s.add_development_dependency "rack", "~>1.5.0"
+    s.add_development_dependency "rack", "<1.6"
   else
     s.add_dependency "i18n", "<0.7.0"
     s.add_dependency "rest-client", "<=1.6.8"
