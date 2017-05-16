@@ -73,7 +73,14 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)
       primary_key = model_class.primary_key.to_sym
       if defined?(::ActiveRecord::VERSION::MAJOR) && ::ActiveRecord::VERSION::MAJOR > 2
-        model_class.where(primary_key=>uploader.model.send(primary_key)).update_all(column=>name)
+        _scope = model_class.where(primary_key=>uploader.model.send(primary_key))
+        if model_class.columns_hash[column.to_s].array?
+          _array = _scope.first[column]
+          _array.push(name)
+          _scope.update_all(column=>_array)
+        else
+          _scope.update_all(column=>name)
+        end
       else
         # Removed since active record version 3.0.0
         model_class.update_all({column=>name}, {primary_key=>uploader.model.send(primary_key)})
