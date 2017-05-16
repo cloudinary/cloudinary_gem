@@ -1,4 +1,11 @@
 
+1.8.1 / 2017-05-16
+==================
+
+  * Fix `image_path`. Fixes #257
+  * Add Auto Gravity modes tests.
+  * Use correct values in Search tests
+
 1.8.0 / 2017-05-01
 ==================
 
