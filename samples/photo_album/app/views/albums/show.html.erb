@@ -33,7 +33,9 @@
               { :crop => "fit", :height => 150, :width => 150 },
               { :crop => "thumb", :gravity => "face", :height => 150, :width => 150 },
               { :format => "png", :angle => 20, :transformation => { 
-                :crop => "fill", :gravity => "north", :effect => "sepia", :height => 150, :width => 150 } }
+                :crop => "fill", :gravity => "north", :effect => "sepia", :height => 150, :width => 150 } },
+              { :format => "png", :effect=>"saturation:60", :height => 150, :width => 150 },
+              { :format => "png", :transformation => {:width => 150, :height => 200, :overlay => "cloudinary_cvkf8e"} }
             ] %>
           <% transformations.each do |image_params| %>
             <td>
