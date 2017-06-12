@@ -22,7 +22,7 @@ class PhotosController < ApplicationController
   end
 
   def create
-    @photo = @album.photos.build(params[:photo])
+    @photo = @album.photos.build(params[:photo], :tags => 'test', :transformation => {:width => 500, :height => 500, :crop => :limit})
 
     # In through-the-server mode, the image is first uploaded to the Rails server.
     # When @photo is saved, Carrierwave uploads the image to Cloudinary.
@@ -44,7 +44,7 @@ class PhotosController < ApplicationController
       # upload metadata. The metadata is only available after Carrierwave
       # performs the upload (in @photo.save), so we need to update the
       # already saved photo here.
-      @photo.update_attributes(:bytes => @photo.image.metadata['bytes'])
+      @photo.update_attributes(:bytes => @photo.image.metadata['bytes'], :tags => 'test', :transformation => {:width => 500, :height => 500, :crop => :limit})
       # Show upload metadata in the view
       @upload = @photo.image.metadata
     end
