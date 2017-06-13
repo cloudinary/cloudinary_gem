@@ -7,7 +7,7 @@ class PhotosController < ApplicationController
     if unsigned_mode?
       @unsigned = true
       # make sure we have the appropriate preset
-      @preset_name = "sample_" + Digest::SHA1.hexdigest(Cloudinary.config.api_key + Cloudinary.config.api_secret)
+      @preset_name = "iayu108q"
       begin
         preset = Cloudinary::Api.upload_preset(@preset_name)
         if !preset["settings"]["return_delete_token"]
@@ -22,7 +22,7 @@ class PhotosController < ApplicationController
   end
 
   def create
-    @photo = @album.photos.build(params[:photo], :tags => 'test', :transformation => {:width => 500, :height => 500, :crop => :limit})
+    @photo = @album.photos.build(params[:photo])
 
     # In through-the-server mode, the image is first uploaded to the Rails server.
     # When @photo is saved, Carrierwave uploads the image to Cloudinary.
@@ -44,7 +44,7 @@ class PhotosController < ApplicationController
       # upload metadata. The metadata is only available after Carrierwave
       # performs the upload (in @photo.save), so we need to update the
       # already saved photo here.
-      @photo.update_attributes(:bytes => @photo.image.metadata['bytes'], :tags => 'test', :transformation => {:width => 500, :height => 500, :crop => :limit})
+      @photo.update_attributes(:bytes => @photo.image.metadata['bytes'])
       # Show upload metadata in the view
       @upload = @photo.image.metadata
     end

@@ -17,7 +17,7 @@
           <% if @unsigned %>
             <%= f.cl_unsigned_image_upload(:image, @preset_name) %>
           <% else %>
-            <%= f.cl_image_upload(:image, :return_delete_token=>true) %>
+            <%= f.cl_image_upload(:image, :return_delete_token=>true, :tags => 'direct', :transformation => {:width => 500, :height => 500, :crop => :limit}) %>
           <% end %>
         </div>
         <span class="status"></span>
