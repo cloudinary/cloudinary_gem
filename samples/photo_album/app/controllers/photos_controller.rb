@@ -7,7 +7,7 @@ class PhotosController < ApplicationController
     if unsigned_mode?
       @unsigned = true
       # make sure we have the appropriate preset
-      @preset_name = "sample_" + Digest::SHA1.hexdigest(Cloudinary.config.api_key + Cloudinary.config.api_secret)
+      @preset_name = "iayu108q"
       begin
         preset = Cloudinary::Api.upload_preset(@preset_name)
         if !preset["settings"]["return_delete_token"]
