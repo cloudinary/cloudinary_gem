@@ -91,7 +91,7 @@ class Cloudinary::Uploader
       public_id = public_id_or_options
       options   = old_options
     end
-    if file.match(REMOTE_URL_REGEX)
+    if file.is_a?(String) && file.match(REMOTE_URL_REGEX)
       return upload(file, options.merge(:public_id => public_id))
     elsif file.is_a?(Pathname) || !file.respond_to?(:read)
       filename = file
