@@ -1,7 +1,7 @@
 class Cloudinary::PreloadedFile
   PRELOADED_CLOUDINARY_PATH = /^([^\/]+)\/([^\/]+)\/v(\d+)\/([^#]+)#([^\/]+)$/
 
-  attr_reader :filename, :version, :public_id, :signature, :resource_type, :type
+  attr_reader :filename, :version, :public_id, :signature, :resource_type, :type, :format
   def initialize(file_info)
     @resource_type, @type, @version, @filename, @signature = file_info.scan(PRELOADED_CLOUDINARY_PATH).first    
     @public_id, @format = Cloudinary::PreloadedFile.split_format(@filename)      
