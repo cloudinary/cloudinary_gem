@@ -13,7 +13,7 @@ Cloudinary provides URL and HTTP based APIs that can be easily integrated with a
 For Ruby on Rails, Cloudinary provides a GEM for simplifying the integration even further.
 
 ## Getting started guide
-![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png)  **Take a look at our [Getting started guide of Ruby on Rails](http://cloudinary.com/documentation/rails_integration#getting_started_guide)**.
+![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png)  **Take a look at our [Getting started guide of Ruby on Rails](https://cloudinary.com/documentation/rails_integration#getting_started_guide)**.
 
 ## Setup ######################################################################
 
@@ -68,7 +68,7 @@ Converting to a 150x100 PNG with rounded corners of 20 pixels:
 
 ![Sample 150x150 Rounded PNG](https://res.cloudinary.com/demo/image/upload/w_150,h_100,c_fill,r_20/sample.png "Sample 150x150 Rounded PNG")
 
-For plenty more transformation options, see our [image transformations documentation](http://cloudinary.com/documentation/image_transformations).
+For plenty more transformation options, see our [image transformations documentation](https://cloudinary.com/documentation/image_transformations).
 
 Generating a 120x90 thumbnail based on automatic face detection of the Facebook profile picture of Bill Clinton:
  
@@ -76,7 +76,7 @@ Generating a 120x90 thumbnail based on automatic face detection of the Facebook 
     
 ![Facebook 90x120](https://res.cloudinary.com/demo/image/facebook/c_thumb,g_face,h_90,w_120/billclinton.jpg "Facebook 90x200")
 
-For more details, see our documentation for embedding [Facebook](http://cloudinary.com/documentation/facebook_profile_pictures) and [Twitter](http://cloudinary.com/documentation/twitter_profile_pictures) profile pictures. 
+For more details, see our documentation for embedding [Facebook](https://cloudinary.com/documentation/facebook_profile_pictures) and [Twitter](https://cloudinary.com/documentation/twitter_profile_pictures) profile pictures. 
 
 
 ## Usage
@@ -84,7 +84,7 @@ For more details, see our documentation for embedding [Facebook](http://cloudina
 ### Configuration
 
 Each request for building a URL of a remote cloud resource must have the `cloud_name` parameter set. 
-Each request to our secure APIs (e.g., image uploads, eager sprite generation) must have the `api_key` and `api_secret` parameters set. See [API, URLs and access identifiers](http://cloudinary.com/documentation/api_and_access_identifiers) for more details.
+Each request to our secure APIs (e.g., image uploads, eager sprite generation) must have the `api_key` and `api_secret` parameters set. See [API, URLs and access identifiers](https://cloudinary.com/documentation/api_and_access_identifiers) for more details.
 
 Setting the `cloud_name`, `api_key` and `api_secret` parameters can be done either directly in each call to a Cloudinary method or by globally setting using a YAML configuration file.
 
@@ -130,7 +130,7 @@ Same goes for Twitter:
 
     twitter_name_profile_image_tag("billclinton.jpg")
 
-![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](http://cloudinary.com/documentation/rails_image_manipulation) for more information about displaying and transforming images in Rails**.                                         
+![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](https://cloudinary.com/documentation/rails_image_manipulation) for more information about displaying and transforming images in Rails**.                                         
 
 
 
@@ -157,7 +157,7 @@ You can also specify your own public ID:
     http://res.cloudinary.com/demo/image/upload/sample_remote.jpg
 
 
-![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](http://cloudinary.com/documentation/rails_image_upload) for plenty more options of uploading to the cloud from your Ruby code or directly from the browser**.
+![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **See [our documentation](https://cloudinary.com/documentation/rails_image_upload) for plenty more options of uploading to the cloud from your Ruby code or directly from the browser**.
 
 
 ### CarrierWave Integration
@@ -172,9 +172,9 @@ Cloudinary's Ruby GEM includes an optional plugin for [CarrierWave](https://gith
         ...  
     end
 
-![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **For more details on CarrierWave integration see [our documentation](http://cloudinary.com/documentation/rails_carrierwave)**.
+![More](http://res.cloudinary.com/cloudinary/image/upload/see_more_bullet.png) **For more details on CarrierWave integration see [our documentation](https://cloudinary.com/documentation/rails_carrierwave)**.
 
-We also published an interesting blog post about [Ruby on Rails image uploads with CarrierWave and Cloudinary](http://cloudinary.com/blog/ruby_on_rails_image_uploads_with_carrierwave_and_cloudinary).
+We also published an interesting blog post about [Ruby on Rails image uploads with CarrierWave and Cloudinary](https://cloudinary.com/blog/ruby_on_rails_image_uploads_with_carrierwave_and_cloudinary).
 
 #### Neo4j integration
 
@@ -205,7 +205,7 @@ To automatically set-up Cloudinary's configuration, include the following line i
 
 #### Uploading images from the browser
 
-The Cloudinary JavaScript library utilizes the Blueimp File Upload library to support image uploading from the browser. See the [documentation](http://cloudinary.com/documentation/jquery_image_upload) for more details.
+The Cloudinary JavaScript library utilizes the Blueimp File Upload library to support image uploading from the browser. See the [documentation](https://cloudinary.com/documentation/jquery_image_upload) for more details.
 
 |Important|
 |---------|
@@ -233,21 +233,22 @@ Please consult with the [README file](https://github.com/cloudinary/cloudinary_g
 
 Additional resources are available at:
 
-* [Website](http://cloudinary.com)
-* [Documentation](http://cloudinary.com/documentation)
-* [Knowledge Base](http://support.cloudinary.com/forums)
-* [Documentation for Ruby on Rails integration](http://cloudinary.com/documentation/rails_integration)
-* [Ruby on Rails image upload documentation](http://cloudinary.com/documentation/rails_image_upload)
-* [Ruby on Rails image manipulation documentation](http://cloudinary.com/documentation/rails_image_manipulation)
-* [Image transformations documentation](http://cloudinary.com/documentation/image_transformations)
+* [Website](https://cloudinary.com)
+* [Interactive demo](https://demo.cloudinary.com/default)
+* [Documentation](https://cloudinary.com/documentation)
+* [Knowledge Base](https://support.cloudinary.com/hc/en-us)
+* [Documentation for Ruby on Rails integration](https://cloudinary.com/documentation/rails_integration)
+* [Ruby on Rails image upload documentation](https://cloudinary.com/documentation/rails_image_upload)
+* [Ruby on Rails image manipulation documentation](https://cloudinary.com/documentation/rails_image_manipulation)
+* [Image transformations documentation](https://cloudinary.com/documentation/image_transformations)
 
 ## Support
 
 You can [open an issue through GitHub](https://github.com/cloudinary/cloudinary_gem/issues).
 
-Contact us [http://cloudinary.com/contact](http://cloudinary.com/contact)
+Contact us [https://cloudinary.com/contact](https://cloudinary.com/contact)
 
-Stay tuned for updates, tips and tutorials: [Blog](http://cloudinary.com/blog), [Twitter](https://twitter.com/cloudinary), [Facebook](http://www.facebook.com/Cloudinary).
+Stay tuned for updates, tips and tutorials: [Blog](https://cloudinary.com/blog), [Twitter](https://twitter.com/cloudinary), [Facebook](https://www.facebook.com/Cloudinary).
 
 
 ## License #######################################################################
