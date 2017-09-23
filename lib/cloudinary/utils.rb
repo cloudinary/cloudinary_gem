@@ -305,7 +305,7 @@ class Cloudinary::Utils
   end
 
   def self.api_string_to_sign(params_to_sign)
-    params_to_sign.map{|k,v| [k.to_s, v.is_a?(Array) ? v.join(",") : v]}.reject{|k,v| v.nil? || v == ""}.sort_by(&:first).map{|k,v| "#{k}=#{v}"}.join("&")
+    params_to_sign.to_h.map{|k,v| [k.to_s, v.is_a?(Array) ? v.join(",") : v]}.reject{|k,v| v.nil? || v == ""}.sort_by(&:first).map{|k,v| "#{k}=#{v}"}.join("&")
   end
 
   def self.api_sign_request(params_to_sign, api_secret)
