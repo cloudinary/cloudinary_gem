@@ -78,7 +78,7 @@ describe Cloudinary::Api do
     expect(resources.map{|resource| resource["tags"]}.flatten).to include(TEST_TAG, TIMESTAMP_TAG)
     expect(resources.map{|resource| resource["context"]}).to include({"custom" => {"key" => "value"}})
   end
-  
+
   it "should allow listing resources by context" do
     resources = @api.resources_by_context(test_key)["resources"]
     expect(resources.count).to eq(2)
@@ -94,7 +94,7 @@ describe Cloudinary::Api do
     expect(resources.map{|resource| resource["tags"]}.flatten).to include(TEST_TAG, TIMESTAMP_TAG)
     expect(resources.map{|resource| resource["context"]}).to include({"custom" => {"key" => "value"}})
   end
-  
+
   it "should allow listing resources by start date", :start_at => true do
     start_at = Time.now
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :start_at] => start_at, [:payload, :direction] => "asc"}))
@@ -129,7 +129,7 @@ describe Cloudinary::Api do
     expect(resource["bytes"]).to eq(3381)
     expect(resource["derived"].length).to eq(1)
   end
-  
+
   it "should allow deleting derived resource" do
     derived_resource_id = "derived_id"
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :derived_resource_ids] => derived_resource_id}))
@@ -199,7 +199,7 @@ describe Cloudinary::Api do
     tags = @api.tags(:prefix=>"api_test_no_such_tag")["tags"]
     expect(tags).to be_blank
   end
-  
+
   describe 'transformations' do
     it "should allow listing transformations" do
       transformation = @api.transformations(max_results: 500)["transformations"].find { |transformation| transformation["name"] == TEST_TRANSFOMATION }
@@ -272,7 +272,7 @@ describe Cloudinary::Api do
       expect { @api.transformation(TEST_TRANSFOMATION) }.to raise_error(Cloudinary::Api::NotFound)
     end
   end
-  
+
   it "should allow creating upload_presets" do
     expected = {:url => /.*\/upload_presets$/,
                 [:payload, :name] => "new_preset",
@@ -305,7 +305,7 @@ describe Cloudinary::Api do
     expect(preset["settings"]["context"]).to eq({"a" => "b", "c" => "d"})
     expect(preset["settings"]["tags"]).to eq(["a","b","c", TEST_TAG, TIMESTAMP_TAG])
   end
-  
+
   it "should allow deleting upload_presets", :upload_preset => true do
     id = "#{prefix}_upload_preset"
     @api.create_upload_preset(:name => id, :folder => "folder", :tags => [TEST_TAG, TIMESTAMP_TAG])
@@ -313,7 +313,7 @@ describe Cloudinary::Api do
     @api.delete_upload_preset(id)
     expect{preset = @api.upload_preset(id)}.to raise_error(Cloudinary::Api::NotFound)
   end
-  
+
   it "should allow updating upload_presets", :upload_preset => true do
     name = @api.create_upload_preset(:folder => "folder", :tags => [TEST_TAG, TIMESTAMP_TAG])["name"]
     preset = @api.upload_preset(name)
@@ -323,7 +323,7 @@ describe Cloudinary::Api do
     expect(preset["unsigned"]).to eq(true)
     expect(preset["settings"]).to eq({"folder" => "folder", "colors" => true, "disallow_public_id" => true, "tags" => [TEST_TAG, TIMESTAMP_TAG]})
   end
-  
+
   # this test must be last because it deletes (potentially) all dependent transformations which some tests rely on. Excluded by default.
   skip "should allow deleting all resources", :delete_all=>true do
     Cloudinary::Uploader.upload(TEST_IMG, :public_id=>"api_test5", :eager=>[:width=>101,:crop=>:scale], :tags => [TEST_TAG, TIMESTAMP_TAG])
@@ -335,7 +335,7 @@ describe Cloudinary::Api do
     expect(resource).not_to be_blank
     expect(resource["derived"].length).to eq(0)
   end
-  
+
   it "should support setting manual moderation status" do
     result = Cloudinary::Uploader.upload(TEST_IMG, {:moderation => :manual, :tags => [TEST_TAG, TIMESTAMP_TAG]})
     expect(result["moderation"][0]["status"]).to eq("pending")
@@ -344,17 +344,17 @@ describe Cloudinary::Api do
     expect(api_result["moderation"][0]["status"]).to eq("approved")
     expect(api_result["moderation"][0]["kind"]).to eq("manual")
   end
-    
+
   it "should support requesting raw conversion" do
     result = Cloudinary::Uploader.upload("spec/docx.docx", :resource_type => :raw, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect{Cloudinary::Api.update(result["public_id"], {:resource_type => :raw, :raw_convert => :illegal})}.to raise_error(Cloudinary::Api::BadRequest, /^Illegal value|not a valid/)
   end
-  
+
   it "should support requesting categorization" do
     result = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect{Cloudinary::Api.update(result["public_id"], {:categorization => :illegal})}.to raise_error(Cloudinary::Api::BadRequest, /^Illegal value/)
   end
-  
+
   it "should support requesting detection with server notification", :focus => true do
     expected = {
       [:payload, :detection] => "adv_face",
@@ -363,12 +363,12 @@ describe Cloudinary::Api do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
     Cloudinary::Api.update("public_id", {:detection => "adv_face", :notification_url => "http://example.com"})
   end
-  
+
   it "should support requesting auto_tagging" do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :auto_tagging] => 0.5))
     Cloudinary::Api.update("public_id", {:auto_tagging => 0.5})
   end
-  
+
   it "should support listing by moderation kind and value" do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value([:url] => /.*manual\/approved$/, [:payload, :max_results] => 1000))
     Cloudinary::Api.resources_by_moderation(:manual, :approved, :max_results => 1000)
@@ -462,12 +462,12 @@ describe Cloudinary::Api do
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
-      
+
       resource = result["published"][0]
-      
+
       expect(resource["public_id"]).to eq(publicId)
       expect(resource["type"]).to eq('upload')
-      
+
       bytes = resource["bytes"]
     end
     it "should publish resources by prefix and overwrite" do
@@ -475,13 +475,13 @@ describe Cloudinary::Api do
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
-      
+
       resource = result["published"][0]
-      
+
       expect(resource["public_id"]).to eq(publicId)
       expect(resource["bytes"]).not_to eq(bytes)
       expect(resource["type"]).to eq('upload')
-      
+
       bytes = resource["bytes"]
     end
     it "should publish resources by tag and overwrite" do
@@ -489,15 +489,42 @@ describe Cloudinary::Api do
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
-      
+
       resource = result["published"][0]
-      
+
       expect(resource["public_id"]).to eq(publicId)
       expect(resource["bytes"]).not_to eq(bytes)
       expect(resource["type"]).to eq('upload')
-      
+
       bytes = resource["bytes"]
     end
+  end
+end
 
+describe Cloudinary::Api::Response do
+  let(:http_response) {}
+  let(:response) { described_class.new http_response }
+
+  context 'when the response nil' do
+    it 'inherits from Hash' do
+      response.is_a? Hash
+    end
+
+    it 'acts like an active_support/core_ext/hash' do
+      response.respond_to? :with_indifferent_access
+    end
+  end
+
+  context 'when the response is present' do
+    let(:body) { { 'foo' => 'bar', 'bar' => 'foo' } }
+    let(:http_response) { double code: 200, body: body.to_json, headers: { x_featureratelimit_reset: Time.new.to_s } }
+
+    it 'sets the instantiated self as the parsed response which is a Hash' do
+      response.should == body
+    end
+
+    it 'responds to active support hash core extensions like slice with mulitple arguments' do
+      response.slice(*body.keys).should == body
+    end
   end
 end

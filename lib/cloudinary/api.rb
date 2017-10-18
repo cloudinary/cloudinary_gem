@@ -1,5 +1,6 @@
 require 'rest_client'
 require 'json'
+require 'active_support/core_ext/hash'
 
 class Cloudinary::Api
   class Error < CloudinaryException; end
@@ -10,14 +11,19 @@ class Cloudinary::Api
   class BadRequest < Error; end
   class GeneralError < Error; end
   class AuthorizationRequired < Error; end
+
   class Response < Hash
     attr_reader :rate_limit_reset_at, :rate_limit_remaining, :rate_limit_allowed
 
-    def initialize(response)
-      self.update(Cloudinary::Api.send(:parse_json_response, response))
-      @rate_limit_allowed   = response.headers[:x_featureratelimit_limit].to_i
-      @rate_limit_reset_at  = Time.parse(response.headers[:x_featureratelimit_reset])
-      @rate_limit_remaining = response.headers[:x_featureratelimit_remaining].to_i
+    def initialize(response=nil)
+      if response
+        # This sets the instantiated self as the response Hash
+        update Cloudinary::Api.parse_json_response response
+
+        @rate_limit_allowed   = response.headers[:x_featureratelimit_limit].to_i
+        @rate_limit_reset_at  = Time.parse(response.headers[:x_featureratelimit_reset])
+        @rate_limit_remaining = response.headers[:x_featureratelimit_remaining].to_i
+      end
     end
   end
 
