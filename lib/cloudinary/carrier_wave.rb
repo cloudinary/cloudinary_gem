@@ -176,7 +176,8 @@ module Cloudinary::CarrierWave
     end
     
     def exists?
-      Cloudinary::Uploader.exists?(self.identifier, :type=>self.storage_type, :resource_type=>self.resource_type)
+      public_id = @resource_type == "raw" ? self.filename : self.public_id
+      Cloudinary::Uploader.exists?(public_id, :version=>self.version, :type=>self.storage_type, :resource_type=>self.resource_type)
     end
     
     def read(options={})
