@@ -1,6 +1,5 @@
 require 'rest_client'
 require 'json'
-require 'active_support/core_ext/hash'
 
 class Cloudinary::Api
   class Error < CloudinaryException; end

@@ -502,29 +502,39 @@ describe Cloudinary::Api do
 end
 
 describe Cloudinary::Api::Response do
-  let(:http_response) {}
-  let(:response) { described_class.new http_response }
+  let(:api_response) { described_class.new }
 
-  context 'when the response nil' do
+  shared_examples 'a Hash' do
     it 'inherits from Hash' do
-      response.is_a? Hash
-    end
-
-    it 'acts like an active_support/core_ext/hash' do
-      response.respond_to? :with_indifferent_access
+      expect(api_response).to be_a Hash
     end
   end
 
+  context 'when there is no argument given on instantiation' do
+    it 'does not raise an error' do
+      expect { api_response }.to_not raise_error
+    end
+
+    it_behaves_like 'a Hash'
+  end
+
+  context 'when the response is nil' do
+    it 'does not raise an error' do
+      expect { described_class.new nil }.to_not raise_error
+    end
+
+    it_behaves_like 'a Hash'
+  end
+
   context 'when the response is present' do
-    let(:body) { { 'foo' => 'bar', 'bar' => 'foo' } }
+    let(:body)          { { 'foo' => 'bar' } }
     let(:http_response) { double code: 200, body: body.to_json, headers: { x_featureratelimit_reset: Time.new.to_s } }
+    let(:api_response)  { described_class.new http_response }
 
     it 'sets the instantiated self as the parsed response which is a Hash' do
-      response.should == body
+      expect(api_response).to eq body
     end
 
-    it 'responds to active support hash core extensions like slice with mulitple arguments' do
-      response.slice(*body.keys).should == body
-    end
+    it_behaves_like 'a Hash'
   end
 end
