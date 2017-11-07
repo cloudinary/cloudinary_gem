@@ -265,6 +265,11 @@ describe Cloudinary::Api do
         @api.update_transformation(public_id, :unsafe_update => { "crop" => "scale", "width" => 103 })
       end
 
+      it "should allow listing of named transformations" do
+        expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :named ]=> true))
+        @api.transformations :named => true
+      end
+      
     end
     it "should allow deleting implicit transformation" do
       @api.transformation(TEST_TRANSFOMATION)

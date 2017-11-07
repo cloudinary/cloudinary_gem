@@ -165,7 +165,7 @@ class Cloudinary::Api
   end
 
   def self.transformations(options={})
-    call_api(:get, "transformations", only(options, :next_cursor, :max_results), options)
+    call_api(:get, "transformations", only(options, :named, :next_cursor, :max_results), options)
   end
 
   def self.transformation(transformation, options={})
