@@ -120,6 +120,17 @@ describe Cloudinary::Utils do
             .and empty_options
   end
 
+  it "should sign a url" do
+    expected = Cloudinary::Utils.cloudinary_url "some_public_id.jpg", 
+                                     :cloud_name => "test", 
+                                     :api_key => "123456789012345", 
+                                     :api_secret => "AbcdEfghIjklmnopq1234567890", 
+                                     :type => "authenticated", 
+                                     :sign_url => true, 
+                                     :overlay => "text:Helvetica_50:test+text"
+    expect(expected).to eq("http://res.cloudinary.com/test/image/authenticated/s--j5Z1ILxd--/l_text:Helvetica_50:test+text/some_public_id.jpg")
+  end
+
   it "should not sign the url_suffix" do
     expected_signture = Cloudinary::Utils.cloudinary_url("test", :format => "jpg", :sign_url => true).match(/s--[0-9A-Za-z_-]{8}--/).to_s
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :format => "jpg", :sign_url => true }])

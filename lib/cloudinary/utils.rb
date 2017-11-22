@@ -397,11 +397,7 @@ class Cloudinary::Utils
     transformation = transformation.gsub(%r(([^:])//), '\1/')
     if sign_url && ( !auth_token || auth_token.empty?)
       to_sign = [transformation, sign_version && version, source_to_sign].reject(&:blank?).join("/")
-      i = 0
-      while to_sign != CGI.unescape(to_sign) && i <10
-        to_sign = CGI.unescape(to_sign)
-        i = i + 1
-      end
+      to_sign = fully_unescape(to_sign)
       signature = 's--' + Base64.urlsafe_encode64(Digest::SHA1.digest(to_sign + secret))[0,8] + '--'
     end
 
@@ -848,8 +844,24 @@ class Cloudinary::Utils
     Cloudinary::AuthToken.generate options
 
   end
+  
   private
 
+
+  # Repeatedly unescapes the source until no more unescaping is possible or 10 cycles elapsed
+  # @param [String] source - a (possibly) escaped string
+  # @return [String] the fully unescaped string
+  # @private
+  def self.fully_unescape(source)
+    i = 0
+    while source != CGI.unescape(source) && i <10
+      source = CGI.unescape(source.gsub('+', '%2B')) # don't let unescape replace '+' with space
+      i = i + 1
+    end
+    source
+  end
+  private_class_method :fully_unescape
+  
   def self.hash_query_params(hash)
     if hash.respond_to?("to_query")
       hash.to_query
