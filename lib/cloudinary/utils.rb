@@ -854,7 +854,7 @@ class Cloudinary::Utils
   # @private
   def self.fully_unescape(source)
     i = 0
-    while source != CGI.unescape(source) && i <10
+    while source != CGI.unescape(source.gsub('+', '%2B')) && i <10
       source = CGI.unescape(source.gsub('+', '%2B')) # don't let unescape replace '+' with space
       i = i + 1
     end
