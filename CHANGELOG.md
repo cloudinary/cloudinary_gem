@@ -1,4 +1,16 @@
 
+1.8.2 / 2017-11-22
+==================
+
+  * Fix URL signature
+  * Use the correct method for updating a column
+  * Add support for `named` parameter in list transformation API
+  * load environment when running sync_static task
+  * Fix the overwritten initializer for hash (#273)
+  * Force TravisCI to install bundler
+  * Fix CloudinaryFile::exists? method. Solves #193 #205
+  * Update Readme to point to HTTPS URLs of cloudinary.com
+
 1.8.1 / 2017-05-16
 ==================
 
