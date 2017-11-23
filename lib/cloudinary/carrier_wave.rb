@@ -11,8 +11,7 @@ module Cloudinary::CarrierWave
     base.storage Cloudinary::CarrierWave::Storage
     base.extend ClassMethods
     base.class_attribute :storage_type, :metadata
-    override_in_versions(base, :blank?, :full_public_id, :my_public_id,
-      :all_versions_processors, :stored_version)
+    override_in_versions(base, :blank?, :full_public_id, :my_public_id, :all_versions_processors, :stored_version)
   end
 
   def is_main_uploader?
