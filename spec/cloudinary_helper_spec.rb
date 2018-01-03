@@ -32,6 +32,11 @@ RSpec.describe CloudinaryHelper do
       expect(test_tag['data-cloudinary-field']).to eq('image_id[]')
       expect(test_tag['multiple']).to eq('multiple')
     end
+
+    let(:accepts_tag) { TestTag.new( helper.cl_image_upload_tag('image_id', { accepts_formats: %w{ png jpg } })) }
+    it "Adds the accepted formats via the accept attribute" do
+      expect(accepts_tag['accept']).to eq('.png,.jpg')
+    end
   end
   context "#cl_upload_tag" do
     let(:options) {{:multiple => true}}

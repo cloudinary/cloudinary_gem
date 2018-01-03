@@ -225,6 +225,7 @@ module CloudinaryHelper
     end
 
     tag_options = html_options.merge(:type=>"file", :name=>"file",
+      :"accept"=>(options[:allowed_formats] || []).collect { |format| format.prepend('.') }.join(','),
       :"data-url"=>cl_upload_url(options),
       :"data-form-data"=>cl_upload_tag_params(options),
       :"data-cloudinary-field"=>field,
