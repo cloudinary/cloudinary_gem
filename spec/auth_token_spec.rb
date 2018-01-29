@@ -58,11 +58,11 @@ describe 'auth_token' do
     it "should raise if key is not provided" do
       Cloudinary.config.auth_token[:key] = nil
       token = { :expiration => 111111, :duration => 0 }
-      expect{Cloudinary::Utils.generate_auth_token(token)}.to raise_error
+      expect{Cloudinary::Utils.generate_auth_token(token)}.to raise_error(/Missing auth token key configuration/)
     end
     it "should raise if expiration and duration are not provided" do
       token = { :key => KEY, :expiration => 0, :duration => 0 }
-      expect{Cloudinary::Utils.generate_auth_token(token)}.to raise_error
+      expect{Cloudinary::Utils.generate_auth_token(token)}.to raise_error(/Must provide either expiration or duration/)
     end
   end
   describe "authentication token" do

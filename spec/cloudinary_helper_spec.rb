@@ -163,7 +163,7 @@ RSpec.describe CloudinaryHelper do
 
     after :each do
       Cloudinary.config.static_image_support = @static_support
-      Cloudinary::Static::METADATA_FILE = @static_file
+      Kernel::silence_warnings { Cloudinary::Static::METADATA_FILE = @static_file }
       Cloudinary::Static.reset_metadata
     end
 
@@ -175,7 +175,7 @@ RSpec.describe CloudinaryHelper do
         Cloudinary.config.static_image_support = false
         expect(helper.image_path('/images/foo.jpg')).to eq('/images/foo.jpg')
         expect(helper.image_path('some-folder/foo.gif')).to eq("/images/some-folder/foo.gif")
-        Cloudinary::Static::METADATA_FILE = "spec/sample_asset_file.tsv"
+        Kernel::silence_warnings { Cloudinary::Static::METADATA_FILE = "spec/sample_asset_file.tsv"}
         Cloudinary::Static.reset_metadata
         expect(helper.image_path('/images/foo.jpg'))
             .to eq("/images/foo.jpg")
