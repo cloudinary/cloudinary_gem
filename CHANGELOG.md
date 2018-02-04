@@ -1,4 +1,14 @@
 
+1.8.3 / 2018-02-04
+==================
+
+  * Suppress warnings in tests
+  * Support symbols in `context`
+  * Remove `auto_tagging` failure test
+  * Fix fully_unescape
+  * Whitespace
+  * Fixed CW versions to use stored_version of original PR #263
+
 1.8.2 / 2017-11-22
 ==================
 
