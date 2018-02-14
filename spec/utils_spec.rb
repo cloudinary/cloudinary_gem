@@ -876,4 +876,20 @@ describe Cloudinary::Utils do
 
     end
   end
+
+  describe "context" do
+    it 'should escape pipe and backslash characters' do
+      context = {"caption" => "different = caption", "alt2" => "alt|alternative"}
+      result = Cloudinary::Utils.encode_context(context)
+      expect(result).to eq("caption=different \\= caption|alt2=alt\\|alternative")
+                            .or eq("alt2=alt\\|alternative|caption=different \\= caption")
+
+    end
+    it 'should support symbols' do
+      context = {:symbol_key => "string_value", "string_key" => :symbol_value}
+      result = Cloudinary::Utils.encode_context(context)
+      expect(result).to eq("string_key=symbol_value|symbol_key=string_value")
+                  .or eq("symbol_key=string_value|string_key=symbol_value")
+    end
+  end
 end
