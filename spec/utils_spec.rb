@@ -716,6 +716,17 @@ describe Cloudinary::Utils do
     signature = Cloudinary::Utils.api_sign_request({ :public_id => "folder/file", :version => "1234" }, Cloudinary.config.api_secret)
     preloaded = Cloudinary::PreloadedFile.new("image/upload/v1234/folder/file.jpg#" + signature)
     expect(preloaded).to be_valid
+    [
+      [:filename, 'folder/file.jpg'],
+      [:version, '1234'],
+      [:public_id, 'folder/file'],
+      [:signature, signature],
+      [:resource_type, 'image'],
+      [:type, 'upload'],
+      [:format, 'jpg']
+    ].each do |attr,value|
+      expect(preloaded.send(attr)).to eq(value)
+    end
   end
 
   it "should escape public_ids" do
