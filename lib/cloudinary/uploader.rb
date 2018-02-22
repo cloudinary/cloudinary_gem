@@ -18,6 +18,7 @@ class Cloudinary::Uploader
     options.keys.each { |key| options[key.to_sym] = options.delete(key) if key.is_a?(String) }
 
     params = {
+      :access_control            => Cloudinary::Utils.json_array_param(options[:access_control]),
       :access_mode               => options[:access_mode],
       :allowed_formats           => Cloudinary::Utils.build_array(options[:allowed_formats]).join(","),
       :async                     => Cloudinary::Utils.as_safe_bool(options[:async]),

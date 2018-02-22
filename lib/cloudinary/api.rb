@@ -93,6 +93,7 @@ class Cloudinary::Api
     type           = options[:type] || "upload"
     uri            = "resources/#{resource_type}/#{type}/#{public_id}"
     update_options = {
+      :access_control     => Cloudinary::Utils.json_array_param(options[:access_control]),
       :tags               => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
       :context            => Cloudinary::Utils.encode_context(options[:context]),
       :face_coordinates   => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
