@@ -269,7 +269,7 @@ describe Cloudinary::Uploader do
   end
   
   it "should support requesting categorization" do
-    expect{Cloudinary::Uploader.upload(TEST_IMG, { :categorization => :illegal, :tags => [TEST_TAG, TIMESTAMP_TAG]})}.to raise_error(CloudinaryException, /Illegal value|not a valid|is invalid/)
+    expect{Cloudinary::Uploader.upload(TEST_IMG, { :categorization => :illegal, :tags => [TEST_TAG, TIMESTAMP_TAG]})}.to raise_error(CloudinaryException, /Illegal value|not a valid|is not valid/)
   end
   
   it "should support requesting detection" do
