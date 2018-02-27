@@ -1,4 +1,18 @@
 
+1.9.0 / 2018-02-27
+==================
+
+New functionality and features
+------------------------------
+
+  * Add `access_control` parameter to `upload` and `update`
+  * Add `format` to CarrierWave plug-in's `PreloadedFile` 
+
+Other Changes
+-------------
+
+  * Fix upload categorization test
+
 1.8.3 / 2018-02-04
 ==================
 
