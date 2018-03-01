@@ -299,7 +299,9 @@ class Cloudinary::Migrator
   
   def debug(message)
     if @debug
-      $stderr.print "#{Time.now} Cloudinary::Migrator #{message}\n"
+      mutex.synchronize{
+        $stderr.print "#{Time.now} Cloudinary::Migrator #{message}\n"
+      }
     end
   end
 
