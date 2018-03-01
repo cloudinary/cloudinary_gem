@@ -3,7 +3,7 @@ require 'cloudinary/carrier_wave/process'
 require 'cloudinary/carrier_wave/error'
 require 'cloudinary/carrier_wave/remote'
 require 'cloudinary/carrier_wave/preloaded'
-require 'cloudinary/carrier_wave/storage'
+require 'cloudinary/carrier_wave/storage' if defined?(::CarrierWave) # HACK
 
 module Cloudinary::CarrierWave
 

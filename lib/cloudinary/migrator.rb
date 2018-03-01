@@ -248,7 +248,7 @@ class Cloudinary::Migrator
               if defined?(ActiveRecord::Base) && data.is_a?(ActiveRecord::Base)
                 cw = true
                 data.save!
-              elsif defined?(Cloudinary::CarrierWave) && data.is_a?(Cloudinary::CarrierWave)
+              elsif defined?(::CarrierWave) && defined?(Cloudinary::CarrierWave) && data.is_a?(Cloudinary::CarrierWave)
                 cw = true
                 begin
                   data.model.save! 
