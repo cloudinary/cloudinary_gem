@@ -9,6 +9,7 @@ end
 module Cloudinary
   module AuthToken
     SEPARATOR = '~'
+    UNSAFE = /[ "#%&\'\/:;<=>?@\[\\\]^`{\|}~]/
 
     def self.generate(options = {})
       key = options[:key]
@@ -56,8 +57,11 @@ module Cloudinary
 
     # escape URI pattern using lowercase hex. For example "/" -> "%2f".
     def self.escape_to_lower(url)
-      CGI::escape(url).gsub(/%../) { |h| h.downcase }
+      Utils.smart_escape(url, UNSAFE).gsub(/%[0-9A-F]{2}/) do |h|
+        h.downcase
+      end.force_encoding(Encoding::US_ASCII)
     end
+
 
     def self.digest(message, key)
       bin_key = Array(key).pack("H*")

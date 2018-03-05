@@ -638,8 +638,8 @@ class Cloudinary::Utils
 
   # Based on CGI::unescape. In addition does not escape / :
   def self.smart_escape(string, unsafe = /([^a-zA-Z0-9_.\-\/:]+)/)
-    string.gsub(unsafe) do
-      '%' + $1.unpack('H2' * $1.bytesize).join('%').upcase
+    string.gsub(unsafe) do |m|
+      '%' + m.unpack('H2' * m.bytesize).join('%').upcase
     end
   end
 

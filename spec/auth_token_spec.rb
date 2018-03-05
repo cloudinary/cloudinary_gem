@@ -16,7 +16,7 @@ describe 'auth_token' do
   end
   it "should generate with start and duration" do
     token = Cloudinary::Utils.generate_auth_token :start_time => 1111111111, :acl => "/image/*", :duration => 300
-    expect(token).to eq '__cld_token__=st=1111111111~exp=1111111411~acl=%2fimage%2f%2a~hmac=0d5b0c9c1485ee162c459879fe62e06caa23bc26fec92d58bd100f2e1592eac6'
+    expect(token).to eq '__cld_token__=st=1111111111~exp=1111111411~acl=%2fimage%2f*~hmac=1751370bcc6cfe9e03f30dd1a9722ba0f2cdca283fa3e6df3342a00a7528cc51'
   end
 
   describe "authenticated url" do
@@ -46,7 +46,7 @@ describe 'auth_token' do
     end
     it "explicit authToken should override global setting" do
       url = Cloudinary::Utils.cloudinary_url "sample.jpg", :sign_url => true, :auth_token => { :key => ALT_KEY, :start_time => 222222222, :duration => 100 }, :type => "authenticated", :transformation => { :crop => "scale", :width => 300 }
-      expect(url).to eq("http://test123-res.cloudinary.com/image/authenticated/c_scale,w_300/sample.jpg?__cld_token__=st=222222222~exp=222222322~hmac=7d276841d70c4ecbd0708275cd6a82e1f08e47838fbb0bceb2538e06ddfa3029")
+      expect(url).to eq("http://test123-res.cloudinary.com/image/authenticated/c_scale,w_300/sample.jpg?__cld_token__=st=222222222~exp=222222322~hmac=55cfe516530461213fe3b3606014533b1eca8ff60aeab79d1bb84c9322eebc1f")
 
     end
     it "should compute expiration as start time + duration" do
@@ -71,7 +71,7 @@ describe 'auth_token' do
       tokenOptions              = { :key => KEY, :duration => 300, :acl => "/*/t_#{user}" }
       tokenOptions[:start_time] = 222222222 # we can't rely on the default "now" value in tests
       cookieToken               = Cloudinary::Utils.generate_auth_token tokenOptions
-      expect(cookieToken).to eq("__cld_token__=st=222222222~exp=222222522~acl=%2f%2a%2ft_foobar~hmac=1284376353c1c43d6f6a98f2813c5596f4ff6f34d837cd853fd8c3c9e7f8428c")
+      expect(cookieToken).to eq("__cld_token__=st=222222222~exp=222222522~acl=%2f*%2ft_foobar~hmac=8e39600cc18cec339b21fe2b05fcb64b98de373355f8ce732c35710d8b10259f")
 
     end
   end
