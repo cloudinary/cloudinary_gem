@@ -1,4 +1,11 @@
 
+1.9.1 / 2018-03-06
+==================
+
+  * Add instructions for using the source code. Fixes #291 and #292
+  * Fix check for CarrierWave in `Migrator`. Fixes #286
+  * Fix acl and url escaping in auth_token generation
+
 1.9.0 / 2018-02-27
 ==================
 
