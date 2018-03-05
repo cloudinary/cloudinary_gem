@@ -87,8 +87,8 @@ class Cloudinary::Migrator
   end
   
   def process(options={})    
-    raise CloudinaryException, "url not given and no retieve callback given" if options[:url].nil? && self.retrieve.nil?
-    raise CloudinaryException, "id not given and retieve or complete callback given" if options[:id].nil? && (!self.retrieve.nil? || !self.complete.nil?)
+    raise CloudinaryException, "url not given and no retrieve callback given" if options[:url].nil? && self.retrieve.nil?
+    raise CloudinaryException, "id not given and retrieve or complete callback given" if options[:id].nil? && (!self.retrieve.nil? || !self.complete.nil?)
 
     debug("Process: #{options.inspect}")
     start
@@ -248,7 +248,7 @@ class Cloudinary::Migrator
               if defined?(ActiveRecord::Base) && data.is_a?(ActiveRecord::Base)
                 cw = true
                 data.save!
-              elsif defined?(Cloudinary::CarrierWave) && data.is_a?(Cloudinary::CarrierWave)
+              elsif defined?(::CarrierWave) && defined?(Cloudinary::CarrierWave) && data.is_a?(Cloudinary::CarrierWave)
                 cw = true
                 begin
                   data.model.save! 
