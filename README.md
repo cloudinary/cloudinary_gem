@@ -17,6 +17,7 @@ For Ruby on Rails, Cloudinary provides a GEM for simplifying the integration eve
 
 ## Setup ######################################################################
 
+### Installing the gem
 To install the Cloudinary Ruby GEM, run:
 
     $ gem install cloudinary
@@ -43,6 +44,21 @@ Rails 2.x environment.rb:
 
 
 *Note: The CarrierWave GEM should be loaded before the Cloudinary GEM.*
+
+### Using the source code directly
+
+You can use the source code of this library directly instead of installing the packaged gem file.
+
+    git clone https://github.com/cloudinary/cloudinary_gem.git
+    
+    # if you haven't installed bundler, do so now with:
+    # gem install bundler
+    
+    bundle install
+    
+Finally, fetch the related assets. This process is done automatically when the packaged gem is installed.
+
+    rake cloudinary:fetch_assets 
 
 ## Try it right away
 

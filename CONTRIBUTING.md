@@ -41,6 +41,20 @@ cd cloudinary_gem
 git remote add upstream https://github.com/cloudinary/cloudinary_gem.git
 ```
 
+#### Install dependencies
+
+```
+gem install bundler
+bundle install
+```
+
+#### Run the tests
+You can obtain the configuration URL from https://cloudinary.com/console.
+
+```
+export CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud>
+bundle exec rspec -f d
+```
 #### Create a Topic Branch
 
 Make sure your fork is up-to-date and create a topic branch for your feature or bug fix.
