@@ -19,9 +19,9 @@ class Cloudinary::Api
         # This sets the instantiated self as the response Hash
         update Cloudinary::Api.parse_json_response response
 
-        @rate_limit_allowed   = response.headers[:x_featureratelimit_limit].to_i
-        @rate_limit_reset_at  = Time.parse(response.headers[:x_featureratelimit_reset])
-        @rate_limit_remaining = response.headers[:x_featureratelimit_remaining].to_i
+        @rate_limit_allowed   = response.headers[:x_featureratelimit_limit].to_i if response.headers[:x_featureratelimit_limit]
+        @rate_limit_reset_at  = Time.parse(response.headers[:x_featureratelimit_reset]) if response.headers[:x_featureratelimit_reset]
+        @rate_limit_remaining = response.headers[:x_featureratelimit_remaining].to_i if response.headers[:x_featureratelimit_remaining]
       end
     end
   end
@@ -311,6 +311,18 @@ class Cloudinary::Api
       update_resources_access_mode(access_mode, :public_ids, public_ids, options)
   end
 
+  def self.get_breakpoints(public_id, options)
+    local_options = options.clone
+    base_transformation = Cloudinary::Utils.generate_transformation_string(local_options)
+    srcset = local_options[:srcset]
+    breakpoints = [:min_width, :max_width, :bytes_step, :max_images].map {|k| srcset[k]}.join('_')
+
+
+    local_options[:transformation] = [base_transformation, width: "auto:breakpoints_#{breakpoints}:json"]
+    json_url = Cloudinary::Utils.cloudinary_url public_id, local_options
+    call_json_api('GET', json_url, {}, 60, {})
+  end
+
   protected
 
   def self.call_api(method, uri, params, options)
@@ -330,24 +342,27 @@ class Cloudinary::Api
     else
       payload = params.reject { |k, v| v.nil? || v=="" }
     end
+    call_json_api(method, api_url, payload, timeout, headers)
+  end
+
+  def self.call_json_api(method, api_url, payload, timeout, headers)
     RestClient::Request.execute(:method => method, :url => api_url, :payload => payload, :timeout => timeout, :headers => headers) do
     |response, request, tmpresult|
       return Response.new(response) if response.code == 200
       exception_class = case response.code
-      when 400 then BadRequest
-      when 401 then AuthorizationRequired
-      when 403 then NotAllowed
-      when 404 then NotFound
-      when 409 then AlreadyExists
-      when 420 then RateLimited
-      when 500 then GeneralError
-      else raise GeneralError.new("Server returned unexpected status code - #{response.code} - #{response.body}")
-      end
+                        when 400 then BadRequest
+                        when 401 then AuthorizationRequired
+                        when 403 then NotAllowed
+                        when 404 then NotFound
+                        when 409 then AlreadyExists
+                        when 420 then RateLimited
+                        when 500 then GeneralError
+                        else raise GeneralError.new("Server returned unexpected status code - #{response.code} - #{response.body}")
+                        end
       json = parse_json_response(response)
       raise exception_class.new(json["error"]["message"])
     end
   end
-
   def self.parse_json_response(response)
     return Cloudinary::Utils.json_decode(response.body)
   rescue => e

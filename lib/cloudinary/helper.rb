@@ -43,7 +43,8 @@ module CloudinaryHelper
     tag_options[:height] = tag_options.delete(:html_height) if tag_options.include?(:html_height)
     tag_options[:size] = tag_options.delete(:html_size) if tag_options.include?(:html_size)
     tag_options[:border] = tag_options.delete(:html_border) if tag_options.include?(:html_border)
-    source = cloudinary_url_internal(source, tag_options)
+    srcset_param = Cloudinary::Utils.config_option_consume(tag_options, :srcset)
+    src = cloudinary_url_internal(source, tag_options)
 
     responsive_placeholder = Cloudinary::Utils.config_option_consume(tag_options, :responsive_placeholder)
     client_hints = Cloudinary::Utils.config_option_consume(tag_options, :client_hints)
@@ -51,15 +52,27 @@ module CloudinaryHelper
     hidpi = tag_options.delete(:hidpi)
     responsive = tag_options.delete(:responsive)
     if !client_hints && (hidpi || responsive)
-      tag_options["data-src"] = source
-      source = nil
+      tag_options["data-src"] = src
+      src = nil
       extra_class = responsive ? "cld-responsive" : "cld-hidpi"
       tag_options[:class] = [tag_options[:class], extra_class].compact.join(" ")
       responsive_placeholder = CL_BLANK if responsive_placeholder == "blank"
       tag_options[:src] = responsive_placeholder
     end
+    if srcset_param
+      if srcset_param.is_a? String
+        tag_options[:srcset] = srcset_param
+      else
+        tag_options[:srcset] = Cloudinary::Utils.generate_srcset_attribute(source, options.clone)
+        if srcset_param[:sizes]
+          tag_options[:sizes] = Cloudinary::Utils.generate_sizes_attribute(srcset_param)
+        end
+      end
+      tag_options.delete(:width)
+      tag_options.delete(:height)
+    end
     if block_given?
-      yield(source,tag_options)
+      yield(src,tag_options)
     else
       tag('div', tag_options)
     end
