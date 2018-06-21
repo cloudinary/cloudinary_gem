@@ -504,6 +504,12 @@ describe Cloudinary::Api do
       bytes = resource["bytes"]
     end
   end
+  describe "json breakpoints" do
+    it "should retrieve breakpoints as json array" do
+      bp = Cloudinary::Api.get_breakpoints(test_id_1, srcset: {min_width:10, max_width:2000, bytes_step: 10, max_images: 20})
+      expect(bp).to be_truthy
+    end
+  end
 end
 
 describe Cloudinary::Api::Response do

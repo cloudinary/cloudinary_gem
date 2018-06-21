@@ -6,8 +6,10 @@ require 'aws_cf_signer'
 require 'json'
 require 'cgi'
 require 'cloudinary/auth_token'
+require 'cloudinary/responsive'
 
 class Cloudinary::Utils
+  extend Responsive
   # @deprecated Use Cloudinary::SHARED_CDN
   SHARED_CDN = Cloudinary::SHARED_CDN
   DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {:width => :auto, :crop => :limit}
@@ -40,6 +42,34 @@ class Cloudinary::Utils
     "tags"                 => "tags",
     "width"                => "w"
   }
+
+  URL_KEYS = %i[
+      api_secret
+      auth_token
+      cdn_subdomain
+      cloud_name
+      cname
+      format
+      private_cdn
+      resource_type
+      secure
+      secure_cdn_subdomain
+      secure_distribution
+      shorten
+      sign_url
+      ssl_detected
+      type
+      url_suffix
+      use_root_path
+      version
+  ]
+
+  def self.extract_config_params(options)
+      opt = {}
+      URL_KEYS.each{|name| opt[name] = options[name] if options.has_key?(name)}
+      opt
+  end
+
   # Warning: options are being destructively updated!
   def self.generate_transformation_string(options={}, allow_implicit_crop_mode = false)
     # allow_implicit_crop_mode was added to support height and width parameters without specifying a crop mode.
