@@ -1,6 +1,7 @@
 # Copyright Cloudinary
 require 'rest_client'
 require 'json'
+require 'cloudinary/cache'
 
 class Cloudinary::Uploader
 
@@ -303,6 +304,7 @@ class Cloudinary::Uploader
   def self.call_api(action, options)
     options      = options.clone
     return_error = options.delete(:return_error)
+    use_cache = options[:use_cache] || Cloudinary.config.use_cache
 
     params, non_signable = yield
     non_signable         ||= []
@@ -339,11 +341,26 @@ class Cloudinary::Uploader
         end
       end
     end
-
+    if use_cache && !result.nil?
+      cache_results(result)
+    end
     result
   end
 
   def self.build_custom_headers(headers)
     Array(headers).map { |*a| a.join(": ") }.join("\n")
   end
+
+  def self.cache_results(result)
+      if result["responsive_breakpoints"]
+        result["responsive_breakpoints"].each do |bp|
+          Cloudinary::Cache.set(
+            result["public_id"],
+            {type: result["type"], resource_type: result["resource_type"], raw_transformation: bp["transformation"]},
+            bp["breakpoints"].map{|o| o['width']}
+          )
+          end
+      end
+
+      end
 end

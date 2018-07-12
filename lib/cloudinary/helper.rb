@@ -1,8 +1,10 @@
 require 'digest/md5'
 require 'cloudinary/video_helper'
+require 'cloudinary/responsive'
 
 module CloudinaryHelper
   include ActionView::Helpers::CaptureHelper
+  include Responsive
 
   CL_BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
 
@@ -47,7 +49,7 @@ module CloudinaryHelper
       sources.map do |source_def|
         source_options = options.clone
         source_options = Cloudinary::Utils.chain_transformation(source_options, source_def[:transformation])
-        source_options[:media] = create_media_attribute(source_def)
+        source_options[:media] = source_def
         cl_source_tag(source, source_options)
       end.push(cl_image_tag(source, options))
           .join('')
@@ -55,15 +57,17 @@ module CloudinaryHelper
     end
   end
 
-  def cl_source_tag(source, source_options)
-    cloudinary_tag source, source_options do |source, options|
-      options[:srcset] = source if options[:srcset].nil?
-      options.delete(:height)
-      options.delete(:width)
-      options.delete(:src)
-      tag "source", options
-
+  def cl_source_tag(source, options)
+    srcset_param = options.fetch(:srcset, {}).merge(Cloudinary.config.srcset || {})
+    attributes = options.fetch(:attributes, {}).clone
+    responsive_attributes = generate_image_responsive_attributes(source, attributes, srcset_param, options)
+    attributes = attributes.merge(responsive_attributes)
+    unless attributes.has_key? :srcset
+      attributes[:srcset] = Cloudinary::Utils.cloudinary_url(source, options)
     end
+    media_attr = generate_media_attribute(options[:media])
+    attributes[:media] = media_attr unless media_attr.empty?
+    tag "source", attributes, true
   end
 
 
@@ -73,8 +77,9 @@ module CloudinaryHelper
     tag_options[:height] = tag_options.delete(:html_height) if tag_options.include?(:html_height)
     tag_options[:size] = tag_options.delete(:html_size) if tag_options.include?(:html_size)
     tag_options[:border] = tag_options.delete(:html_border) if tag_options.include?(:html_border)
-    srcset_param = Cloudinary::Utils.config_option_consume(tag_options, :srcset)
+    srcset_param = Cloudinary::Utils.config_option_consume(tag_options, :srcset, {})
     src = cloudinary_url_internal(source, tag_options)
+    attributes = tag_options.delete(:attributes) || {}
 
     responsive_placeholder = Cloudinary::Utils.config_option_consume(tag_options, :responsive_placeholder)
     client_hints = Cloudinary::Utils.config_option_consume(tag_options, :client_hints)
@@ -89,17 +94,11 @@ module CloudinaryHelper
       responsive_placeholder = CL_BLANK if responsive_placeholder == "blank"
       tag_options[:src] = responsive_placeholder
     end
-    if srcset_param
-      if srcset_param.is_a? String
-        tag_options[:srcset] = srcset_param
-      else
-        tag_options[:srcset] = Cloudinary::Utils.generate_srcset_attribute(source, options.clone)
-        if srcset_param[:sizes]
-          tag_options[:sizes] = Cloudinary::Utils.generate_sizes_attribute(srcset_param)
-        end
-      end
+    responsive_attrs = generate_image_responsive_attributes(source, attributes, srcset_param, options)
+    unless  responsive_attrs.empty?
       tag_options.delete(:width)
       tag_options.delete(:height)
+      tag_options.merge! responsive_attrs
     end
     if block_given?
       yield(src,tag_options)
@@ -324,13 +323,6 @@ module CloudinaryHelper
   end
 
   private
-
-  def create_media_attribute(source_def)
-    [:min_width, :max_width]
-        .select {|name| source_def[name]}
-        .map {|name| "(#{name.to_s}: #{source_def[name]}px)"}
-        .join(' and ')
-  end
 
   def cloudinary_url_internal(source, options = {})
     options[:ssl_detected] = request.ssl? if defined?(request) && request && request.respond_to?(:ssl?)
