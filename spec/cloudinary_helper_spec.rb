@@ -3,13 +3,29 @@ require 'spec_helper'
 require 'cloudinary'
 require 'action_view'
 require 'cloudinary/helper'
+require 'active_support/core_ext/kernel/reporting'
 
-helper_class = Class.new do
-  include CloudinaryHelper
-end
+BREAKPOINTS = [100, 200, 300, 399]
+
+COMMON_TRANS = {
+    effect: 'sepia',
+    cloud_name: 'test123',
+    client_hints: false
+}
 
 RSpec.describe CloudinaryHelper do
-  let(:helper) { helper_class.new }
+  before :all do
+    # Test the helper in the context it runs in in production
+    ActionView::Base.send :include, CloudinaryHelper
+  end
+
+  let(:helper) {
+    ActionView::Base.new
+  }
+  let(:cloud_name) {COMMON_TRANS[:cloud_name]}
+  let(:root_path) {"http://res.cloudinary.com/#{cloud_name}"}
+  let(:upload_path) {"#{root_path}/image/upload"}
+
   let(:options) { {} }
   before :each do
     Cloudinary.config({})
@@ -53,8 +69,9 @@ RSpec.describe CloudinaryHelper do
     end
   end
 
+  PUBLIC_ID = 'sample.jpg'
   context "#cl_image_tag" do
-    let(:test_tag) { TestTag.new( helper.cl_image_tag('sample.jpg', options)) }
+    let(:test_tag) { TestTag.new( helper.cl_image_tag(PUBLIC_ID, options)) }
 
     context ":responsive_width" do
       let(:options) { {:responsive_width => true, :cloud_name => "test"} }
@@ -118,6 +135,125 @@ RSpec.describe CloudinaryHelper do
       end
     end
   end
+  describe "Responsive methods" do
+    let (:options) {{
+      :cloud_name => 'test123',
+      :width => BREAKPOINTS.last,
+      :height => BREAKPOINTS.last,
+      :crop => :fill}}
+
+    describe "generate_breakpoints" do
+      it "should accept breakpoint" do
+        expect(helper.generate_breakpoints(:breakpoints => [1,2,3])).to eq([1,2,3])
+      end
+      it "should accept min_width, max_width" do
+        expect(helper.generate_breakpoints(:min_width => 100, :max_width => 600, :max_images => 7)).to eq([ 100, 184, 268, 352, 436, 520, 600 ])
+      end
+    end
+    describe "generate_scaled_url" do
+      it "should generate url" do
+        url = helper.generate_scaled_url('sample.jpg', 101, {:width => 200, :crop => "scale"}, options)
+        expect(url).to eq("#{upload_path}/c_scale,w_200/c_scale,w_101/sample.jpg")
+      end
+      it "should generate url without a transformation" do
+        url = helper.generate_scaled_url('sample.jpg', 101, {}, options)
+        expect(url).to eq("#{upload_path}/c_scale,w_101/sample.jpg")
+      end
+    end
+    describe "generate_srcset" do
+      it "should generate a url for each breakpoint" do
+        srcset = helper.generate_srcset_attribute('sample', [1,2,3], {}, options)
+        expect(srcset.split(', ').length).to be(3)
+      end
+    end
+  end
+
+  context "#cl_picture_tag" do
+    let (:options) {{
+        :cloud_name => 'test123',
+        :width => BREAKPOINTS.last,
+        :height => BREAKPOINTS.last,
+        :crop => :fill}}
+    let (:fill_trans_str) {Cloudinary::Utils.generate_transformation_string(options)}
+    let (:sources) {
+      [
+          {
+              :min_width => BREAKPOINTS.first,
+              :transformation => {:effect => "sepia", :angle => 17, :width => BREAKPOINTS.first, :crop => :scale}
+          },
+          {
+              :min_width => BREAKPOINTS.second,
+              :transformation => {:effect => "colorize", :angle => 18, :width => BREAKPOINTS.second, :crop => :scale}
+          },
+          {
+              :min_width => BREAKPOINTS.first,
+              :transformation => {:effect => "blur", :angle => 19, :width => BREAKPOINTS.first, :crop => :scale}
+          }
+      ]
+    }
+    let(:test_tag) {TestTag.new(helper.cl_picture_tag(PUBLIC_ID, options, sources))}
+    def source_url(t)
+      t = Cloudinary::Utils.generate_transformation_string(t)
+      upload_path + '/' + fill_trans_str + '/' + t + "/sample.jpg"
+    end
+    it "should create a picture tag" do
+      expect(test_tag[:attributes]).to be_nil
+      expect(test_tag.children.length).to be(4)
+      sources.each_with_index do |source,i|
+        expect(test_tag.children[i][:srcset]).to eq(  source_url(source[:transformation]))
+      end
+
+      [
+          "(min_width: #{BREAKPOINTS.third}px)",
+          "(min_width: #{BREAKPOINTS.second}px)",
+          "(min_width: #{BREAKPOINTS.first}px)",
+      ].each_with_index do |expected, i|
+        expect(test_tag.children[i][:media]).to eq(expected)
+      end
+
+    end
+
+  end
+
+  context "#cl_source_tag" do
+    min_width = 100
+    max_width = 399
+    breakpoint_list = [min_width, 200, 300, max_width]
+    common_srcset = {"breakpoints": breakpoint_list}
+    fill_transformation = {"width": max_width, "height": max_width, "crop": "fill"}
+    fill_transformation_str = "c_fill,h_#{max_width},w_#{max_width}"
+    let (:options) {{
+      :cloud_name => 'test123',
+      }}
+    let(:test_tag) {TestTag.new(helper.cl_source_tag(PUBLIC_ID, options))}
+    before(:each) do
+      Cloudinary.config(cloud_name: "test123", api_secret: "1234")
+    end
+
+    it "should generate a source tag" do
+      expect(test_tag.html_string).to eql("<source srcset=\"#{upload_path}/sample.jpg\">")
+    end
+
+    it "should generate source tag with media query" do
+      media = {min_width: min_width, max_width: max_width}
+      tag = helper.cl_source_tag("sample.jpg", media: media)
+      expected_media = "(min-width: #{min_width}px) and (max-width: #{max_width}px)".html_safe
+      expected_tag = "<source srcset=\"#{upload_path}/sample.jpg\" media=\"#{expected_media}\">"
+      expect(tag).to eql(expected_tag)
+    end
+
+    it "should generate source tag with responsive srcset" do
+    tag = helper.cl_source_tag(PUBLIC_ID, srcset: {breakpoints: breakpoint_list})
+    expect(tag).to eql(
+      "<source srcset=\"" +
+        "http://res.cloudinary.com/test123/image/upload/c_scale,w_100/sample.jpg 100w, " +
+        "http://res.cloudinary.com/test123/image/upload/c_scale,w_200/sample.jpg 200w, " +
+        "http://res.cloudinary.com/test123/image/upload/c_scale,w_300/sample.jpg 300w, " +
+        "http://res.cloudinary.com/test123/image/upload/c_scale,w_399/sample.jpg 399w" +
+        "\">")
+      end
+
+  end
 
   context "#cl_client_hints_meta_tag" do
     it "should create a meta tag" do
@@ -163,7 +299,7 @@ RSpec.describe CloudinaryHelper do
 
     after :each do
       Cloudinary.config.static_image_support = @static_support
-      Kernel::silence_warnings { Cloudinary::Static::METADATA_FILE = @static_file }
+      Kernel::silence_warnings {Cloudinary::Static::METADATA_FILE = @static_file}
       Cloudinary::Static.reset_metadata
     end
 
@@ -181,8 +317,8 @@ RSpec.describe CloudinaryHelper do
             .to eq("/images/foo.jpg")
         expect(helper.image_path('some-folder/foo.gif')).to eq("/images/some-folder/foo.gif")
         Cloudinary.config.static_image_support = true
-        expect(helper.image_path('/images/foo.jpg')).to eq("http://res.cloudinary.com/sdk-test/image/asset/images-foo.jpg")
-        expect(helper.image_path('foo.jpg')).to eq("http://res.cloudinary.com/sdk-test/image/asset/images-foo.jpg")
+        expect(helper.image_path('/images/foo.jpg')).to eq("http://res.cloudinary.com/#{Cloudinary.config.cloud_name}/image/asset/images-foo.jpg")
+        expect(helper.image_path('foo.jpg')).to eq("http://res.cloudinary.com/#{Cloudinary.config.cloud_name}/image/asset/images-foo.jpg")
         expect(helper.image_path('some-folder/foo.gif')).to eq('/images/some-folder/foo.gif')
       end
     end

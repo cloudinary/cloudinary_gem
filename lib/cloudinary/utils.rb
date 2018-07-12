@@ -9,7 +9,6 @@ require 'cloudinary/auth_token'
 require 'cloudinary/responsive'
 
 class Cloudinary::Utils
-  extend Responsive
   # @deprecated Use Cloudinary::SHARED_CDN
   SHARED_CDN = Cloudinary::SHARED_CDN
   DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {:width => :auto, :crop => :limit}
@@ -488,9 +487,9 @@ class Cloudinary::Utils
   # Warning: options are being destructively updated!
   def self.unsigned_download_url(source, options = {})
 
+    patch_fetch_format(options)
     type = options.delete(:type)
 
-    options[:fetch_format] ||= options.delete(:format) if type.to_s == "fetch"
     transformation = self.generate_transformation_string(options)
 
     resource_type = options.delete(:resource_type)
@@ -1108,5 +1107,18 @@ class Cloudinary::Utils
     end
   end
   private_class_method :process_video_params
+
+
+  #
+  # Handle the format parameter for fetch urls
+  # @private
+  # @param options url and transformation options. This argument may be changed by the function!
+  #
+  def self.patch_fetch_format(options={})
+    if options[:type] === :fetch
+      format_arg = options.delete(:format)
+      options[:fetch_format] ||= format_arg
+    end
+  end
 
 end

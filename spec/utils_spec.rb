@@ -917,31 +917,4 @@ describe Cloudinary::Utils do
                   .or eq("symbol_key=string_value|string_key=symbol_value")
     end
   end
-  describe "Responsive methods" do
-    describe "generate_breakpoints" do
-      it "should accept breakpoint" do
-        expect(Cloudinary::Utils.generate_breakpoints(:breakpoints => [1,2,3])).to eq([1,2,3])
-      end
-      it "should accept min_width, max_width" do
-        expect(Cloudinary::Utils.generate_breakpoints(:min_width => 100, :max_width => 600, :max_images => 7)).to eq([ 100, 184, 268, 352, 436, 520, 600 ])
-      end
-    end
-    describe "generate_srcset_url" do
-      it "should generate url" do
-        url = Cloudinary::Utils.generate_srcset_url('sample.jpg', 101, :width => 200, :crop => "scale")
-        expect(url).to eq("#{upload_path}/c_scale,w_200/c_scale,w_101/sample.jpg")
-      end
-      it "should generate url without a transformation" do
-        url = Cloudinary::Utils.generate_srcset_url('sample.jpg', 101, {})
-        expect(url).to eq("#{upload_path}/c_scale,w_101/sample.jpg")
-      end
-    end
-    describe "generate_srcset" do
-      it "should generate a url for each breakpoint" do
-        srcset = Cloudinary::Utils.generate_srcset_attribute('sample', :srcset => {:breakpoints => [1,2,3]})
-        expect(srcset.split(', ').length).to be(3)
-      end
-    end
-  end
-
 end

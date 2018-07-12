@@ -98,50 +98,5 @@ describe 'Responsive breakpoints' do
 
   end
 
-  describe 'cl_picture_tag' do
-    let (:options) {{
-        :cloud_name => 'test123',
-        :width => BREAKPOINTS.last,
-        :height => BREAKPOINTS.last,
-        :crop => :fill}}
-    let (:fill_trans_str) {Cloudinary::Utils.generate_transformation_string(options)}
-    let (:sources) {
-        [
-            {
-                :min_width => BREAKPOINTS.third,
-                :transformation => {:effect => "sepia", :angle => 17, :width => BREAKPOINTS.last, :crop => :scale}
-            },
-            {
-                :min_width => BREAKPOINTS.second,
-                :transformation => {:effect => "colorize", :angle => 18, :width => BREAKPOINTS.second, :crop => :scale}
-            },
-            {
-                :min_width => BREAKPOINTS.first,
-                :transformation => {:effect => "blur", :angle => 19, :width => BREAKPOINTS.first, :crop => :scale}
-            }
-        ]
-    }
-    let(:test_tag) {TestTag.new(helper.cl_picture_tag('sample.jpg', options, sources))}
-    def source_url(t)
-      t = Cloudinary::Utils.generate_transformation_string(t)
-      upload_path + '/' + fill_trans_str + '/' + t + "/sample.jpg"
-    end
-    it "should create a picture tag" do
-      expect(test_tag[:attributes]).to be_nil
-      expect(test_tag.children.length).to be(4)
-      sources.each_with_index do |source,i|
-        expect(test_tag.children[i][:srcset]).to eq(  source_url(source[:transformation]))
-      end
-
-      [
-          "(min_width: #{BREAKPOINTS.third}px)",
-          "(min_width: #{BREAKPOINTS.second}px)",
-          "(min_width: #{BREAKPOINTS.first}px)",
-      ].each_with_index do |expected, i|
-        expect(test_tag.children[i][:media]).to eq(expected)
-      end
-
-    end
-  end
 
 end
