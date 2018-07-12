@@ -3,3 +3,4 @@ ruby RUBY_VERSION
 gem "rails", "~> 5.0.0"
 # Specify your gem's dependencies in cloudinary.gemspec
 gemspec :path => "../"
+
