@@ -64,11 +64,69 @@ class Cloudinary::Utils
       version
   ]
 
+
+  TRANSFORMATION_PARAMS = %i[
+      angle
+      aspect_ratio
+      audio_codec
+      audio_frequency
+      background
+      bit_rate
+      border
+      color
+      color_space
+      crop
+      default_image
+      delay
+      density
+      dpr
+      duration
+      effect
+      end_offset
+      fetch_format
+      flags
+      gravity
+      height
+      if
+      keyframe_interval
+      offset
+      opacity
+      overlay
+      page
+      prefix
+      quality
+      radius
+      raw_transformation
+      responsive_width
+      size
+      start_offset
+      streaming_profile
+      transformation
+      underlay
+      variables
+      video_codec
+      video_sampling
+      width
+      x
+      y
+      zoom
+  ]
+
   def self.extract_config_params(options)
-      opt = {}
-      URL_KEYS.each{|name| opt[name] = options[name] if options.has_key?(name)}
-      opt
+      options.select{|k,v| URL_KEYS.include?(k)}
   end
+
+  def self.extract_transformation_params(options)
+    options.select{|k,v| TRANSFORMATION_PARAMS.include?(k)}
+  end
+
+  def self.chain_transformation(options, *transformation)
+    base_options = extract_config_params(options)
+    transformation = transformation.reject(&:nil?)
+    base_options[:transformation] = build_array(extract_transformation_params(options)).concat(transformation)
+    base_options
+  end
+
 
   # Warning: options are being destructively updated!
   def self.generate_transformation_string(options={}, allow_implicit_crop_mode = false)

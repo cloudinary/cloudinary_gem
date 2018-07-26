@@ -10,21 +10,27 @@ COMMON_TRANS = {
     client_hints: false
 }
 COMMON_TRANSFORMATION_STR = 'e_sepia'
-helper_class = Class.new do
-  include CloudinaryHelper
-end
 
 def expected_srcset(public_id, path, common_trans, breakpoints)
   breakpoints.map {|width| "#{path}/#{common_trans}/c_scale,w_#{width}/#{public_id} #{width}w"}.join(', ')
 end
 
 describe 'Responsive breakpoints' do
+  before :all do
+    # Test the helper in the context it runs in in production
+    ActionView::Base.send :include, CloudinaryHelper
+
+  end
+
   let(:cloud_name) {COMMON_TRANS[:cloud_name]}
   let(:root_path) {"http://res.cloudinary.com/#{cloud_name}"}
   let(:upload_path) {"#{root_path}/image/upload"}
 
   let(:options) {COMMON_TRANS}
-  let(:helper) {helper_class.new}
+  # let(:helper) {helper_class.new}
+  let(:helper) {
+    ActionView::Base.new
+  }
   let(:test_tag) {TestTag.new(helper.cl_image_tag('sample.jpg', options))}
   describe 'srcset' do
     it 'Should create srcset attribute with provided breakpoints' do
@@ -90,6 +96,52 @@ describe 'Responsive breakpoints' do
       expect(test_tag['width']).to be_nil
     end
 
+  end
+
+  describe 'cl_picture_tag' do
+    let (:options) {{
+        :cloud_name => 'test123',
+        :width => BREAKPOINTS.last,
+        :height => BREAKPOINTS.last,
+        :crop => :fill}}
+    let (:fill_trans_str) {Cloudinary::Utils.generate_transformation_string(options)}
+    let (:sources) {
+        [
+            {
+                :min_width => BREAKPOINTS.third,
+                :transformation => {:effect => "sepia", :angle => 17, :width => BREAKPOINTS.last, :crop => :scale}
+            },
+            {
+                :min_width => BREAKPOINTS.second,
+                :transformation => {:effect => "colorize", :angle => 18, :width => BREAKPOINTS.second, :crop => :scale}
+            },
+            {
+                :min_width => BREAKPOINTS.first,
+                :transformation => {:effect => "blur", :angle => 19, :width => BREAKPOINTS.first, :crop => :scale}
+            }
+        ]
+    }
+    let(:test_tag) {TestTag.new(helper.cl_picture_tag('sample.jpg', options, sources))}
+    def source_url(t)
+      t = Cloudinary::Utils.generate_transformation_string(t)
+      upload_path + '/' + fill_trans_str + '/' + t + "/sample.jpg"
+    end
+    it "should create a picture tag" do
+      expect(test_tag[:attributes]).to be_nil
+      expect(test_tag.children.length).to be(4)
+      sources.each_with_index do |source,i|
+        expect(test_tag.children[i][:srcset]).to eq(  source_url(source[:transformation]))
+      end
+
+      [
+          "(min_width: #{BREAKPOINTS.third}px)",
+          "(min_width: #{BREAKPOINTS.second}px)",
+          "(min_width: #{BREAKPOINTS.first}px)",
+      ].each_with_index do |expected, i|
+        expect(test_tag.children[i][:media]).to eq(expected)
+      end
+
+    end
   end
 
 end
