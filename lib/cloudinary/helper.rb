@@ -2,6 +2,8 @@ require 'digest/md5'
 require 'cloudinary/video_helper'
 
 module CloudinaryHelper
+  include ActionView::Helpers::CaptureHelper
+
   CL_BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
 
   # Stand-in for Rails image_tag helper that accepts various options for transformations.
@@ -36,6 +38,34 @@ module CloudinaryHelper
     end
 
   end
+
+
+  def cl_picture_tag(source, options = {}, sources =[])
+
+    options = options.clone
+    content_tag 'picture' do
+      sources.map do |source_def|
+        source_options = options.clone
+        source_options = Cloudinary::Utils.chain_transformation(source_options, source_def[:transformation])
+        source_options[:media] = create_media_attribute(source_def)
+        cl_source_tag(source, source_options)
+      end.push(cl_image_tag(source, options))
+          .join('')
+          .html_safe
+    end
+  end
+
+  def cl_source_tag(source, source_options)
+    cloudinary_tag source, source_options do |source, options|
+      options[:srcset] = source if options[:srcset].nil?
+      options.delete(:height)
+      options.delete(:width)
+      options.delete(:src)
+      tag "source", options
+
+    end
+  end
+
 
   def cloudinary_tag(source, options = {})
     tag_options = options.clone
@@ -294,6 +324,14 @@ module CloudinaryHelper
   end
 
   private
+
+  def create_media_attribute(source_def)
+    [:min_width, :max_width]
+        .select {|name| source_def[name]}
+        .map {|name| "(#{name.to_s}: #{source_def[name]}px)"}
+        .join(' and ')
+  end
+
   def cloudinary_url_internal(source, options = {})
     options[:ssl_detected] = request.ssl? if defined?(request) && request && request.respond_to?(:ssl?)
     if defined?(CarrierWave::Uploader::Base) && source.is_a?(CarrierWave::Uploader::Base)
