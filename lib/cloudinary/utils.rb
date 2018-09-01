@@ -134,7 +134,7 @@ class Cloudinary::Utils
     # This only apply to this (cloudinary_gem) SDK
 
     if options.is_a?(Array)
-      return options.map{|base_transformation| generate_transformation_string(base_transformation.clone, allow_implicit_crop_mode)}.join("/")
+      return options.map{|base_transformation| generate_transformation_string(base_transformation.clone, allow_implicit_crop_mode)}.reject(&:blank?).join("/")
     end
 
     symbolize_keys!(options)
