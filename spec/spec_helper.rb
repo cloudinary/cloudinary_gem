@@ -1,5 +1,6 @@
 require 'rspec'
 require 'rexml/parsers/ultralightparser'
+require 'nokogiri'
 require 'rspec/version'
 require 'rest_client'
 require 'cloudinary'
@@ -67,34 +68,39 @@ end
 
 # Represents an HTML tag
 class TestTag
-  attr_accessor :name, :attributes, :children, :text, :html_string
+  attr_accessor :name, :attributes, :children, :text, :html_string, :element
   # Creates a new +TestTag+ from a given +element+ string
   def initialize(element)
     @html_string = element
-    element = valid_tag(element) unless element.is_a? Array
-    case element[0]
-    when :start_element
-      @name = element[2]
-      @attributes = element[3]
-      @children = (Array(element[4..-1]) || []).map {|c | TestTag.new c}
-    when :text
-      @text = element[1]
-      @name = "text"
-      @attributes = []
-      @children = []
-    end
+    @element = valid_tag(element) unless element.is_a? Array
 
   end
 
+  def name
+    @element.name
+  end
+
+  def attributes
+    @element.attributes
+  end
+
+  def children
+    @element.children
+  end
   # Parses a given +tag+ in string format
   def valid_tag(tag)
-    parser = REXML::Parsers::UltraLightParser.new( tag)
-    parser.parse[0]
+    parser = Nokogiri::HTML::Document.parse( tag)
+    # Parsed code will be strctured as either html>body>tag or html>head>tag
+    parser.children[1].children[0].children[0]
   end
 
   # Returns attribute named +symbol_or_string+
   def [](symbol_or_string)
-    attributes[symbol_or_string.to_s]
+    begin
+      attributes[symbol_or_string.to_s].value
+    rescue
+      nil
+    end
   end
 
   def method_missing(symbol, *args)
