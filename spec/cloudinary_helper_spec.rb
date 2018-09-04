@@ -178,7 +178,7 @@ RSpec.describe CloudinaryHelper do
     let (:sources) {
       [
           {
-              :min_width => BREAKPOINTS.first,
+              :min_width => BREAKPOINTS.third,
               :transformation => {:effect => "sepia", :angle => 17, :width => BREAKPOINTS.first, :crop => :scale}
           },
           {
@@ -198,17 +198,19 @@ RSpec.describe CloudinaryHelper do
     end
     it "should create a picture tag" do
       expect(test_tag[:attributes]).to be_nil
-      expect(test_tag.children.length).to be(4)
+      source_tags = test_tag.element.xpath('//source')
+      expect(source_tags.length).to be(3)
+      expect(test_tag.element.xpath('//img').length).to be(1)
       sources.each_with_index do |source,i|
-        expect(test_tag.children[i][:srcset]).to eq(  source_url(source[:transformation]))
+        expect(source_tags[i].attribute('srcset').value).to eq(source_url(source[:transformation]))
       end
 
       [
-          "(min_width: #{BREAKPOINTS.third}px)",
-          "(min_width: #{BREAKPOINTS.second}px)",
-          "(min_width: #{BREAKPOINTS.first}px)",
+          "(min-width: #{BREAKPOINTS.third}px)",
+          "(min-width: #{BREAKPOINTS.second}px)",
+          "(min-width: #{BREAKPOINTS.first}px)",
       ].each_with_index do |expected, i|
-        expect(test_tag.children[i][:media]).to eq(expected)
+        expect(source_tags[i].attribute('media').value).to eq(expected)
       end
 
     end
