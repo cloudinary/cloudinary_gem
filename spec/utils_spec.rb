@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'cloudinary'
 
 describe Cloudinary::Utils do
+  include_context 'restore configuration'
 
   before :each do
     Cloudinary.config do |config|

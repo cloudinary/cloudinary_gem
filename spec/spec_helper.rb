@@ -41,9 +41,19 @@ RSpec.shared_context "cleanup" do |tag|
   after :all do
     Cloudinary::Api.delete_resources_by_tag(tag) unless Cloudinary.config.keep_test_products
   end
-
 end
 
+# Restore configuration after each test.
+# Use this context for tests that modify Cloudinary.config
+RSpec.shared_context "restore configuration" do
+  before :each do
+    @config = Cloudinary.config.to_h
+  end
+
+  after :each do
+    Cloudinary.config(@config)
+  end
+end
 
 CALLS_SERVER_WITH_PARAMETERS = "calls server with parameters"
 RSpec.shared_examples CALLS_SERVER_WITH_PARAMETERS do |expected|

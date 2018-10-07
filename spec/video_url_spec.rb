@@ -6,6 +6,7 @@ require 'cloudinary/helper'
 require 'action_view/test_case'
 
 describe Cloudinary::Utils do
+  include_context 'restore configuration'
   before(:each) do
     Cloudinary.config do |config|
       config.cloud_name          = "test123"

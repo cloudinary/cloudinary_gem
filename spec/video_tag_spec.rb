@@ -14,6 +14,7 @@ if ::Rails::VERSION::MAJOR < 4
   end
 end
 describe CloudinaryHelper do
+  include_context 'restore configuration'
   before :all do
     # Test the helper in the context it runs in in production
     ActionView::Base.send :include, CloudinaryHelper
