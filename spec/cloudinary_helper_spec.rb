@@ -5,14 +5,6 @@ require 'action_view'
 require 'cloudinary/helper'
 require 'active_support/core_ext/kernel/reporting'
 
-BREAKPOINTS = [100, 200, 300, 399]
-
-COMMON_TRANS = {
-    effect: 'sepia',
-    cloud_name: 'test123',
-    client_hints: false
-}
-
 RSpec.describe CloudinaryHelper do
   before :all do
     # Test the helper in the context it runs in in production
@@ -22,13 +14,14 @@ RSpec.describe CloudinaryHelper do
   let(:helper) {
     ActionView::Base.new
   }
-  let(:cloud_name) {COMMON_TRANS[:cloud_name]}
+  let(:cloud_name) {DUMMY_CLOUD}
   let(:root_path) {"http://res.cloudinary.com/#{cloud_name}"}
   let(:upload_path) {"#{root_path}/image/upload"}
 
   let(:options) { {} }
   before :each do
-    Cloudinary.config({})
+    Cloudinary.reset_config
+    Cloudinary.config.enhance_image_tag = true
   end
   context "#cl_image_upload_tag" do
     let(:options) {{:multiple => true}}
@@ -137,9 +130,9 @@ RSpec.describe CloudinaryHelper do
   end
   describe "Responsive methods" do
     let (:options) {{
-      :cloud_name => 'test123',
-      :width => BREAKPOINTS.last,
-      :height => BREAKPOINTS.last,
+      :cloud_name => DUMMY_CLOUD,
+      :width => ResponsiveTest::BREAKPOINTS.last,
+      :height => ResponsiveTest::BREAKPOINTS.last,
       :crop => :fill}}
 
     describe "generate_breakpoints" do
@@ -170,24 +163,24 @@ RSpec.describe CloudinaryHelper do
 
   context "#cl_picture_tag" do
     let (:options) {{
-        :cloud_name => 'test123',
-        :width => BREAKPOINTS.last,
-        :height => BREAKPOINTS.last,
+        :cloud_name => DUMMY_CLOUD,
+        :width => ResponsiveTest::BREAKPOINTS.last,
+        :height => ResponsiveTest::BREAKPOINTS.last,
         :crop => :fill}}
     let (:fill_trans_str) {Cloudinary::Utils.generate_transformation_string(options)}
     let (:sources) {
       [
           {
-              :min_width => BREAKPOINTS.third,
-              :transformation => {:effect => "sepia", :angle => 17, :width => BREAKPOINTS.first, :crop => :scale}
+              :min_width => ResponsiveTest::BREAKPOINTS.third,
+              :transformation => {:effect => "sepia", :angle => 17, :width => ResponsiveTest::BREAKPOINTS.first, :crop => :scale}
           },
           {
-              :min_width => BREAKPOINTS.second,
-              :transformation => {:effect => "colorize", :angle => 18, :width => BREAKPOINTS.second, :crop => :scale}
+              :min_width => ResponsiveTest::BREAKPOINTS.second,
+              :transformation => {:effect => "colorize", :angle => 18, :width => ResponsiveTest::BREAKPOINTS.second, :crop => :scale}
           },
           {
-              :min_width => BREAKPOINTS.first,
-              :transformation => {:effect => "blur", :angle => 19, :width => BREAKPOINTS.first, :crop => :scale}
+              :min_width => ResponsiveTest::BREAKPOINTS.first,
+              :transformation => {:effect => "blur", :angle => 19, :width => ResponsiveTest::BREAKPOINTS.first, :crop => :scale}
           }
       ]
     }
@@ -206,9 +199,9 @@ RSpec.describe CloudinaryHelper do
       end
 
       [
-          "(min-width: #{BREAKPOINTS.third}px)",
-          "(min-width: #{BREAKPOINTS.second}px)",
-          "(min-width: #{BREAKPOINTS.first}px)",
+          "(min-width: #{ResponsiveTest::BREAKPOINTS.third}px)",
+          "(min-width: #{ResponsiveTest::BREAKPOINTS.second}px)",
+          "(min-width: #{ResponsiveTest::BREAKPOINTS.first}px)",
       ].each_with_index do |expected, i|
         expect(source_tags[i].attribute('media').value).to eq(expected)
       end
@@ -221,19 +214,20 @@ RSpec.describe CloudinaryHelper do
     min_width = 100
     max_width = 399
     breakpoint_list = [min_width, 200, 300, max_width]
-    common_srcset = {"breakpoints": breakpoint_list}
-    fill_transformation = {"width": max_width, "height": max_width, "crop": "fill"}
+    common_srcset = {breakpoints: breakpoint_list}
+    fill_transformation = {width: max_width, height: max_width, crop: "fill"}
     fill_transformation_str = "c_fill,h_#{max_width},w_#{max_width}"
     let (:options) {{
-      :cloud_name => 'test123',
+      :cloud_name => DUMMY_CLOUD,
       }}
     let(:test_tag) {TestTag.new(helper.cl_source_tag(PUBLIC_ID, options))}
     before(:each) do
-      Cloudinary.config(cloud_name: "test123", api_secret: "1234")
+      Cloudinary.config(cloud_name: DUMMY_CLOUD, api_secret: "1234")
     end
 
     it "should generate a source tag" do
-      expect(test_tag.html_string).to eql("<source srcset=\"#{upload_path}/sample.jpg\">")
+      expect(test_tag.name).to eql("source")
+      expect(test_tag['srcset']).to eql("#{upload_path}/sample.jpg")
     end
 
     it "should generate source tag with media query" do
@@ -248,10 +242,10 @@ RSpec.describe CloudinaryHelper do
     tag = helper.cl_source_tag(PUBLIC_ID, srcset: {breakpoints: breakpoint_list})
     expect(tag).to eql(
       "<source srcset=\"" +
-        "http://res.cloudinary.com/test123/image/upload/c_scale,w_100/sample.jpg 100w, " +
-        "http://res.cloudinary.com/test123/image/upload/c_scale,w_200/sample.jpg 200w, " +
-        "http://res.cloudinary.com/test123/image/upload/c_scale,w_300/sample.jpg 300w, " +
-        "http://res.cloudinary.com/test123/image/upload/c_scale,w_399/sample.jpg 399w" +
+        "http://res.cloudinary.com/#{DUMMY_CLOUD}/image/upload/c_scale,w_100/sample.jpg 100w, " +
+        "http://res.cloudinary.com/#{DUMMY_CLOUD}/image/upload/c_scale,w_200/sample.jpg 200w, " +
+        "http://res.cloudinary.com/#{DUMMY_CLOUD}/image/upload/c_scale,w_300/sample.jpg 300w, " +
+        "http://res.cloudinary.com/#{DUMMY_CLOUD}/image/upload/c_scale,w_399/sample.jpg 399w" +
         "\">")
       end
 
@@ -269,12 +263,12 @@ RSpec.describe CloudinaryHelper do
   context "auth_token" do
     it "should add token to an image tag url" do
       tag = helper.cl_image_tag "sample.jpg",
-                                :cloud_name => 'test123',
+                                :cloud_name => DUMMY_CLOUD,
                                 :sign_url => true,
                                 :type => "authenticated",
                                 :version => "1486020273",
                                 :auth_token => {key: KEY, start_time: 11111111, duration: 300}
-      expect(tag).to match /<img.*src="http:\/\/res.cloudinary.com\/test123\/image\/authenticated\/v1486020273\/sample.jpg\?__cld_token__=st=11111111~exp=11111411~hmac=9bd6f41e2a5893da8343dc8eb648de8bf73771993a6d1457d49851250caf3b80.*>/
+      expect(tag).to match /<img.*src="http:\/\/res.cloudinary.com\/#{DUMMY_CLOUD}\/image\/authenticated\/v1486020273\/sample.jpg\?__cld_token__=st=11111111~exp=11111411~hmac=9bd6f41e2a5893da8343dc8eb648de8bf73771993a6d1457d49851250caf3b80.*>/
 
     end
 
@@ -296,10 +290,13 @@ RSpec.describe CloudinaryHelper do
     before :each do
       @static_support = Cloudinary.config.static_image_support
       @static_file = Cloudinary::Static::METADATA_FILE
+      Cloudinary.reset_config
+      Cloudinary.config.enhance_image_tag = true
       Cloudinary::Static.reset_metadata
     end
 
     after :each do
+      Cloudinary.reset_config
       Cloudinary.config.static_image_support = @static_support
       Kernel::silence_warnings {Cloudinary::Static::METADATA_FILE = @static_file}
       Cloudinary::Static.reset_metadata

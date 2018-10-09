@@ -3,16 +3,11 @@ require 'spec_helper'
 require 'cloudinary'
 
 describe 'auth_token' do
-  before :all do
-    @url_backup = ENV["CLOUDINARY_URL"]
-  end
-  before do
-    Cloudinary.config_from_url "cloudinary://a:b@test123"
+
+  before :each do
+    Cloudinary.reset_config
+    Cloudinary.config_from_url 'cloudinary://a:b@test123'
     Cloudinary.config.auth_token = { :key => KEY, :duration => 300, :start_time => 11111111 }
-  end
-  after do
-    ENV["CLOUDINARY_URL"] = @url_backup
-    Cloudinary::config_from_url @url_backup
   end
   it "should generate with start and duration" do
     token = Cloudinary::Utils.generate_auth_token :start_time => 1111111111, :acl => "/image/*", :duration => 300
@@ -20,8 +15,11 @@ describe 'auth_token' do
   end
 
   describe "authenticated url" do
-    before do
+    before :each do
+      Cloudinary.class_variable_set :@@config, nil
+      Cloudinary.config_from_url 'cloudinary://a:b@test123'
       Cloudinary.config :private_cdn => true
+      Cloudinary.config.auth_token = { :key => KEY, :duration => 300, :start_time => 11111111 }
 
     end
     it "should add token if authToken is globally set and signed = true" do

@@ -14,15 +14,16 @@ if ::Rails::VERSION::MAJOR < 4
   end
 end
 describe CloudinaryHelper do
-  include_context 'restore configuration'
+
   before :all do
     # Test the helper in the context it runs in in production
     ActionView::Base.send :include, CloudinaryHelper
 
   end
   before(:each) do
+    Cloudinary.reset_config
     Cloudinary.config do |config|
-      config.cloud_name          = "test123"
+      config.cloud_name          = DUMMY_CLOUD
       config.secure_distribution = nil
       config.private_cdn         = false
       config.secure              = false
@@ -36,11 +37,11 @@ describe CloudinaryHelper do
   let(:helper) {
     ActionView::Base.new
   }
-  let(:root_path) { "http://res.cloudinary.com/test123" }
+  let(:root_path) { "http://res.cloudinary.com/#{DUMMY_CLOUD}" }
   let(:upload_path) { "#{root_path}/video/upload" }
 
   describe 'cl_video_tag' do
-    let(:basic_options) { { :cloud_name => "test123"} }
+    let(:basic_options) { { :cloud_name => DUMMY_CLOUD} }
     let(:options) { basic_options }
     let(:test_tag) { TestTag.new helper.cl_video_tag("movie", options) }
     context "when options include video tag attributes" do
@@ -171,7 +172,7 @@ describe CloudinaryHelper do
         let(:fallback) { "<span id=\"spanid\">Cannot display video</span>" }
         let(:options) { basic_options.merge(:fallback_content => fallback) }
         it "should include fallback content in the tag" do
-          expect(test_tag.children).to include(TestTag.new(fallback))
+          expect(test_tag.children.map(&:to_html)).to include(TestTag.new(fallback).element.to_html)
         end
       end
 
@@ -185,7 +186,7 @@ describe CloudinaryHelper do
           TestTag.new(html)
         end
         it 'should treat the block return value as fallback content' do
-          expect(test_tag.children).to include("Cannot display video!")
+          expect(test_tag.children.map(&:to_html)).to include("Cannot display video!")
         end
       end
       describe "dimensions" do
