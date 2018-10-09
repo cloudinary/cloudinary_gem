@@ -4,17 +4,10 @@ require 'cloudinary/cache'
 require 'rspec'
 require 'active_support/cache'
 
-PUBLIC_ID = TEST_TAG + '_cache_' + SUFFIX
-KEY = "some_key" + SUFFIX
-RBP_TRANS = {:angle => 45, :crop => "scale"}
-RBP_FORMAT = "png"
-RBP_VALUES = [206, 50]
-
-
 describe 'Responsive cache' do
 
   before :all do
-
+    Cloudinary.reset_config
     unless defined? Rails and defined? Rails.cache
       module Rails
         class << self
@@ -34,7 +27,7 @@ describe 'Responsive cache' do
   end
 
   def get_cache
-    Rails.cache.fetch KEY do
+    Rails.cache.fetch CACHE_KEY do
       puts "fetching"
       @i = @i + 1
     end
@@ -95,8 +88,8 @@ describe 'Responsive cache' do
         },
         {
           :create_derived => false,
-          :transformation => RBP_TRANS,
-          :format => RBP_FORMAT
+          :transformation => ResponsiveTest::TRANSFORMATION,
+          :format => ResponsiveTest::FORMAT
         },
         {
           :create_derived => false
@@ -108,9 +101,9 @@ describe 'Responsive cache' do
 
     it "Should save responsive breakpoints to cache after upload" do
       result = Cloudinary::Uploader.upload( TEST_IMG, options)
-      cache_value = Cloudinary::Cache.get(result["public_id"], transformation: RBP_TRANS, format: RBP_FORMAT)
+      cache_value = Cloudinary::Cache.get(result["public_id"], transformation: ResponsiveTest::TRANSFORMATION, format: ResponsiveTest::FORMAT)
 
-      expect(cache_value).to eql(RBP_VALUES)
+      expect(cache_value).to eql(ResponsiveTest::IMAGE_BP_VALUES)
     end
   end
 

@@ -2,9 +2,10 @@ require 'spec_helper'
 require 'cloudinary'
 
 describe Cloudinary::Utils do
-  include_context 'restore configuration'
+
 
   before :each do
+    Cloudinary.reset_config
     Cloudinary.config do |config|
       # config.cloud_name = "demo"
       config.secure_distribution = nil

@@ -6,10 +6,11 @@ require 'cloudinary/helper'
 require 'action_view/test_case'
 
 describe Cloudinary::Utils do
-  include_context 'restore configuration'
+
   before(:each) do
+    Cloudinary.reset_config
     Cloudinary.config do |config|
-      config.cloud_name          = "test123"
+      config.cloud_name          = DUMMY_CLOUD
       config.secure_distribution = nil
       config.private_cdn         = false
       config.secure              = false
@@ -19,7 +20,7 @@ describe Cloudinary::Utils do
       config.api_secret          = "b"
     end
   end
-  let(:root_path) { "http://res.cloudinary.com/test123" }
+  let(:root_path) { "http://res.cloudinary.com/#{DUMMY_CLOUD}" }
   let(:upload_path) { "#{root_path}/video/upload" }
 
   describe "cloudinary_url" do

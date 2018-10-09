@@ -7,6 +7,7 @@ require 'cloudinary'
 
 Cloudinary.config.enhance_image_tag = true
 
+DUMMY_CLOUD = "test123"
 TEST_IMAGE_URL = "http://cloudinary.com/images/old_logo.png"
 TEST_IMG = "spec/logo.png"
 TEST_IMG_W = 241
@@ -18,8 +19,15 @@ TIMESTAMP_TAG = "#{TEST_TAG}_#{SUFFIX}_#{RUBY_VERSION}_#{ defined? Rails::versio
 # Auth token
 KEY     = "00112233FF99"
 ALT_KEY = "CCBB2233FF00"
+CACHE_KEY = "some_key" + SUFFIX
 
+module ResponsiveTest
+  TRANSFORMATION = {:angle => 45, :crop => "scale"}
+  FORMAT = "png"
+  IMAGE_BP_VALUES = [206, 50]
+  BREAKPOINTS = [100, 200, 300, 399]
 
+end
 Dir[File.join(File.dirname(__FILE__), '/support/**/*.rb')].each {|f| require f}
 
 module RSpec
@@ -44,17 +52,13 @@ RSpec.shared_context "cleanup" do |tag|
   end
 end
 
-# Restore configuration after each test.
-# Use this context for tests that modify Cloudinary.config
-RSpec.shared_context "restore configuration" do
-  before :each do
-    @config = Cloudinary.config.to_h
+module Cloudinary
+  def self.reset_config
+    @@config = nil
   end
 
-  after :each do
-    Cloudinary.config(@config)
-  end
 end
+
 
 CALLS_SERVER_WITH_PARAMETERS = "calls server with parameters"
 RSpec.shared_examples CALLS_SERVER_WITH_PARAMETERS do |expected|
@@ -68,7 +72,7 @@ end
 
 # Represents an HTML tag
 class TestTag
-  attr_accessor :name, :attributes, :children, :text, :html_string, :element
+  attr_accessor :element
   # Creates a new +TestTag+ from a given +element+ string
   def initialize(element)
     @html_string = element
@@ -105,7 +109,8 @@ class TestTag
 
   def method_missing(symbol, *args)
     if (m = /children_by_(\w+)/.match(symbol.to_s)) and !args.empty?
-      @children.select{ |c| c[m[1]] == args[0]}
+      return unless children
+      children.select{ |c| c[m[1]] == args[0]}
     else
       super
     end

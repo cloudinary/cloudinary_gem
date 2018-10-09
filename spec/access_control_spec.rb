@@ -9,7 +9,9 @@ def days(n)
 end
 
 describe "Access Control" do
-  include_context 'restore configuration'
+  before :each do
+    Cloudinary.reset_config
+  end
   let (:acl) {{
       :access_type => 'anonymous',
       :start => '2019-02-22 16:20:57 +0200',
