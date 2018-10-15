@@ -214,8 +214,8 @@ RSpec.describe CloudinaryHelper do
     min_width = 100
     max_width = 399
     breakpoint_list = [min_width, 200, 300, max_width]
-    common_srcset = {"breakpoints": breakpoint_list}
-    fill_transformation = {"width": max_width, "height": max_width, "crop": "fill"}
+    common_srcset = {breakpoints: breakpoint_list}
+    fill_transformation = {width: max_width, height: max_width, crop: "fill"}
     fill_transformation_str = "c_fill,h_#{max_width},w_#{max_width}"
     let (:options) {{
       :cloud_name => DUMMY_CLOUD,
