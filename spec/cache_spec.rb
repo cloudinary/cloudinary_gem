@@ -13,7 +13,7 @@ describe 'Responsive cache' do
         class << self
           attr_accessor :cache
         end
-        Rails.cache = ActiveSupport::Cache::FileStore.new("#{Kernel::__dir__}/../tmp/cache")
+        Rails.cache = ActiveSupport::Cache::FileStore.new("#{Dir.getwd}/../tmp/cache")
       end
     end
 
@@ -28,7 +28,6 @@ describe 'Responsive cache' do
 
   def get_cache
     Rails.cache.fetch CACHE_KEY do
-      puts "fetching"
       @i = @i + 1
     end
   end
