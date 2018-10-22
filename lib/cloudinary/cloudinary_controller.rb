@@ -1,4 +1,4 @@
-module CloudinaryController
+module Cloudinary::CloudinaryController
   protected
   
   def valid_cloudinary_response?
@@ -10,4 +10,4 @@ module CloudinaryController
   end  
 end
 
-ActionController::Base.send :include, CloudinaryController
+ActionController::Base.send :include, Cloudinary::CloudinaryController
