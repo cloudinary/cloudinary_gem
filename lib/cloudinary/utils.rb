@@ -112,7 +112,7 @@ class Cloudinary::Utils
   ].map(&:to_sym)
 
 
-  TRANSFORMATION_PARAMS = %i[
+  TRANSFORMATION_PARAMS = %w[
       angle
       aspect_ratio
       audio_codec
@@ -157,7 +157,7 @@ class Cloudinary::Utils
       x
       y
       zoom
-  ]
+  ].map(&:to_sym)
 
   def self.extract_config_params(options)
       options.select{|k,v| URL_KEYS.include?(k)}
