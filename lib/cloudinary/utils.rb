@@ -75,54 +75,7 @@ class Cloudinary::Utils
       color
       color_space
       crop
-      default_image
-      delay
-      density
-      dpr
-      duration
-      effect
-      end_offset
-      fetch_format
-      flags
-      gravity
-      height
-      if
-      keyframe_interval
-      offset
-      opacity
-      overlay
-      page
-      prefix
-      quality
-      radius
-      raw_transformation
-      responsive_width
-      size
-      start_offset
-      streaming_profile
-      transformation
-      underlay
-      variables
-      video_codec
-      video_sampling
-      width
-      x
-      y
-      zoom
-  ].map(&:to_sym)
-
-
-  TRANSFORMATION_PARAMS = %w[
-      angle
-      aspect_ratio
-      audio_codec
-      audio_frequency
-      background
-      bit_rate
-      border
-      color
-      color_space
-      crop
+      custom_function
       default_image
       delay
       density
@@ -240,6 +193,7 @@ class Cloudinary::Utils
     overlay = process_layer(options.delete(:overlay))
     underlay = process_layer(options.delete(:underlay))
     ifValue = process_if(options.delete(:if))
+    custom_function = process_custom_function(options.delete(:custom_function))
 
     params = {
       :a   => normalize_expression(angle),
@@ -251,6 +205,7 @@ class Cloudinary::Utils
       :dpr => normalize_expression(dpr),
       :e   => normalize_expression(effect),
       :fl  => flags,
+      :fn  => custom_function,
       :h   => normalize_expression(height),
       :l  => overlay,
       :o => normalize_expression(options.delete(:opacity)),
@@ -1108,6 +1063,15 @@ class Cloudinary::Utils
   end
   private_class_method :process_video_params
 
+  def self.process_custom_function(param)
+    return param unless param.is_a? Hash
+
+    function_type = param[:function_type]
+    source = param[:source]
+
+    source = Base64.urlsafe_encode64(source) if function_type == "remote"
+    "#{function_type}:#{source}"
+  end
 
   #
   # Handle the format parameter for fetch urls

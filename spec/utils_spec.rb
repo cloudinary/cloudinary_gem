@@ -918,4 +918,32 @@ describe Cloudinary::Utils do
                   .or eq("symbol_key=string_value|string_key=symbol_value")
     end
   end
+
+  describe "customFunction" do
+    custom_function_wasm = {
+      :function_type => 'wasm',
+      :source => 'blur.wasm'
+    }
+    custom_function_wasm_str = 'wasm:blur.wasm'
+
+    custom_function_remote = {
+      :function_type => 'remote',
+      :source => 'https://df34ra4a.execute-api.us-west-2.amazonaws.com/default/cloudinaryFunction'
+    }
+    custom_function_remote_str = 'remote:aHR0cHM6Ly9kZjM0cmE0YS5leGVjdXRlLWFwaS51cy13ZXN0LTIuYW1hem9uYXdzLmNvbS9kZWZhdWx0L2Nsb3VkaW5hcnlGdW5jdGlvbg=='
+
+    it 'should accept a string value' do
+      actual = Cloudinary::Utils.generate_transformation_string :custom_function => custom_function_wasm_str
+      expect( actual).to eq("fn_#{custom_function_wasm_str}")
+    end
+    it 'should accept a hash of options' do
+      actual = Cloudinary::Utils.generate_transformation_string :custom_function => custom_function_wasm
+      expect( actual).to eq("fn_#{custom_function_wasm_str}")
+    end
+    it 'should base64 encoded URL for a remote function' do
+      actual = Cloudinary::Utils.generate_transformation_string :custom_function => custom_function_remote
+      expect( actual).to eq("fn_#{custom_function_remote_str}")
+
+    end
+  end
 end
