@@ -1,4 +1,36 @@
 
+1.10.0 / 2018-11-08
+===================
+
+New functionality and features
+------------------------------
+
+  * Add the `custom_function` transformation parameter
+  * Add Picture and source tags
+  * Add `srcset` attribute to image tag
+  * Add support for overlays of type fetch
+  * Add breakpoints cache
+
+Other Changes
+-------------
+
+  * Add `update_version` script
+  * Fix transformations test
+  * Replace ruby list notation to support older ruby versions
+  * Refactor tests
+  * Replace REXML  with Nokogiri
+  * Un-ignore the lib folder
+  * Ignore empty transformations when processing an array of transformations
+  * Restore configuration after each test
+  * Limit Rack version to fix compatibility issues with ruby 1.9.3
+  * Fix context escaping in call_context_api
+  * Fix uploadLarge to use X-Unique-Upload-Id
+  * Add test cases of OCR for upload and URL generation
+  * Add test case of conditional tags
+  * Fix expected result in cname with cdn_subdomain test
+  * Fix raw conversion test
+  * Raise exception when api-secret is missing in signed-url flow
+
 1.9.1 / 2018-03-06
 ==================
 
