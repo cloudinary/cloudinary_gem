@@ -202,9 +202,9 @@ describe Cloudinary::Api do
 
   describe 'transformations' do
     it "should allow listing transformations" do
-      transformation = @api.transformations(max_results: 500)["transformations"].find { |transformation| transformation["name"] == TEST_TRANSFOMATION }
-      expect(transformation).not_to be_blank
-      expect(transformation["used"]).to eq(true)
+      transformations = @api.transformations()["transformations"]
+      expect(transformations[0]).not_to be_empty
+      expect(transformations[0]["used"]).to eq(true)
     end
 
     it "should allow getting transformation metadata" do
