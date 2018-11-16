@@ -34,7 +34,7 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
       params[:eager] = eager_versions.map{|version| [version.transformation, version.format]} if eager_versions.length > 0
       params[:type]=uploader.class.storage_type
 
-      params[:resource_type] ||= :auto unless uploader.upload_chunked?
+      params[:resource_type] ||= :auto
       upload_method = uploader.upload_chunked? ? "upload_large" : "upload"
       uploader.metadata = Cloudinary::Uploader.send(upload_method, data, params)
       if uploader.metadata["error"]
