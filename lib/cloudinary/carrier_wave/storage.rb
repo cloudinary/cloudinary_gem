@@ -73,7 +73,8 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)
       primary_key = model_class.primary_key.to_sym
       if defined?(::ActiveRecord::VERSION::MAJOR) && ::ActiveRecord::VERSION::MAJOR > 2
-        model_class.where(primary_key=>uploader.model.send(primary_key)).update_all(column=>name)
+        model_object = model_class.find_by(primary_key=>uploader.model.send(primary_key))
+        model_object.update(column=>(model_column_is_array?(model_class, column) ? [name] : name))
       else
         # Removed since active record version 3.0.0
         model_class.update_all({column=>name}, {primary_key=>uploader.model.send(primary_key)})
@@ -99,5 +100,11 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     else
       raise CloudinaryException, "Only ActiveRecord, Mongoid and Sequel are supported at the moment!"
     end
+  end
+
+  private
+
+  def model_column_is_array?(model_class, column)
+    model_class.columns.find { |c| c.name == column.to_s }.array?
   end
 end
