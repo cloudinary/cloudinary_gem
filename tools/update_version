@@ -132,7 +132,7 @@ function safe_replace
 
 function current_version
 {
-    grep -oiP '(?<=VERSION = ")([0-9.]+)(?=")' lib/cloudinary/version.rb
+    grep -oiP '(?<=VERSION = ")([0-9.]+[^ ]*)(?=")' lib/cloudinary/version.rb
 }
 
 function update_version
