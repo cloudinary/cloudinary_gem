@@ -203,8 +203,9 @@ describe Cloudinary::Api do
   describe 'transformations' do
     it "should allow listing transformations" do
       transformations = @api.transformations()["transformations"]
-      expect(transformations[0]).not_to be_empty
-      expect(transformations[0]["used"]).to eq(true)
+      t0 = transformations[0]
+      expect(t0).not_to be_empty
+      expect(t0).to have_key("used")
     end
 
     it "should allow getting transformation metadata" do
