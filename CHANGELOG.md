@@ -1,4 +1,13 @@
 
+1.10.1-rc / 2018-11-20
+======================
+
+  * Fix transformation list test
+  * Fix detection test
+  * Remove encrypted variables from .travis.yml
+  * Update dependencies
+  * Support "pre" versions in update_version
+
 1.10.0 / 2018-11-08
 ===================
 
