@@ -194,6 +194,7 @@ class Cloudinary::Utils
     underlay = process_layer(options.delete(:underlay))
     ifValue = process_if(options.delete(:if))
     custom_function = process_custom_function(options.delete(:custom_function))
+    custom_pre_function = process_custom_pre_function(options.delete(:custom_pre_function))
 
     params = {
       :a   => normalize_expression(angle),
@@ -205,7 +206,7 @@ class Cloudinary::Utils
       :dpr => normalize_expression(dpr),
       :e   => normalize_expression(effect),
       :fl  => flags,
-      :fn  => custom_function,
+      :fn  => custom_function || custom_pre_function,
       :h   => normalize_expression(height),
       :l  => overlay,
       :o => normalize_expression(options.delete(:opacity)),
@@ -1062,6 +1063,11 @@ class Cloudinary::Utils
     end
   end
   private_class_method :process_video_params
+
+  def self.process_custom_pre_function(param)
+    value = process_custom_function(param)
+    value ? "pre:#{value}" : NIL
+  end
 
   def self.process_custom_function(param)
     return param unless param.is_a? Hash

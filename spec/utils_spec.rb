@@ -945,5 +945,20 @@ describe Cloudinary::Utils do
       expect( actual).to eq("fn_#{custom_function_remote_str}")
 
     end
+
+    it 'should accept a string value' do
+      actual = Cloudinary::Utils.generate_transformation_string :custom_pre_function => custom_function_wasm_str
+      expect( actual).to eq("fn_pre:#{custom_function_wasm_str}")
+    end
+    it 'should accept a hash of options' do
+      actual = Cloudinary::Utils.generate_transformation_string :custom_pre_function => custom_function_wasm
+      expect( actual).to eq("fn_pre:#{custom_function_wasm_str}")
+    end
+    it 'should base64 encoded URL for a remote function' do
+      actual = Cloudinary::Utils.generate_transformation_string :custom_pre_function => custom_function_remote
+      expect( actual).to eq("fn_pre:#{custom_function_remote_str}")
+
+    end
+
   end
 end
