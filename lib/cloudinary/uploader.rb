@@ -51,6 +51,7 @@ class Cloudinary::Uploader
       :phash                     => Cloudinary::Utils.as_safe_bool(options[:phash]),
       :proxy                     => options[:proxy],
       :public_id                 => options[:public_id],
+      :quality_analysis          => Cloudinary::Utils.as_safe_bool(options[:quality_analysis]),
       :quality_override          => options[:quality_override],
       :raw_convert               => options[:raw_convert],
       :responsive_breakpoints    => Cloudinary::Utils.generate_responsive_breakpoints_string(options[:responsive_breakpoints]),

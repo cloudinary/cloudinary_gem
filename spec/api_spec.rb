@@ -130,6 +130,13 @@ describe Cloudinary::Api do
     expect(resource["derived"].length).to eq(1)
   end
 
+  it "should support the quality_analysis parameter" do
+    resource = @api.resource(test_id_1, :quality_analysis => true)
+    expect(resource).not_to be_blank
+    expect(resource).to have_key("quality_analysis")
+    expect(resource["quality_analysis"]).to have_key("focus")
+  end
+
   it "should allow deleting derived resource" do
     derived_resource_id = "derived_id"
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :derived_resource_ids] => derived_resource_id}))

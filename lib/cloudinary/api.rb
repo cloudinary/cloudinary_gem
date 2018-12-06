@@ -78,7 +78,18 @@ class Cloudinary::Api
     resource_type = options[:resource_type] || "image"
     type          = options[:type] || "upload"
     uri           = "resources/#{resource_type}/#{type}/#{public_id}"
-    call_api(:get, uri, only(options, :colors, :exif, :faces, :image_metadata, :pages, :phash, :coordinates, :max_results), options)
+    call_api(:get, uri, 
+             only(options, 
+                  :colors,
+                  :coordinates,
+                  :exif,
+                  :faces,
+                  :image_metadata,
+                  :max_results,
+                  :pages,
+                  :phash,
+                  :quality_analysis
+             ), options)
   end
 
   def self.restore(public_ids, options={})

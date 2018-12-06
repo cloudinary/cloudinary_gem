@@ -35,6 +35,12 @@ describe Cloudinary::Uploader do
     expect(result["status"]).to eq("pending")
   end
 
+  it "should support the quality_analysis parameter" do
+    result = Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :quality_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result).to have_key("quality_analysis")
+    expect(result["quality_analysis"]).to have_key("focus")
+  end
+
   it "should support the quality_override parameter" do
     ['auto:advanced', 'auto:best', '80:420', 'none'].each do |q|
       expected = {[:payload, :quality_override] => q}
