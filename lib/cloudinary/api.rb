@@ -94,19 +94,20 @@ class Cloudinary::Api
     uri            = "resources/#{resource_type}/#{type}/#{public_id}"
     update_options = {
       :access_control     => Cloudinary::Utils.json_array_param(options[:access_control]),
-      :tags               => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
-      :context            => Cloudinary::Utils.encode_context(options[:context]),
-      :face_coordinates   => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
-      :custom_coordinates => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
-      :moderation_status  => options[:moderation_status],
-      :raw_convert        => options[:raw_convert],
-      :ocr                => options[:ocr],
-      :categorization     => options[:categorization],
-      :detection          => options[:detection],
-      :similarity_search  => options[:similarity_search],
-      :background_removal => options[:background_removal],
       :auto_tagging       => options[:auto_tagging] && options[:auto_tagging].to_f,
-      :notification_url   => options[:notification_url]
+      :background_removal => options[:background_removal],
+      :categorization     => options[:categorization],
+      :context            => Cloudinary::Utils.encode_context(options[:context]),
+      :custom_coordinates => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
+      :detection          => options[:detection],
+      :face_coordinates   => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
+      :moderation_status  => options[:moderation_status],
+      :notification_url   => options[:notification_url],
+      :quality_override   => options[:quality_override],
+      :ocr                => options[:ocr],
+      :raw_convert        => options[:raw_convert],
+      :similarity_search  => options[:similarity_search],
+      :tags               => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")
     }
     call_api(:post, uri, update_options, options)
   end

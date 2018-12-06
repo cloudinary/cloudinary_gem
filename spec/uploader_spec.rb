@@ -35,6 +35,14 @@ describe Cloudinary::Uploader do
     expect(result["status"]).to eq("pending")
   end
 
+  it "should support the quality_override parameter" do
+    ['auto:advanced', 'auto:best', '80:420', 'none'].each do |q|
+      expected = {[:payload, :quality_override] => q}
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Uploader.upload Pathname.new(TEST_IMG), :quality_override => q
+    end
+  end
+
   describe '.rename' do
     before(:all) do
       @result        = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])

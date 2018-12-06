@@ -375,6 +375,14 @@ describe Cloudinary::Api do
     Cloudinary::Api.update("public_id", {:auto_tagging => 0.5})
   end
 
+  it "should support quality_override" do
+    ['auto:advanced', 'auto:best', '80:420', 'none'].each do |q|
+      expected = {[:payload, :quality_override] => q}
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Api.update Pathname.new(TEST_IMG), :quality_override => q
+    end
+  end
+
   it "should support listing by moderation kind and value" do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value([:url] => /.*manual\/approved$/, [:payload, :max_results] => 1000))
     Cloudinary::Api.resources_by_moderation(:manual, :approved, :max_results => 1000)
