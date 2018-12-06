@@ -85,6 +85,7 @@ class Cloudinary::Utils
       end_offset
       fetch_format
       flags
+      fps
       gravity
       height
       if
@@ -190,6 +191,9 @@ class Cloudinary::Utils
       options[:start_offset], options[:end_offset] = split_range options.delete(:offset)
     end
 
+    fps = options.delete(:fps)
+    fps = fps.join('-') if fps.is_a? Array
+
     overlay = process_layer(options.delete(:overlay))
     underlay = process_layer(options.delete(:underlay))
     ifValue = process_if(options.delete(:if))
@@ -207,6 +211,7 @@ class Cloudinary::Utils
       :e   => normalize_expression(effect),
       :fl  => flags,
       :fn  => custom_function || custom_pre_function,
+      :fps => fps,
       :h   => normalize_expression(height),
       :l  => overlay,
       :o => normalize_expression(options.delete(:opacity)),

@@ -161,6 +161,20 @@ describe Cloudinary::Utils do
 
       end
     end
+    it "should support the fps parameter" do
+      [
+        ['24-29.97', 'fps_24-29.97'],
+        [24, 'fps_24'],
+        [24.973, 'fps_24.973'],
+        ['24', 'fps_24'],
+        ['-24', 'fps_-24'],
+        ['$v', 'fps_$v'],
+        [[24, 29.97], 'fps_24-29.97'],
+        [['24', '$v'], 'fps_24-$v']
+      ].each do |value, param|
+        expect(Cloudinary::Utils.generate_transformation_string(:fps => value)).to eq(param)
+      end
+    end
   end
 
 end
