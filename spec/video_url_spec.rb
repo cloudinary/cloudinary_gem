@@ -106,6 +106,11 @@ describe Cloudinary::Utils do
             .to produce_url("#{upload_path}/#{short}_35p/video_id")
                   .and empty_options
         end
+        it 'should support the "auto" keyword' do
+          expect(["video_id", { :resource_type => 'video', long => 'auto' }])
+            .to produce_url("#{upload_path}/#{short}_auto/video_id")
+                  .and empty_options
+        end
       end
     end
 
