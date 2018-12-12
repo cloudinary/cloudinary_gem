@@ -1,4 +1,27 @@
 
+1.11.0 / 2018-12-12
+===================
+
+New functionality and features
+------------------------------
+
+  * Support new parameters and values:
+      * `auto` keyword in the `start_offset` 
+      * `art` artistic effect
+      * `fps`
+      * `quality_analysis`
+      * `quality_override`
+      * `pre` custom function transformation 
+  * Add namespace to the cloudinary controller to avoiding conflicts (#319)
+
+Other Changes
+-------------
+
+  * Add "Join the Community"
+  * Merge pull request #290 from zenspider/fix_carrierwave_deps
+      * Fixed direct references to ::CarrierWave with `defined?` guards.
+      * Fix debugging output to use mutex so output isn't garbled.
+
 1.10.1-rc / 2018-11-20
 ======================
 
