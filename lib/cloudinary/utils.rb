@@ -1071,7 +1071,7 @@ class Cloudinary::Utils
 
   def self.process_custom_pre_function(param)
     value = process_custom_function(param)
-    value ? "pre:#{value}" : NIL
+    value ? "pre:#{value}" : nil
   end
 
   def self.process_custom_function(param)
