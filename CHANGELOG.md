@@ -1,4 +1,10 @@
 
+1.11.1 / 2018-12-22
+===================
+
+  * Merge pull request #330 from langsharpe/constant_nil_is_deprecated
+    * Replace `NIL` with `Nil` to fix ruby 2.4 deprecation warning
+
 1.11.0 / 2018-12-12
 ===================
 
