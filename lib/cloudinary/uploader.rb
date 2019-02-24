@@ -5,8 +5,7 @@ require 'cloudinary/cache'
 
 class Cloudinary::Uploader
 
-  REMOTE_URL_REGEX = %r(^ftp:|^https?:|^s3:|^data:[^;]*;base64,([a-zA-Z0-9\/+\n=]+)$)
-
+  REMOTE_URL_REGEX = %r(^ftp:|^https?:|^s3:|^gs:|^data:[^;]*;base64,([a-zA-Z0-9\/+\n=]+)$)
   # @deprecated use {Cloudinary::Utils.build_eager} instead
   def self.build_eager(eager)
     Cloudinary::Utils.build_eager(eager)
