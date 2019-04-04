@@ -1,7 +1,6 @@
 require 'rspec'
 require 'spec_helper'
 require 'cloudinary'
-
 include Cloudinary
 
 describe Utils do
@@ -49,6 +48,21 @@ describe Utils do
       end
       expect(result).to include(hash_s)
       expect(result).to include('foobar')
+    end
+  end
+  describe 'is_remote_url' do
+    it 'should identify remote URLs correctly' do
+      [
+        "ftp://ftp.cloudinary.com/images/old_logo.png",
+        "http://cloudinary.com/images/old_logo.png",
+        "https://cloudinary.com/images/old_logo.png",
+        "s3://s3-us-west-2.amazonaws.com/cloudinary/images/old_logo.png",
+        "gs://cloudinary/images/old_logo.png",
+        "data:image/gif;charset=utf8;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+        "data:image/gif;param1=value1;param2=value2;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+      ].each do |url|
+        expect(Cloudinary::Utils.is_remote?(url)).to eq(true), url
+      end
     end
   end
 end
