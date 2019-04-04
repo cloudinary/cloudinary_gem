@@ -5,7 +5,7 @@ require 'cloudinary/cache'
 
 class Cloudinary::Uploader
 
-  REMOTE_URL_REGEX = %r(^ftp:|^https?:|^s3:|^gs:|^data:[^;]*;base64,([a-zA-Z0-9\/+\n=]+)$)
+  REMOTE_URL_REGEX = Cloudinary::Utils::REMOTE_URL_REGEX
   # @deprecated use {Cloudinary::Utils.build_eager} instead
   def self.build_eager(eager)
     Cloudinary::Utils.build_eager(eager)
@@ -76,7 +76,7 @@ class Cloudinary::Uploader
       params = build_upload_params(options)
       if file.is_a?(Pathname)
         params[:file] = File.open(file, "rb")
-      elsif file.respond_to?(:read) || file.match(REMOTE_URL_REGEX)
+      elsif file.respond_to?(:read) || Cloudinary::Utils.is_remote?(file)
         params[:file] = file
       else
         params[:file] = File.open(file, "rb")
@@ -94,7 +94,7 @@ class Cloudinary::Uploader
       public_id = public_id_or_options
       options   = old_options
     end
-    if file.match(REMOTE_URL_REGEX)
+    if Cloudinary::Utils.is_remote?(file)
       return upload(file, options.merge(:public_id => public_id))
     elsif file.is_a?(Pathname) || !file.respond_to?(:read)
       filename = file
