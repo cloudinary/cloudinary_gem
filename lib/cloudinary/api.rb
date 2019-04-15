@@ -88,7 +88,9 @@ class Cloudinary::Api
                   :max_results,
                   :pages,
                   :phash,
-                  :quality_analysis
+                  :quality_analysis,
+                  :next_cursor,
+                  :derived_next_cursor
              ), options)
   end
 
