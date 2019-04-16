@@ -137,6 +137,22 @@ describe Cloudinary::Api do
     expect(resource["quality_analysis"]).to have_key("focus")
   end
 
+  it "should allow next_cursor parameter" do
+    expected = {
+        [:payload, :next_cursor] => "foo"
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    resource = @api.resource(test_id_1, :next_cursor => "foo")
+  end
+
+  it "should allow derived_next_cursor parameter" do
+    expected = {
+        [:payload, :derived_next_cursor] => "foo"
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    resource = @api.resource(test_id_1, :derived_next_cursor => "foo")
+  end
+
   it "should allow deleting derived resource" do
     derived_resource_id = "derived_id"
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :derived_resource_ids] => derived_resource_id}))
