@@ -56,3 +56,4 @@ bower.json
 
 !lib/
 cloudinary.yml
+configuration.yml
