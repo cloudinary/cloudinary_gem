@@ -4,6 +4,6 @@ before_install:
   - gem install bundler
 
 rvm:
-- 1.9.3
+- 1.9.3-p551
 - ruby-head
 script: bundle exec rspec
