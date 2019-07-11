@@ -1,9 +1,15 @@
 language: ruby
 
-before_install:
-  - gem install bundler
-
-rvm:
-- 1.9.3
-- ruby-head
+matrix:
+  include:
+    - name: "Ruby 1.9"
+      dist: precise
+      rvm: 1.9.3
+      before_install:
+        - gem install bundler -v 1.17.3
+    - name: "Ruby 2.5.3"
+      dist: xenial
+      rvm: ruby-2.5.3
+      before_install:
+        - gem install bundler
 script: bundle exec rspec
