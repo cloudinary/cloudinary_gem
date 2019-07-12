@@ -28,6 +28,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rake"
   s.add_development_dependency "rspec", '>=3.5'
   s.add_development_dependency "rspec-rails"
-  s.add_development_dependency "rubyzip", "<=1.2.0" # support testing Ruby 1.9
+  s.add_development_dependency "rubyzip", ">= 1.2.2" # support testing Ruby 1.9
   s.add_development_dependency "simplecov"
 end
