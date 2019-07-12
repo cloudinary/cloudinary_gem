@@ -10,7 +10,8 @@ module Cloudinary::CarrierWave
   def self.included(base)
     base.storage Cloudinary::CarrierWave::Storage
     base.extend ClassMethods
-    base.class_attribute :storage_type, :metadata
+    base.class_attribute :metadata
+    base.class_attribute :storage_type, instance_reader: false
     override_in_versions(base, :blank?, :full_public_id, :my_public_id, :all_versions_processors, :stored_version)
   end
 
