@@ -305,7 +305,7 @@ class Cloudinary::Utils
   EXP_REPLACEMENT = PREDEFINED_VARS.merge(CONDITIONAL_OPERATORS)
 
   def self.normalize_expression(expression)
-    if expression.is_a? String && expression =~ /^!.+!$/ # quoted string
+    if expression.is_a?( String) && expression =~ /^!.+!$/ # quoted string
       expression
     else
       expression.to_s.gsub(EXP_REGEXP,EXP_REPLACEMENT).gsub(/[ _]+/, "_")
