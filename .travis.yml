@@ -1,4 +1,5 @@
 language: ruby
+dist: precise
 
 matrix:
   include:
