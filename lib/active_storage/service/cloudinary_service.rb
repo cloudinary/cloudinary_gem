@@ -14,6 +14,10 @@ end
 
 module ActiveStorage
   class Service::CloudinaryService < Service
+    module Headers
+      CONTENT_TYPE = "Content-Type".freeze
+      CONTENT_MD5 = "Content-MD5".freeze
+    end
     attr_reader :upload_options
 
     def initialize(**options)
@@ -24,9 +28,9 @@ module ActiveStorage
     def upload(key, io, filename: nil, checksum: nil, **options)
       instrument :upload, key: key, checksum: checksum do
         begin
-          extra_headers = checksum.nil? ? {} : {'Content-md5': checksum}
+          extra_headers = checksum.nil? ? {} : {Headers::CONTENT_MD5 => checksum}
           options = @options.merge(options)
-          @image_meta = Cloudinary::Uploader.upload(
+          Cloudinary::Uploader.upload(
             io,
             public_id: public_id(key),
             resource_type: resource_type(io, key),
@@ -34,7 +38,8 @@ module ActiveStorage
             extra_headers: extra_headers,
             **options
           )
-
+        rescue CloudinaryException
+          raise ActiveStorage::IntegrityError
         end
       end
     end
@@ -65,9 +70,8 @@ module ActiveStorage
 
     def headers_for_direct_upload(key, content_type:, checksum:, **)
       {
-        "Content-Type" => content_type,
-        "Content-MD5" => checksum,
-        # "Access-Control-Allow-Origin" => "localhost"
+        Headers::CONTENT_TYPE => content_type,
+        Headers::CONTENT_MD5 => checksum,
       }
     end
 
@@ -78,9 +82,8 @@ module ActiveStorage
     end
 
     def delete_prefixed(prefix)
-      # instrument :delete_prefixed, prefix: prefix do
-      #   Cloudinary::Api.delete_resources_by_prefix(prefix)
-      # end
+      # This method is used by ActiveStorage to delete derived resources after the main resource was deleted.
+      # In Cloudinary, the derived resources are deleted automatically when the main resource is deleted.
     end
 
     def exist?(key)
@@ -109,7 +112,6 @@ module ActiveStorage
         end
       else
         instrument :download, key: key do
-          puts "download URL #{url}"
           res = Net::HTTP::get_response(uri)
           res.body
         end
@@ -121,9 +123,13 @@ module ActiveStorage
       url = Cloudinary::Utils.unsigned_download_url(public_id(key), resource_type: resource_type(nil, key))
       uri = URI(url)
       instrument :download, key: key do
-        puts "download URL #{url}"
         req = Net::HTTP::Get.new(uri)
-        req['range'] = "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}"
+        range_end = case
+                    when range.end.nil? then ''
+                    when range.exclude_end? then range.end - 1
+                    else range.end
+                    end
+        req['range'] = "bytes=#{[range.begin, range_end].join('-')}"
         res = Net::HTTP.start(uri.hostname, uri.port) do |http|
           http.request(req)
         end
@@ -136,13 +142,13 @@ module ActiveStorage
 
     def api_uri(action, options)
       base_url = Cloudinary::Utils.cloudinary_api_url(action, options)
-      cloudinary_params = Cloudinary::Uploader.build_upload_params(options)
+      upload_params = Cloudinary::Uploader.build_upload_params(options)
 
-      cloudinary_params.reject! {|k, v| Cloudinary::Utils.safe_blank?(v)}
+      upload_params.reject! {|k, v| Cloudinary::Utils.safe_blank?(v)}
       unless options[:unsigned]
-        cloudinary_params = Cloudinary::Utils.sign_request(cloudinary_params, options)
+        upload_params = Cloudinary::Utils.sign_request(upload_params, options)
       end
-      "#{base_url}?#{cloudinary_params.to_query}"
+      "#{base_url}?#{upload_params.to_query}"
     end
 
     def ext_for_content_type(content_type)

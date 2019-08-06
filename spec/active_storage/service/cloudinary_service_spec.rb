@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'spec/active_storage/test_helper'
 
 # from spec_helper
 DUMMY_CLOUD = "test123"
