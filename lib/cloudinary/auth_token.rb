@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'openssl'
 if RUBY_VERSION > "2"
   require "ostruct"
@@ -10,6 +12,7 @@ module Cloudinary
   module AuthToken
     SEPARATOR = '~'
     UNSAFE = /[ "#%&\'\/:;<=>?@\[\\\]^`{\|}~]/
+    EMPTY_TOKEN = {}.freeze
 
     def self.generate(options = {})
       key = options[:key]
@@ -42,12 +45,11 @@ module Cloudinary
       "#{name}=#{token.join(SEPARATOR)}"
     end
 
-
     # Merge token2 to token1 returning a new
     # Requires to support Ruby 1.9
     def self.merge_auth_token(token1, token2)
-      token1 = token1 || {}
-      token2 = token2 || {}
+      token1 = token1 || EMPTY_TOKEN
+      token2 = token2 || EMPTY_TOKEN
       token1 = token1.respond_to?( :to_h) ? token1.to_h : token1
       token2 = token2.respond_to?( :to_h) ? token2.to_h : token2
       token1.merge(token2)
