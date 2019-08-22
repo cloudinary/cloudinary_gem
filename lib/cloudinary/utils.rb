@@ -1,4 +1,6 @@
 # Copyright Cloudinary
+
+# frozen_string_literal: true
 require 'digest/sha1'
 require 'zlib'
 require 'uri'
@@ -41,6 +43,27 @@ class Cloudinary::Utils
     "tags"                 => "tags",
     "width"                => "w"
   }
+
+  SIMPLE_TRANSFORMATION_PARAMS = {
+    :ac => :audio_codec,
+    :af => :audio_frequency,
+    :br => :bit_rate,
+    :cs => :color_space,
+    :d  => :default_image,
+    :dl => :delay,
+    :dn => :density,
+    :du => :duration,
+    :eo => :end_offset,
+    :f  => :fetch_format,
+    :g  => :gravity,
+    :ki => :keyframe_interval,
+    :p  => :prefix,
+    :pg => :page,
+    :so => :start_offset,
+    :sp => :streaming_profile,
+    :vc => :video_codec,
+    :vs => :video_sampling
+  }.freeze
 
   URL_KEYS = %w[
       api_secret
@@ -226,26 +249,7 @@ class Cloudinary::Utils
       :y => normalize_expression(options.delete(:y)),
       :z => normalize_expression(options.delete(:zoom))
     }
-    {
-      :ac => :audio_codec,
-      :af => :audio_frequency,
-      :br => :bit_rate,
-      :cs => :color_space,
-      :d  => :default_image,
-      :dl => :delay,
-      :dn => :density,
-      :du => :duration,
-      :eo => :end_offset,
-      :f  => :fetch_format,
-      :g  => :gravity,
-      :ki => :keyframe_interval,
-      :p  => :prefix,
-      :pg => :page,
-      :so => :start_offset,
-      :sp => :streaming_profile,
-      :vc => :video_codec,
-      :vs => :video_sampling
-    }.each do
+    SIMPLE_TRANSFORMATION_PARAMS.each do
       |param, option|
       params[param] = options.delete(option)
     end
@@ -307,7 +311,9 @@ class Cloudinary::Utils
   EXP_REPLACEMENT = PREDEFINED_VARS.merge(CONDITIONAL_OPERATORS)
 
   def self.normalize_expression(expression)
-    if expression.is_a?( String) && expression =~ /^!.+!$/ # quoted string
+    if expression.nil?
+      ''
+    elsif expression.is_a?( String) && expression =~ /^!.+!$/ # quoted string
       expression
     else
       expression.to_s.gsub(EXP_REGEXP,EXP_REPLACEMENT).gsub(/[ _]+/, "_")
