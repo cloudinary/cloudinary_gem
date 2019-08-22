@@ -44,7 +44,7 @@ class Cloudinary::Utils
     "width"                => "w"
   }
 
-  TODO_BETTER_NAME = {
+  SIMPLE_TRANSFORMATION_PARAMS = {
     :ac => :audio_codec,
     :af => :audio_frequency,
     :br => :bit_rate,
@@ -249,7 +249,7 @@ class Cloudinary::Utils
       :y => normalize_expression(options.delete(:y)),
       :z => normalize_expression(options.delete(:zoom))
     }
-    TODO_BETTER_NAME.each do
+    SIMPLE_TRANSFORMATION_PARAMS.each do
       |param, option|
       params[param] = options.delete(option)
     end
