@@ -1,16 +1,7 @@
-require 'spec/active_storage/test_helper'
+require 'active_storage/test_helper'
 
-# from spec_helper
-DUMMY_CLOUD = "test123"
-TEST_IMAGE_URL = "http://cloudinary.com/images/old_logo.png"
-TEST_IMG = "../logo.png"
-BASENAME = File.basename(TEST_IMG, '.*')
-TEST_IMG_W = 241
-TEST_IMG_H = 51
-SUFFIX = ENV['TRAVIS_JOB_ID'] || rand(999999999).to_s
-TEST_TAG = 'cloudinary_gem_test'
-TIMESTAMP_TAG = "#{TEST_TAG}_#{SUFFIX}_#{RUBY_VERSION}_#{ defined? Rails::version ? Rails::version : 'no_rails'}"
 AS_TAG = "active_storage_" + SUFFIX
+BASENAME = File.basename(TEST_IMG, '.*')
 
 SERVICE = ActiveStorage::Service.configure(:cloudinary, SERVICE_CONFIGURATIONS)
 CONFIGURATION_PATH = Pathname.new(File.expand_path("service/configurations.yml", __dir__))

@@ -3,6 +3,7 @@ ENV['RAILS_ENV'] ||= 'test'
 require_relative './dummy/config/environment'
 
 require 'rspec'
+require 'spec_helper'
 
 # require_relative "shared_service_tests"
 require "bundler/setup"
@@ -13,7 +14,7 @@ require "active_support"
 require "net/http"
 # require "test_helper"
 require "active_support/core_ext/securerandom"
-require "database/setup"
+require "active_storage/database/setup"
 require 'active_storage/blob_key'
 
 begin

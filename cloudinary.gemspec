@@ -26,7 +26,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency "actionpack"
   s.add_development_dependency "nokogiri"
   s.add_development_dependency "rake"
+  s.add_development_dependency "sqlite3"
   s.add_development_dependency "rspec", '>=3.5'
+  s.add_development_dependency "rails", "~>5.2"
   s.add_development_dependency "rspec-rails"
   s.add_development_dependency "rubyzip", "<=1.2.0" # support testing Ruby 1.9
   s.add_development_dependency "simplecov"
