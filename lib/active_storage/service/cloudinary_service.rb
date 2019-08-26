@@ -64,7 +64,7 @@ module ActiveStorage
         options[:public_id] = public_id(key)
         options[:context] = {active_storage_key: key}
         options.delete(:file)
-        payload[:url] = api_uri("direct_upload", options)
+        payload[:url] = api_uri("upload", options)
       end
     end
 
