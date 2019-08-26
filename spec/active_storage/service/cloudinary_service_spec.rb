@@ -37,26 +37,23 @@ describe 'active_storage' do
   end
 
   it "should support uploading to Cloudinary" do
-    begin
-
-      url = @service.url_for_direct_upload(key, tags: [TEST_TAG, TIMESTAMP_TAG, AS_TAG])
-      uri = URI.parse url
-      request = Net::HTTP::Put.new uri.request_uri
-      file = File.open(TEST_IMG)
-      request.body_stream = file
-      request['content-length'] = file.size
-      request['content-type'] = 'image/png'
-      response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
-        http.request request
-      end
-      result = Cloudinary::Utils.json_decode(response.body)
-      expect(result['error']).not_to be_truthy
-      #Same test as uploader_spec "should successfully upload file"
-      expect(result["width"]).to eq(TEST_IMG_W)
-      expect(result["height"]).to eq(TEST_IMG_H)
-      expected_signature = Cloudinary::Utils.api_sign_request({:public_id => result["public_id"], :version => result["version"]}, Cloudinary.config.api_secret)
-      expect(result["signature"]).to eq(expected_signature)
+    url = @service.url_for_direct_upload(key, tags: [TEST_TAG, TIMESTAMP_TAG, AS_TAG])
+    uri = URI.parse url
+    request = Net::HTTP::Put.new uri.request_uri
+    file = File.open(TEST_IMG)
+    request.body_stream = file
+    request['content-length'] = file.size
+    request['content-type'] = 'image/png'
+    response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
+      http.request request
     end
+    result = Cloudinary::Utils.json_decode(response.body)
+    expect(result['error']).not_to be_truthy
+    #Same test as uploader_spec "should successfully upload file"
+    expect(result["width"]).to eq(TEST_IMG_W)
+    expect(result["height"]).to eq(TEST_IMG_H)
+    expected_signature = Cloudinary::Utils.api_sign_request({:public_id => result["public_id"], :version => result["version"]}, Cloudinary.config.api_secret)
+    expect(result["signature"]).to eq(expected_signature)
   end
 
   it "should check if resource exists" do
