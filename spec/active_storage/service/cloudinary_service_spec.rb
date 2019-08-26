@@ -1,12 +1,12 @@
-require 'active_storage/test_helper'
-
-AS_TAG = "active_storage_" + SUFFIX
-BASENAME = File.basename(TEST_IMG, '.*')
-
-SERVICE = ActiveStorage::Service.configure(:cloudinary, SERVICE_CONFIGURATIONS)
-CONFIGURATION_PATH = Pathname.new(File.expand_path("service/configurations.yml", __dir__))
-
 if RUBY_VERSION > '2.2.2'
+  require 'active_storage/test_helper'
+
+  AS_TAG = "active_storage_" + SUFFIX
+  BASENAME = File.basename(TEST_IMG, '.*')
+
+  CONFIGURATION_PATH = Pathname.new(File.expand_path("service/configurations.yml", __dir__))
+  SERVICE = ActiveStorage::Service.configure(:cloudinary, SERVICE_CONFIGURATIONS)
+
   describe 'active_storage' do
     let(:key) {ActiveStorage::BlobKey.new({key: SecureRandom.base58(24), filename: BASENAME})}
 
