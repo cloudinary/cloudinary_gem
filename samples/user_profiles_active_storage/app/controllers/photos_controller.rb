@@ -6,6 +6,11 @@ class PhotosController < ApplicationController
   def index
   end
 
+  # GET /users/1/photos/abc
+  def show
+    @downloaded = @photo.download
+  end
+
   # DELETE /users/1/photos/abc
   def destroy
     @photo.purge
