@@ -2,7 +2,7 @@
 
 <div>
   <p>
-    <%= image_tag(@user.avatar, height: 50, width: 50, gravity: :face, crop: :thumb, sign_url: true) %>
+    <%= cl_image_tag(@user.avatar.key, height: 50, width: 50, gravity: :face, crop: :thumb, sign_url: true) %>
     <strong><%= @user.name %></strong>
   </p>
   <%= link_to 'Edit My Profile', edit_user_path(@user) %>
