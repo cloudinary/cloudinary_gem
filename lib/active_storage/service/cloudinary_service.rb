@@ -160,11 +160,8 @@ module ActiveStorage
     end
 
     def public_id(key)
-      if key.respond_to? :attributes
-        key.attributes[:filename] # TODO match server handling of filename to public_id
-      else
-        key
-      end
+      # TODO: Allow custom manipulation of key to obscure how we store in Cloudinary
+      key
     end
 
     def resource_type(io, key = "")
@@ -184,7 +181,5 @@ module ActiveStorage
         'image'
       end
     end
-
-
   end
 end
