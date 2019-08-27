@@ -2,6 +2,10 @@ class PhotosController < ApplicationController
   before_action :set_user
   before_action :set_photo, only: [:show, :destroy]
 
+  # GET /users/1/photos
+  def index
+  end
+
   # DELETE /users/1/photos/abc
   def destroy
     @photo.purge
