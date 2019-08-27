@@ -21,11 +21,7 @@ if RUBY_VERSION > '2.2.2'
     end
 
     describe :url_for_direct_upload do
-      it "should use filename if available" do
-        url = @service.url_for_direct_upload(key)
-        expect(url).to include("public_id=#{BASENAME}")
-      end
-      it "should use the key if no attributes are available" do
+      it "should use the key" do
         key = SecureRandom.base58(24)
         url = @service.url_for_direct_upload(key)
         expect(url).not_to include(BASENAME)
