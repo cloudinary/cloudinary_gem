@@ -5,7 +5,7 @@
 
 <%= form_with(model: @user, remote: true) do |form| %>
   <p>
-    <%= form.label :photos, "Upload New Photos:" %>
+    <%= form.label :photos, "Upload New Photos (direct upload):" %>
     <%= form.file_field :photos, multiple: true, direct_upload: true %>
   </p>
 
@@ -16,3 +16,4 @@
     <%= form.submit "Upload" %>
   </div>
 <% end %>
+<%= link_to 'Back', user_path(@user) %>
