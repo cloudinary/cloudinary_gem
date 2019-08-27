@@ -1,0 +1,34 @@
+<p id="notice"><%= notice %></p>
+
+<div>
+  <p>
+    <%= image_tag(@user.avatar, height: 50, width: 50, gravity: :face, crop: :thumb, sign_url: true) %>
+    <strong><%= @user.name %></strong>
+  </p>
+  <%= link_to 'Edit My Profile', edit_user_path(@user) %>
+</div>
+
+<p>
+  <strong>My Photos:</strong>
+  <% @user.photos.each do |photo| %>
+    <div style="display: inline-block;">
+      <%= cl_image_tag(photo.key, height: 200, width: 200, gravity: :auto, crop: :thumb, sign_url: true) %>
+    </div>
+  <% end %>
+</p>
+
+<%= form_with(model: @user, local: true) do |form| %>
+  <p>
+    <%= form.label :photos, "Upload New Photos:" %>
+    <%= form.file_field :photos, multiple: true %>
+  </p>
+
+  <%- # Lets the action not error out if they haven't attached a file, since user param will be present %>
+  <%= form.hidden_field :hello %>
+
+  <div class="actions">
+    <%= form.submit "Upload" %>
+  </div>
+<% end %>
+
+<%= link_to 'Back', users_path %>

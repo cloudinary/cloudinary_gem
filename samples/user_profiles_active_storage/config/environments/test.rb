@@ -29,7 +29,7 @@ Rails.application.configure do
   config.action_controller.allow_forgery_protection = false
 
   # Store uploaded files on the local file system in a temporary directory
-  config.active_storage.service = :test
+  config.active_storage.service = :cloudinary_test
 
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
