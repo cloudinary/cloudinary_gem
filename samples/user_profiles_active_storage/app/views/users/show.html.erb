@@ -11,8 +11,11 @@
 <p>
   <strong>My Photos:</strong>
   <% @user.photos.each do |photo| %>
-    <div style="display: inline-block;">
+    <div style="display: inline-block; width: 200">
       <%= cl_image_tag(photo.key, height: 200, width: 200, gravity: :auto, crop: :thumb, sign_url: true) %>
+      <p style="text-align: center;">
+        <%= link_to 'Delete Image', user_photo_path(@user, photo), method: :delete, data: { confirm: 'Are you sure?' } %>
+      </p>
     </div>
   <% end %>
 </p>
