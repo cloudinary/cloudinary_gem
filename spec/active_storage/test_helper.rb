@@ -2,20 +2,18 @@
 ENV['RAILS_ENV'] ||= 'test'
 require_relative './dummy/config/environment'
 
-require 'rspec'
-require 'spec_helper'
-
-# require_relative "shared_service_tests"
 require "bundler/setup"
 require "active_support"
-# require "active_support/test_case"
-# require "active_support/testing/autorun"
-
+require "rails"
+require "active_model/railtie"
+require "active_job/railtie"
+require "active_record/railtie"
+require "action_controller/railtie"
+require "action_view/railtie"
+require "active_storage/engine"
 require "net/http"
-# require "test_helper"
 require "active_support/core_ext/securerandom"
 require "active_storage/database/setup"
-require 'active_storage/blob_key'
 
 begin
   require "byebug"

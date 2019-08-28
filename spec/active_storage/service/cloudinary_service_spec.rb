@@ -1,5 +1,5 @@
 if RUBY_VERSION > '2.2.2'
-  require 'active_storage/test_helper'
+  require 'spec_helper'
 
   AS_TAG = "active_storage_" + SUFFIX
   BASENAME = File.basename(TEST_IMG, '.*')
