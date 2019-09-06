@@ -286,7 +286,7 @@ module CloudinaryHelper
     Cloudinary::Utils.private_download_url(public_id, format, options)
   end
 
-  # Helper method that uses the deprecated ZIP download API. 
+  # Helper method that uses the deprecated ZIP download API.
   # Replaced by cl_download_zip_url that uses the more advanced and robust archive generation and download API
   # @deprecated
   def cl_zip_download_url(tag, options = {})
@@ -296,7 +296,7 @@ module CloudinaryHelper
   # @see {Cloudinary::Utils.download_archive_url}
   def cl_download_archive_url(options = {})
     Cloudinary::Utils.download_archive_url(options)
-  end  
+  end
 
   # @see {Cloudinary::Utils.download_zip_url}
   def cl_download_zip_url(options = {})
@@ -318,7 +318,7 @@ module CloudinaryHelper
       if Cloudinary.config.enhance_image_tag
         alias_method :image_tag, :image_tag_with_cloudinary
         alias_method :image_path, :image_path_with_cloudinary
-      end    
+      end
     end
   end
 
@@ -419,3 +419,19 @@ rescue LoadError
   # no sass support. Ignore.
 end
 
+begin
+  require 'sassc'
+  require 'sassc/script/functions'
+  module Sprockets
+    module SassFunctions
+      def sassc_cloudinary_url(public_id, sass_options={})
+        options = {}
+        sass_options.each{|k, v| options[k.to_sym] = v.value}
+        url = Cloudinary::Utils.cloudinary_url(public_id.value, {:type=>:asset}.merge(options))
+        ::SassC::Script::Value::String.new("url(#{url})")
+      end
+    end
+  end
+rescue LoadError
+  # no sassc support. Ignore.
+end
