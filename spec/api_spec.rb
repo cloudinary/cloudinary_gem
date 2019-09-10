@@ -421,8 +421,6 @@ describe Cloudinary::Api do
       expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :template] => "http://res.cloudinary.com"))
       Cloudinary::Api.update_upload_mapping(mapping, "template" =>"http://res.cloudinary.com")
     end
-
-
   end
   describe "access_mode" do
     i = 0
@@ -524,6 +522,24 @@ describe Cloudinary::Api do
     it "should retrieve breakpoints as json array" do
       bp = Cloudinary::Api.get_breakpoints(test_id_1, srcset: {min_width:10, max_width:2000, bytes_step: 10, max_images: 20})
       expect(bp).to be_truthy
+    end
+  end
+  describe 'folders' do
+    it 'should include max_results and next_cursor for root_folder call' do
+      expected = {
+          [:payload, :max_results] => 3,
+          [:payload, :next_cursor] => NEXT_CURSOR,
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.root_folders :max_results => 3, :next_cursor => NEXT_CURSOR
+    end
+    it 'should include max_results and next_cursor for subfolder call' do
+      expected = {
+          [:payload, :max_results] => 3,
+          [:payload, :next_cursor] => NEXT_CURSOR,
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.subfolders GENERIC_FOLDER_NAME, :max_results => 3, :next_cursor => NEXT_CURSOR
     end
   end
 end
