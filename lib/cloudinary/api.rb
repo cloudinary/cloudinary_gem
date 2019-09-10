@@ -226,11 +226,13 @@ class Cloudinary::Api
   end
 
   def self.root_folders(options={})
-    call_api(:get, "folders", {}, options)
+    params = only(options, :max_results, :next_cursor)
+    call_api(:get, "folders", params, options)
   end
 
   def self.subfolders(of_folder_path, options={})
-    call_api(:get, "folders/#{of_folder_path}", {}, options)
+    params = only(options, :max_results, :next_cursor)
+    call_api(:get, "folders/#{of_folder_path}", params, options)
   end
 
   def self.create_folder(folder_name, options={})
