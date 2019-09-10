@@ -395,6 +395,17 @@ describe Cloudinary::Api do
     Cloudinary::Api.resources_by_moderation(:manual, :approved, :max_results => 1000)
   end
 
+  describe 'create_folder' do
+    it 'should create folder' do
+      expected = {
+          [:url] => /.*\/folders\/#{UNIQUE_TEST_FOLDER}$/,
+          [:method] => :post
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.create_folder(UNIQUE_TEST_FOLDER)
+    end
+  end
+
   it "should support listing folders" do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders$/, [:method] => :get))
     Cloudinary::Api.root_folders
@@ -523,15 +534,6 @@ describe Cloudinary::Api do
     it "should retrieve breakpoints as json array" do
       bp = Cloudinary::Api.get_breakpoints(test_id_1, srcset: {min_width:10, max_width:2000, bytes_step: 10, max_images: 20})
       expect(bp).to be_truthy
-    end
-  end
-  describe 'create_folder' do
-    it 'should create folder' do
-      expected = {
-          [:url] => /.*\/folders\/#{UNIQUE_TEST_FOLDER}/
-      }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      @api.create_folder(UNIQUE_TEST_FOLDER)
     end
   end
 end

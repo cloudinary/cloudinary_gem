@@ -233,6 +233,10 @@ class Cloudinary::Api
     call_api(:get, "folders/#{of_folder_path}", {}, options)
   end
 
+  def self.create_folder(folder_name, options={})
+    call_api(:post, "folders/#{folder_name}", {}, options)
+  end
+
   def self.upload_mappings(options={})
     params = only(options, :next_cursor, :max_results)
     call_api(:get, :upload_mappings, params, options)
@@ -333,10 +337,6 @@ class Cloudinary::Api
     local_options[:transformation] = [base_transformation, width: "auto:breakpoints_#{breakpoints}:json"]
     json_url = Cloudinary::Utils.cloudinary_url public_id, local_options
     call_json_api('GET', json_url, {}, 60, {})
-  end
-
-  def self.create_folder(folder_name, options={})
-    call_api('POST', "folders/#{folder_name}", {}, options)
   end
 
   protected
