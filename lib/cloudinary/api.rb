@@ -233,6 +233,10 @@ class Cloudinary::Api
     call_api(:get, "folders/#{of_folder_path}", {}, options)
   end
 
+  def self.create_folder(folder_name, options={})
+    call_api(:post, "folders/#{folder_name}", {}, options)
+  end
+
   def self.upload_mappings(options={})
     params = only(options, :next_cursor, :max_results)
     call_api(:get, :upload_mappings, params, options)

@@ -15,6 +15,7 @@ TEST_IMG_H = 51
 SUFFIX = ENV['TRAVIS_JOB_ID'] || rand(999999999).to_s
 TEST_TAG = 'cloudinary_gem_test'
 TIMESTAMP_TAG = "#{TEST_TAG}_#{SUFFIX}_#{RUBY_VERSION}_#{ defined? Rails::version ? Rails::version : 'no_rails'}"
+UNIQUE_TEST_FOLDER = "#{TEST_TAG}_#{SUFFIX}_folder"
 
 # Auth token
 KEY     = "00112233FF99"
