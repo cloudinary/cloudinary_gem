@@ -421,9 +421,8 @@ describe Cloudinary::Api do
       expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :template] => "http://res.cloudinary.com"))
       Cloudinary::Api.update_upload_mapping(mapping, "template" =>"http://res.cloudinary.com")
     end
-
-
   end
+
   describe "access_mode" do
     i = 0
 
@@ -524,6 +523,15 @@ describe Cloudinary::Api do
     it "should retrieve breakpoints as json array" do
       bp = Cloudinary::Api.get_breakpoints(test_id_1, srcset: {min_width:10, max_width:2000, bytes_step: 10, max_images: 20})
       expect(bp).to be_truthy
+    end
+  end
+  describe 'create_folder' do
+    it 'should create folder' do
+      expected = {
+          [:url] => /.*\/folders\/#{UNIQUE_TEST_FOLDER}/
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.create_folder(UNIQUE_TEST_FOLDER)
     end
   end
 end

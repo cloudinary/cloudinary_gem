@@ -335,6 +335,10 @@ class Cloudinary::Api
     call_json_api('GET', json_url, {}, 60, {})
   end
 
+  def self.create_folder(folder_name, options={})
+    call_api('POST', "folders/#{folder_name}", {}, options)
+  end
+
   protected
 
   def self.call_api(method, uri, params, options)
