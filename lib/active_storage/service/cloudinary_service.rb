@@ -169,12 +169,8 @@ module ActiveStorage
       options = key.attributes
       content_type = options[:content_type] || (io.nil? ? '' : Marcel::MimeType.for(io))
       case content_type.split('/')[0]
-      when 'image'
-        'image'
       when 'video'
         'video'
-      when ''
-        'image'
       when 'text'
         'raw'
       else
