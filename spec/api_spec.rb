@@ -395,15 +395,32 @@ describe Cloudinary::Api do
     Cloudinary::Api.resources_by_moderation(:manual, :approved, :max_results => 1000)
   end
 
-  it "should support listing folders" do
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders$/, [:method] => :get))
-    Cloudinary::Api.root_folders
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders\/test_folder1$/, [:method] => :get))
-    Cloudinary::Api.subfolders("test_folder1")
-  end
-
-  it "should throw if folder is missing" do
-    expect{Cloudinary::Api.subfolders("I_do_not_exist")}.to raise_error(Cloudinary::Api::NotFound)
+  describe 'folders' do
+    it "should support listing folders" do
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders$/, [:method] => :get))
+      Cloudinary::Api.root_folders
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders\/test_folder1$/, [:method] => :get))
+      Cloudinary::Api.subfolders("test_folder1")
+    end
+    it "should throw if folder is missing" do
+      expect{Cloudinary::Api.subfolders("I_do_not_exist")}.to raise_error(Cloudinary::Api::NotFound)
+    end
+    it 'should include max_results and next_cursor for root_folders call' do
+      expected = {
+          [:payload, :max_results] => 3,
+          [:payload, :next_cursor] => NEXT_CURSOR,
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.root_folders :max_results => 3, :next_cursor => NEXT_CURSOR
+    end
+    it 'should include max_results and next_cursor for subfolders call' do
+      expected = {
+          [:payload, :max_results] => 3,
+          [:payload, :next_cursor] => NEXT_CURSOR,
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.subfolders GENERIC_FOLDER_NAME, :max_results => 3, :next_cursor => NEXT_CURSOR
+    end
   end
 
   describe '.restore'  do
@@ -522,24 +539,6 @@ describe Cloudinary::Api do
     it "should retrieve breakpoints as json array" do
       bp = Cloudinary::Api.get_breakpoints(test_id_1, srcset: {min_width:10, max_width:2000, bytes_step: 10, max_images: 20})
       expect(bp).to be_truthy
-    end
-  end
-  describe 'folders' do
-    it 'should include max_results and next_cursor for root_folder call' do
-      expected = {
-          [:payload, :max_results] => 3,
-          [:payload, :next_cursor] => NEXT_CURSOR,
-      }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      @api.root_folders :max_results => 3, :next_cursor => NEXT_CURSOR
-    end
-    it 'should include max_results and next_cursor for subfolder call' do
-      expected = {
-          [:payload, :max_results] => 3,
-          [:payload, :next_cursor] => NEXT_CURSOR,
-      }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      @api.subfolders GENERIC_FOLDER_NAME, :max_results => 3, :next_cursor => NEXT_CURSOR
     end
   end
 end
