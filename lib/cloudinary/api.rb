@@ -79,7 +79,8 @@ class Cloudinary::Api
     type          = options[:type] || "upload"
     uri           = "resources/#{resource_type}/#{type}/#{public_id}"
     call_api(:get, uri, 
-             only(options, 
+             only(options,
+                  :cinemagraph_analysis,
                   :colors,
                   :coordinates,
                   :exif,

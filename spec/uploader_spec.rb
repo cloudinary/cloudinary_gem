@@ -49,6 +49,12 @@ describe Cloudinary::Uploader do
     end
   end
 
+  it "should support the cinemagraph_analysis parameter" do
+    result = Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :cinemagraph_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result).to have_key("cinemagraph_analysis")
+    expect(result["cinemagraph_analysis"]).to have_key("cinemagraph_score")
+  end
+
   describe '.rename' do
     before(:all) do
       @result        = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
