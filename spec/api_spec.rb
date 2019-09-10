@@ -396,6 +396,14 @@ describe Cloudinary::Api do
   end
 
   describe 'folders' do
+    it 'should create folder' do
+      expected = {
+          [:url] => /.*\/folders\/#{UNIQUE_TEST_FOLDER}$/,
+          [:method] => :post
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.create_folder(UNIQUE_TEST_FOLDER)
+    end
     it "should support listing folders" do
       expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders$/, [:method] => :get))
       Cloudinary::Api.root_folders
@@ -439,6 +447,7 @@ describe Cloudinary::Api do
       Cloudinary::Api.update_upload_mapping(mapping, "template" =>"http://res.cloudinary.com")
     end
   end
+
   describe "access_mode" do
     i = 0
 
