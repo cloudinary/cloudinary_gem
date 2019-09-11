@@ -57,3 +57,7 @@ bower.json
 !lib/
 cloudinary.yml
 configuration.yml
+
+# Developer env
+.idea
+.vscode
