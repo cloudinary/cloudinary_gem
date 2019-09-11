@@ -5,7 +5,7 @@ require 'rexml/parsers/ultralightparser'
 require 'nokogiri'
 require 'rspec/version'
 require 'rest_client'
-require 'active_storage/test_helper'
+require 'active_storage/test_helper' if RUBY_VERSION >= '2.2.2'
 require 'cloudinary'
 
 Cloudinary.config.enhance_image_tag = true
