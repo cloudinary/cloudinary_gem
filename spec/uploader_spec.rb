@@ -49,10 +49,14 @@ describe Cloudinary::Uploader do
     end
   end
 
-  it "should support the cinemagraph_analysis parameter" do
+  it "should support the cinemagraph_analysis parameter for upload and explicit" do
     result = Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :cinemagraph_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result).to have_key("cinemagraph_analysis")
     expect(result["cinemagraph_analysis"]).to have_key("cinemagraph_score")
+
+    result2 = Cloudinary::Uploader.explicit(result['public_id'], :type => "upload", :cinemagraph_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result2).to have_key("cinemagraph_analysis")
+    expect(result2["cinemagraph_analysis"]).to have_key("cinemagraph_score")
   end
 
   describe '.rename' do
@@ -111,7 +115,7 @@ describe Cloudinary::Uploader do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :public_id] => "sample", [:payload, :eager] => "c_scale,w_2.0"))
     result = Cloudinary::Uploader.explicit("sample", :type=>"upload", :eager=>[{:crop=>"scale", :width=>"2.0"}])
   end
-  
+
   it "should support eager" do
     result = Cloudinary::Uploader.upload(TEST_IMG, :eager =>[{ :crop =>"scale", :width =>"2.0"}], :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result["eager"].length).to be(1)
@@ -386,7 +390,6 @@ describe Cloudinary::Uploader do
 
 
   describe 'explicit' do
-
     context ":invalidate" do
       it 'should pass the invalidate value to the server' do
         expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :invalidate] => 1))
