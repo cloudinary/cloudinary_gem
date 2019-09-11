@@ -38,8 +38,8 @@ module ActiveStorage
             extra_headers: extra_headers,
             **options
           )
-        rescue CloudinaryException
-          raise ActiveStorage::IntegrityError
+        rescue CloudinaryException => e
+          raise ActiveStorage::IntegrityError, e.message, e.backtrace
         end
       end
     end
