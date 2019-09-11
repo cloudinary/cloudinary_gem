@@ -1,0 +1,13 @@
+<p>
+  Downloaded the image to check size!
+</p>
+<p>
+  Image size in bytes: <%= @downloaded.bytesize %>
+</p>
+<p>
+  Attempting to display image (from memory, not from Cloudinary; this only works if it's a compatible image type):
+</p>
+<p>
+  <img src="data:<%= @photo.key.attributes[:content_type] %>;base64, <%= Base64.encode64(@downloaded) %>">
+</p>
+<%= link_to 'Back', user_path(@user) %>
