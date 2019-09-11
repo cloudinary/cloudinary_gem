@@ -138,10 +138,12 @@ describe Cloudinary::Api do
   end
 
   it "should support the cinemagraph_analysis parameter" do
+    expected = {
+        [:payload, :cinemagraph_analysis] => true,
+        [:method] => :post
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :cinemagraph_analysis] => true}))
     resource = @api.resource(test_id_1, :cinemagraph_analysis => true)
-    expect(resource).not_to be_blank
-    expect(resource).to have_key("cinemagraph_analysis")
-    expect(resource["cinemagraph_analysis"]).to have_key("cinemagraph_score")
   end
 
   it "should allow deleting derived resource" do
