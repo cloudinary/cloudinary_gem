@@ -842,7 +842,7 @@ class Cloudinary::Utils
     when self.supported_format?(format, VIDEO_FORMATS)
       'video'
     when self.supported_format?(format, AUDIO_FORMATS)
-      'audio'
+      'video'
     else
       'raw'
     end
