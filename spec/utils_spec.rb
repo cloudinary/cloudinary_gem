@@ -970,7 +970,7 @@ describe Cloudinary::Utils do
 
   describe "resource_type per format" do
 
-    it "set correct resource_type for formats" do
+    it "should return the correct resource_type per format" do
 
       format_to_resource_type = {
         "jpg" => "image",
