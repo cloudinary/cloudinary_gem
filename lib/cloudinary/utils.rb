@@ -839,9 +839,7 @@ class Cloudinary::Utils
     case
     when self.supported_format?(format, IMAGE_FORMATS)
       'image'
-    when self.supported_format?(format, VIDEO_FORMATS)
-      'video'
-    when self.supported_format?(format, AUDIO_FORMATS)
+    when self.supported_format?(format, VIDEO_FORMATS + AUDIO_FORMATS)
       'video'
     else
       'raw'
