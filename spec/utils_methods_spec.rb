@@ -5,6 +5,9 @@ include Cloudinary
 
 describe Utils do
 
+  let(:cloud_name) { Cloudinary.config.cloud_name }
+  let(:root_path) { "http://res.cloudinary.com/#{cloud_name}" }
+
   it 'should parse integer range values' do
     expect(Utils.instance_eval { norm_range_value("200") }).to eq("200")
   end
@@ -62,6 +65,34 @@ describe Utils do
         "data:image/gif;param1=value1;param2=value2;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
       ].each do |url|
         expect(Cloudinary::Utils.is_remote?(url)).to eq(true), url
+      end
+    end
+  end
+  describe "radius transformation" do
+    it "should process the radius correctly when given valid values" do
+      valid_radius_test_values = [
+        [10, "r_10"],
+        ['10', 'r_10'],
+        ['$v', 'r_$v'],
+        [[10, 20, 30], 'r_10:20:30'],
+        [[10, 20, '$v'], 'r_10:20:$v'],
+        [[10, 20, '$v', 40], 'r_10:20:$v:40'],
+        [['10:20'], 'r_10:20'],
+        [['10:20:$v:40'], 'r_10:20:$v:40']
+      ]
+      valid_radius_test_values.each do |options, expected|
+        expect(["test", { :transformation => { :radius => options } }])
+          .to produce_url("#{root_path}/image/upload/#{expected}/test") .and empty_options
+      end
+    end
+    it "should throw an error when the radius is given invalid values" do
+      invalid_radius_test_values = [
+        [],
+        [10,20,30,40,50]
+      ]
+      invalid_radius_test_values.each do |options|
+        expect{Cloudinary::Utils.cloudinary_url("test", {:transformation => {:radius => options}})}
+          .to raise_error(CloudinaryException)
       end
     end
   end
