@@ -428,6 +428,34 @@ describe Cloudinary::Utils do
             .and empty_options
   end
 
+  it "should process the radius correctly when given valid values" do
+    valid_radius_test_values = [
+      [10, "r_10"],
+      ['10', 'r_10'],
+      ['$v', 'r_$v'],
+      [[10, 20, 30], 'r_10:20:30'],
+      [[10, 20, '$v'], 'r_10:20:$v'],
+      [[10, 20, '$v', 40], 'r_10:20:$v:40'],
+      [['10:20'], 'r_10:20'],
+      [['10:20:$v:40'], 'r_10:20:$v:40']
+    ]
+    valid_radius_test_values.each do |options, expected|
+      expect(["test", { :transformation => { :radius => options } }])
+        .to produce_url("#{root_path}/image/upload/#{expected}/test") .and empty_options
+    end
+  end
+
+  it "should throw an error when the radius is given invalid values" do
+    invalid_radius_test_values = [
+      [],
+      [10,20,30,40,50]
+    ]
+    invalid_radius_test_values.each do |options|
+      expect{Cloudinary::Utils.cloudinary_url("test", {:transformation => {:radius => options}})}
+        .to raise_error(CloudinaryException)
+    end
+  end
+
   it "should support format for fetch urls" do
     expect(["http://cloudinary.com/images/logo.png", { :format => "jpg", :type => :fetch }])
       .to produce_url("#{root_path}/image/fetch/f_jpg/http://cloudinary.com/images/logo.png")
