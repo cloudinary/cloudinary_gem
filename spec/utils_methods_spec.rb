@@ -5,9 +5,6 @@ include Cloudinary
 
 describe Utils do
 
-  let(:cloud_name) { Cloudinary.config.cloud_name }
-  let(:root_path) { "http://res.cloudinary.com/#{cloud_name}" }
-
   it 'should parse integer range values' do
     expect(Utils.instance_eval { norm_range_value("200") }).to eq("200")
   end
