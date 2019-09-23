@@ -65,4 +65,17 @@ describe Utils do
       end
     end
   end
+  describe "resource_type per format" do
+    it "should return the correct resource_type per format" do
+      format_to_resource_type = {
+        "jpg" => "image",
+        "mp4" => "video",
+        "txt" => "raw",
+        "mp3" => "video",
+      }
+      format_to_resource_type.each do |format, resource_type|
+        expect(Cloudinary::Utils.resource_type_for_format(format)).to eq(resource_type)
+      end
+    end
+  end
 end
