@@ -241,7 +241,7 @@ class Cloudinary::Utils
       :l  => overlay,
       :o => normalize_expression(options.delete(:opacity)),
       :q => normalize_expression(options.delete(:quality)),
-      :r => normalize_expression(options.delete(:radius)),
+      :r => process_radius(options.delete(:radius)),
       :t   => named_transformation,
       :u  => underlay,
       :w   => normalize_expression(width),
@@ -382,6 +382,17 @@ class Cloudinary::Utils
      layer
   end
   private_class_method :process_layer
+
+  # Parse radius options
+  # @return [string] radius transformation string
+  # @private
+  def self.process_radius(radius)
+    if radius.is_a?(Array) && !radius.length.between?(1, 4)
+      raise(CloudinaryException, "Invalid radius parameter")
+    end
+    Array(radius).map { |r| normalize_expression(r) }.join(":")
+  end
+  private_class_method :process_radius
 
   LAYER_KEYWORD_PARAMS =[
     [:font_weight     ,"normal"],
