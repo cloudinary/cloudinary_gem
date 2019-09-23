@@ -387,14 +387,10 @@ class Cloudinary::Utils
   # @return [string] radius transformation string
   # @private
   def self.process_radius(radius)
-    if radius.is_a?(Array)
-        unless radius.length.between?(1, 4)
+    if radius.is_a?(Array) && !radius.length.between?(1, 4)
           raise(CloudinaryException, "Invalid radius parameter")
-        end
-        return radius.map { |r| normalize_expression(r) }.join(":")
-    else
-      return normalize_expression(radius)
     end
+    Array(radius).map { |r| normalize_expression(r) }.join(":")
   end
   private_class_method :process_radius
 

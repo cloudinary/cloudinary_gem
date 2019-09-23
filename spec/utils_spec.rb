@@ -430,7 +430,7 @@ describe Cloudinary::Utils do
 
   it "should process the radius correctly when given valid values" do
     valid_radius_test_values = [
-      [10, "r_10"],
+      [10, 'r_10'],
       ['10', 'r_10'],
       ['$v', 'r_$v'],
       [[10, 20, 30], 'r_10:20:30'],
