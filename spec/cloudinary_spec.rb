@@ -30,14 +30,13 @@ describe Cloudinary do
     end
 
     it "should set accept a CLOUDINARY_URL with the correct scheme (cloudinary)" do
-        valid_cloudinary_url = "cloudinary://key:secret@test123"
+        valid_cloudinary_url = "cloudinary://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test"
         expect{Cloudinary::config_from_url valid_cloudinary_url}.not_to raise_error
     end
     it "should raise an exception if the CLOUDINARY_URL doesn't start with 'cloudinary://'" do
       invalid_cloudinary_urls = [
-        "https://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test",
-        "",
         "CLOUDINARY_URL=cloudinary://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test",
+        "https://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test",
         "://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test",
         " "
       ]
