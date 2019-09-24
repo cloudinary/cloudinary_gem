@@ -126,4 +126,23 @@ describe Cloudinary::Uploader do
       Cloudinary::Uploader.create_zip({ :tags => TEST_TAG })
     end
   end
+  describe '.create_archive based on fully_qualified_public_ids' do
+    it 'should allow you to generate an archive by specifying multiple resource_types' do
+      test_ids = [
+        "image/upload/#{TEST_IMG}",
+        "video/upload/#{TEST_VIDEO}",
+        "raw/upload/#{TEST_RAW}"
+      ]
+      expected = {
+        [:fully_qualified_public_ids] => test_ids
+      }
+      expect(Cloudinary::Uploader).to receive(:create_archive).with(deep_hash_value(expected))
+      Cloudinary::Uploader.create_archive(
+        {
+          :resource_type              => :auto,
+          :fully_qualified_public_ids => test_ids
+        }
+      )
+    end
+  end
 end
