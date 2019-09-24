@@ -236,6 +236,10 @@ class Cloudinary::Api
     call_api(:get, "folders/#{of_folder_path}", params, options)
   end
 
+  def self.delete_folder(path, options={})
+    call_api(:delete, "folders/#{path}", {}, options)
+  end
+
   def self.create_folder(folder_name, options={})
     call_api(:post, "folders/#{folder_name}", {}, options)
   end

@@ -437,6 +437,14 @@ describe Cloudinary::Api do
       expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
       @api.subfolders GENERIC_FOLDER_NAME, :max_results => 3, :next_cursor => NEXT_CURSOR
     end
+    it "should support deleting a folder" do
+      expected = {
+        :url => %r"/folders/#{GENERIC_FOLDER_NAME}$",
+        :method => :delete
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.delete_folder(GENERIC_FOLDER_NAME)
+    end
   end
 
   describe '.restore'  do
