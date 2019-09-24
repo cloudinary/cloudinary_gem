@@ -868,7 +868,7 @@ class Cloudinary::Utils
     return options.delete(option_name) if options.include?(option_name)
     option_value = Cloudinary.config.send(option_name)
     option_value = default_value if option_value.nil?
-    return option_value
+    option_value
   end
 
   def self.as_bool(value)
