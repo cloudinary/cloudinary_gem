@@ -354,6 +354,7 @@ class Cloudinary::Api
     api_key    = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
     api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
     timeout    = options[:timeout] || Cloudinary.config.timeout || 60
+    uri = Cloudinary::Utils.smart_escape(uri)
     api_url    = [cloudinary, "v1_1", cloud_name, uri].join("/")
     # Add authentication
     api_url.sub!(%r(^(https?://)), "\\1#{api_key}:#{api_secret}@")
