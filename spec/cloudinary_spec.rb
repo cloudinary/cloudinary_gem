@@ -2,10 +2,10 @@ require 'spec_helper'
 require 'cloudinary'
 
 describe Cloudinary do
-  before :all do
+  before :each do
     @user_platform = Cloudinary.user_platform
   end
-  after :all do
+  after :each do
     Cloudinary.user_platform = @user_platform
   end
 
