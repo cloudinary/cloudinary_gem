@@ -321,7 +321,7 @@ class Cloudinary::Uploader
     result = nil
 
     api_url                  = Cloudinary::Utils.cloudinary_api_url(action, options)
-    headers                  = { "User-Agent" => Cloudinary.USER_AGENT }
+    headers                  = { "User-Agent" => Cloudinary::USER_AGENT }
     headers['Content-Range'] = options[:content_range] if options[:content_range]
     headers['X-Unique-Upload-Id'] = options[:unique_upload_id] if options[:unique_upload_id]
     headers.merge!(options[:extra_headers]) if options[:extra_headers]

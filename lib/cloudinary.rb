@@ -29,7 +29,7 @@ module Cloudinary
   OLD_AKAMAI_SHARED_CDN = "cloudinary-a.akamaihd.net"
   SHARED_CDN            = AKAMAI_SHARED_CDN
 
-  @@USER_AGENT    = "CloudinaryRuby/#{VERSION} (Ruby #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL})"
+  USER_AGENT      = "CloudinaryRuby/#{VERSION} (Ruby #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL})"
   @@user_platform = defined?(Rails.version) ? "Rails/#{Rails.version}" : ""
 
   # Add platform information to the USER_AGENT header
@@ -44,9 +44,9 @@ module Cloudinary
 
   def self.USER_AGENT
     if @@user_platform.empty?
-      return @@USER_AGENT
+      USER_AGENT
     end
-    "#{@@user_platform} #{@@USER_AGENT}"
+    "#{@@user_platform} #{USER_AGENT}"
   end
 
   FORMAT_ALIASES = {
