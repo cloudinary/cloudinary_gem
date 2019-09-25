@@ -145,6 +145,15 @@ describe Cloudinary::Api do
     expect(resource["quality_analysis"]).to have_key("focus")
   end
 
+  it "should support the cinemagraph_analysis parameter" do
+    expected = {
+        [:payload, :cinemagraph_analysis] => true,
+        [:method] => :get
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    @api.resource(test_id_1, :cinemagraph_analysis => true)
+  end
+
   it "should allow deleting derived resource" do
     derived_resource_id = "derived_id"
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :derived_resource_ids] => derived_resource_id}))

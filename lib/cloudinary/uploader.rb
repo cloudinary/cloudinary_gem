@@ -27,6 +27,7 @@ class Cloudinary::Uploader
       :backup                    => Cloudinary::Utils.as_safe_bool(options[:backup]),
       :callback                  => options[:callback],
       :categorization            => options[:categorization],
+      :cinemagraph_analysis      => Cloudinary::Utils.as_safe_bool(options[:cinemagraph_analysis]),
       :colors                    => Cloudinary::Utils.as_safe_bool(options[:colors]),
       :context                   => Cloudinary::Utils.encode_context(options[:context]),
       :custom_coordinates        => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
