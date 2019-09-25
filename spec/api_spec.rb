@@ -367,7 +367,7 @@ describe Cloudinary::Api do
   end
 
   it "should support requesting raw conversion" do
-    result = Cloudinary::Uploader.upload("spec/docx.docx", :resource_type => :raw, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    result = Cloudinary::Uploader.upload(TEST_RAW, :resource_type => :raw, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect{Cloudinary::Api.update(result["public_id"], {:resource_type => :raw, :raw_convert => :illegal})}.to raise_error(Cloudinary::Api::BadRequest, /^Illegal value|not a valid/)
   end
 
