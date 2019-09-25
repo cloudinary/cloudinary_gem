@@ -45,8 +45,9 @@ module Cloudinary
   def self.USER_AGENT
     if @@user_platform.empty?
       USER_AGENT
+    else
+      "#{@@user_platform} #{USER_AGENT}"
     end
-    "#{@@user_platform} #{USER_AGENT}"
   end
 
   FORMAT_ALIASES = {
