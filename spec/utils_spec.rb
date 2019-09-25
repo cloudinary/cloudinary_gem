@@ -355,30 +355,10 @@ describe Cloudinary::Utils do
     end
 
     describe "should support and translate arithmetic operators" do
-      it "should support '*'" do
-        t = [{:width => 'initial_width * 2', :height => 'initial_height * 3', :crop => 'scale'}]
-        mul_operator = "c_scale,h_ih_mul_3,w_iw_mul_2"
-        expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{mul_operator}/sample")
-      end
-      it "should support '/'" do
-        t = [{:width => 'initial_width / 2', :height => 'initial_height / 3', :crop => 'scale'}]
-        div_operator = "c_scale,h_ih_div_3,w_iw_div_2"
-        expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{div_operator}/sample")
-      end
-      it "should support '+'" do
-        t = [{:width => 'initial_width + 2', :height => 'initial_height + 3', :crop => 'scale'}]
-        add_operator = "c_scale,h_ih_add_3,w_iw_add_2"
-        expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{add_operator}/sample")
-      end
-      it "should support '-'" do
-        t = [{:width => 'initial_width - 2', :height => 'initial_height - 3', :crop => 'scale'}]
-        sub_operator = "c_scale,h_ih_sub_3,w_iw_sub_2"
-        expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{sub_operator}/sample")
-      end
-      it "should support '^'" do
-        t = [{:width => 'initial_width ^ 2', :height => 'initial_height ^ 3', :crop => 'scale'}]
-        pow_operator = "c_scale,h_ih_pow_3,w_iw_pow_2"
-        expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{pow_operator}/sample")
+      it "should support * / + - ^" do
+        t = [{:width => 'initial_width * 2 / 3 ^ 2', :height => 'initial_height + 2 - 3', :crop => 'scale'}]
+        expected_trans = "c_scale,h_ih_add_2_sub_3,w_iw_mul_2_div_3_pow_2"
+        expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{expected_trans}/sample")
       end
     end
   end
