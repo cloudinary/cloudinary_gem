@@ -418,6 +418,13 @@ describe Cloudinary::Api do
       expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders\/test_folder1$/, [:method] => :get))
       Cloudinary::Api.subfolders("test_folder1")
     end
+    it "should URL escape the folder name" do
+      expected = {
+        [:url] => %r".*\/folders\/sub%5Efolder%20test$"
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Api.subfolders("sub^folder test")
+    end
     it "should throw if folder is missing" do
       expect{Cloudinary::Api.subfolders("I_do_not_exist")}.to raise_error(Cloudinary::Api::NotFound)
     end

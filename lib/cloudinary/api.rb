@@ -233,6 +233,7 @@ class Cloudinary::Api
 
   def self.subfolders(of_folder_path, options={})
     params = only(options, :max_results, :next_cursor)
+    of_folder_path = Cloudinary::Utils.smart_escape(of_folder_path)
     call_api(:get, "folders/#{of_folder_path}", params, options)
   end
 
