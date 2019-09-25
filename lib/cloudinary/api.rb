@@ -88,7 +88,8 @@ class Cloudinary::Api
                   :max_results,
                   :pages,
                   :phash,
-                  :quality_analysis
+                  :quality_analysis,
+                  :derived_next_cursor
              ), options)
   end
 
@@ -233,6 +234,10 @@ class Cloudinary::Api
   def self.subfolders(of_folder_path, options={})
     params = only(options, :max_results, :next_cursor)
     call_api(:get, "folders/#{of_folder_path}", params, options)
+  end
+
+  def self.delete_folder(path, options={})
+    call_api(:delete, "folders/#{path}", {}, options)
   end
 
   def self.create_folder(folder_name, options={})
