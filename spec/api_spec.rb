@@ -142,8 +142,8 @@ describe Cloudinary::Api do
         [:payload, :cinemagraph_analysis] => true,
         [:method] => :post
     }
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :cinemagraph_analysis] => true}))
-    resource = @api.resource(test_id_1, :cinemagraph_analysis => true)
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    @api.resource(test_id_1, :cinemagraph_analysis => true)
   end
 
   it "should allow deleting derived resource" do

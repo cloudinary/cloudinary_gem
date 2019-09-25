@@ -55,7 +55,7 @@ describe Cloudinary::Uploader do
         [:method] => :post
     }
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-    result = Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :cinemagraph_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :cinemagraph_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
   end
 
   it "should support the cinemagraph_analysis parameter for explicit" do
@@ -64,7 +64,7 @@ describe Cloudinary::Uploader do
         [:method] => :post
     }
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-    result = Cloudinary::Uploader.explicit('sample', :type => "upload", :cinemagraph_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    Cloudinary::Uploader.explicit('sample', :type => "upload", :cinemagraph_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
   end
 
   describe '.rename' do
