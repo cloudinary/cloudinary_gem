@@ -35,6 +35,14 @@ describe Cloudinary::Api do
     end
   end
 
+  it "should allow using derived_next_cursor when listing details of a single resource" do
+    expected = {
+      [:payload, :derived_next_cursor] => "b16b8bd80426df43a107f26b0348"
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    @api.resource("test", {"derived_next_cursor" => "b16b8bd80426df43a107f26b0348"})
+  end
+
   it "should allow listing resource_types" do
     expect(@api.resource_types()["resource_types"]).to include("image")
   end
@@ -428,6 +436,14 @@ describe Cloudinary::Api do
       }
       expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
       @api.subfolders GENERIC_FOLDER_NAME, :max_results => 3, :next_cursor => NEXT_CURSOR
+    end
+    it "should support deleting a folder" do
+      expected = {
+        :url => %r"/folders/#{GENERIC_FOLDER_NAME}$",
+        :method => :delete
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.delete_folder(GENERIC_FOLDER_NAME)
     end
   end
 

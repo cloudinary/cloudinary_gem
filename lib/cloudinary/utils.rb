@@ -414,6 +414,10 @@ class Cloudinary::Utils
     keywords.push("letter_spacing_#{letter_spacing}") unless letter_spacing.blank?
     line_spacing = layer[:line_spacing]
     keywords.push("line_spacing_#{line_spacing}") unless line_spacing.blank?
+    font_antialiasing = layer[:font_antialiasing]
+    keywords.push("antialias_#{font_antialiasing}") unless font_antialiasing.blank?
+    font_hinting = layer[:font_hinting]
+    keywords.push("hinting_#{font_hinting}") unless font_hinting.blank?
     if !font_size.blank? || !font_family.blank? || !keywords.empty?
       raise(CloudinaryException, "Must supply font_family for text in overlay/underlay") if font_family.blank?
       raise(CloudinaryException, "Must supply font_size for text in overlay/underlay") if font_size.blank?
