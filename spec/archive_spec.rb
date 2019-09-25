@@ -128,11 +128,7 @@ describe Cloudinary::Uploader do
   end
   describe '.create_archive based on fully_qualified_public_ids' do
     it 'should allow you to generate an archive by specifying multiple resource_types' do
-      test_ids = [
-        "image/upload/#{TEST_IMG}",
-        "video/upload/#{TEST_VIDEO}",
-        "raw/upload/#{TEST_RAW}"
-      ]
+      test_ids = %W( image/upload/#{TEST_IMG} video/upload/#{TEST_VIDEO} raw/upload/#{TEST_RAW})
       expected = {
         [:payload, :fully_qualified_public_ids] => test_ids,
         [:url]                                  => %r"/auto/generate_archive$"
