@@ -134,9 +134,10 @@ describe Cloudinary::Uploader do
         "raw/upload/#{TEST_RAW}"
       ]
       expected = {
-        [:fully_qualified_public_ids] => test_ids
+        [:payload, :fully_qualified_public_ids] => test_ids,
+        [:url]                                  => %r"/auto/generate_archive$"
       }
-      expect(Cloudinary::Uploader).to receive(:create_archive).with(deep_hash_value(expected))
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
       Cloudinary::Uploader.create_archive(
         {
           :resource_type              => :auto,
