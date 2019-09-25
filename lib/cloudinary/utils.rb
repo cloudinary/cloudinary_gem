@@ -530,10 +530,10 @@ class Cloudinary::Utils
     source, source_to_sign = finalize_source(source, format, url_suffix)
 
     force_version = true if force_version.nil?
-    if version.nil? && force_version \
-         && source_to_sign.include?("/") \
-         && !source_to_sign.match(/^v[0-9]+/) \
-         && !source_to_sign.match(/^https?:\//)
+    if version.nil? && force_version &&
+         source_to_sign.include?("/") &&
+         !source_to_sign.match(/^v[0-9]+/) &&
+         !source_to_sign.match(/^https?:\//)
       version = 1
     end
     version &&= "v#{version}"
