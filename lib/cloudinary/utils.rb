@@ -478,7 +478,7 @@ class Cloudinary::Utils
 
     resource_type = options.delete(:resource_type)
     version = options.delete(:version)
-    force_version = config_option_consume(options, :force_version)
+    force_version = config_option_consume(options, :force_version, true)
     format = options.delete(:format)
     cloud_name = config_option_consume(options, :cloud_name) || raise(CloudinaryException, "Must supply cloud_name in tag or in configuration")
 
@@ -529,7 +529,6 @@ class Cloudinary::Utils
     resource_type, type = finalize_resource_type(resource_type, type, url_suffix, use_root_path, shorten)
     source, source_to_sign = finalize_source(source, format, url_suffix)
 
-    force_version = true if force_version.nil?
     if version.nil? && force_version &&
          source_to_sign.include?("/") &&
          !source_to_sign.match(/^v[0-9]+/) &&
@@ -871,8 +870,7 @@ class Cloudinary::Utils
   def self.config_option_consume(options, option_name, default_value = nil)
     return options.delete(option_name) if options.include?(option_name)
     option_value = Cloudinary.config.send(option_name)
-    option_value = default_value if option_value.nil?
-    option_value
+    option_value.nil? ? default_value : option_value
   end
 
   def self.as_bool(value)
