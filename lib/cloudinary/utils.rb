@@ -949,6 +949,7 @@ class Cloudinary::Utils
       :keep_derived=>Cloudinary::Utils.as_safe_bool(options[:keep_derived]),
       :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]),
       :public_ids=>options[:public_ids] && Cloudinary::Utils.build_array(options[:public_ids]),
+      :fully_qualified_public_ids=>options[:fully_qualified_public_ids] && Cloudinary::Utils.build_array(options[:fully_qualified_public_ids]),
       :prefixes=>options[:prefixes] && Cloudinary::Utils.build_array(options[:prefixes]),
       :expires_at=>options[:expires_at],
       :transformations => build_eager(options[:transformations]),
