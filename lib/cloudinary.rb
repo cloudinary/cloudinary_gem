@@ -86,7 +86,12 @@ module Cloudinary
 
   def self.config_from_url(url)
     @@config ||= OpenStruct.new
-    uri      = URI.parse(url)
+    return unless url && !url.empty?
+    uri = URI.parse(url)
+    if !uri.scheme || "cloudinary" != uri.scheme.downcase
+      raise(CloudinaryException,
+        "Invalid CLOUDINARY_URL scheme. Expecting to start with 'cloudinary://'")
+    end
     set_config(
       "cloud_name"          => uri.host,
       "api_key"             => uri.user,
