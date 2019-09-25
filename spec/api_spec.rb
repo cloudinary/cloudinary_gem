@@ -140,7 +140,7 @@ describe Cloudinary::Api do
   it "should support the cinemagraph_analysis parameter" do
     expected = {
         [:payload, :cinemagraph_analysis] => true,
-        [:method] => :post
+        [:method] => :get
     }
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
     @api.resource(test_id_1, :cinemagraph_analysis => true)
