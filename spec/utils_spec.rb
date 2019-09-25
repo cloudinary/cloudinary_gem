@@ -319,39 +319,47 @@ describe Cloudinary::Utils do
   end
 
   describe ":transformation" do
-    it "should support named tranformation" do
+    it "should support named transformation" do
       expect(["test", { :transformation => "blip" }])
         .to produce_url("#{upload_path}/t_blip/test")
               .and empty_options
     end
 
-    it "should support array of named tranformations" do
+    it "should support array of named transformation" do
       expect(["test", { :transformation => ["blip", "blop"] }])
         .to produce_url("#{upload_path}/t_blip.blop/test")
               .and empty_options
     end
 
-    it "should support base tranformation" do
+    it "should support base transformation" do
       expect(["test", { :transformation => { :x => 100, :y => 100, :crop => :fill }, :crop => :crop, :width => 100 }])
         .to produce_url("#{upload_path}/c_fill,x_100,y_100/c_crop,w_100/test")
               .and mutate_options_to({ :width => 100 })
     end
 
-    it "should support array of base tranformations" do
+    it "should support array of base transformation" do
       expect(["test", { :transformation => [{ :x => 100, :y => 100, :width => 200, :crop => :fill }, { :radius => 10 }], :crop => :crop, :width => 100 }])
         .to produce_url("#{upload_path}/c_fill,w_200,x_100,y_100/r_10/c_crop,w_100/test")
               .and mutate_options_to({ :width => 100 })
     end
 
-    it "should support array of tranformations" do
+    it "should support array of transformation" do
       result = Cloudinary::Utils.generate_transformation_string([{ :x => 100, :y => 100, :width => 200, :crop => :fill }, { :radius => 10 }])
       expect(result).to eq("c_fill,w_200,x_100,y_100/r_10")
     end
 
-    it "should not include empty tranformations" do
+    it "should not include empty transformation" do
       expect(["test", { :transformation => [{}, { :x => 100, :y => 100, :crop => :fill }, {}] }])
         .to produce_url("#{upload_path}/c_fill,x_100,y_100/test")
               .and empty_options
+    end
+
+    describe "should support and translate arithmetic operators" do
+      it "should support * / + - ^" do
+        t = [{:width => 'initial_width * 2 / 3 ^ 2', :height => 'initial_height + 2 - 3', :crop => 'scale'}]
+        expected_trans = "c_scale,h_ih_add_2_sub_3,w_iw_mul_2_div_3_pow_2"
+        expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{expected_trans}/sample")
+      end
     end
   end
 
@@ -950,11 +958,9 @@ describe Cloudinary::Utils do
                  :effect =>"grayscale"])
           .to produce_url("#{upload_path}/#{all_operators}/sample")
     end
-
     end
-  end
 
-  describe "variables" do
+    describe "variables" do
     it "array should define a set of variables" do
       options = {
           :if => "face_count > 2",
@@ -984,7 +990,7 @@ describe Cloudinary::Utils do
     end
   end
 
-  describe "context" do
+    describe "context" do
     it 'should escape pipe and backslash characters' do
       context = {"caption" => "different = caption", "alt2" => "alt|alternative"}
       result = Cloudinary::Utils.encode_context(context)
@@ -1000,7 +1006,7 @@ describe Cloudinary::Utils do
     end
   end
 
-  describe "customFunction" do
+    describe "customFunction" do
     custom_function_wasm = {
       :function_type => 'wasm',
       :source => 'blur.wasm'
@@ -1041,5 +1047,6 @@ describe Cloudinary::Utils do
 
     end
 
+  end
   end
 end

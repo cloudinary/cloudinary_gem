@@ -26,7 +26,8 @@ class Cloudinary::Utils
     "*" => 'mul',
     "/" => 'div',
     "+" => 'add',
-    "-" => 'sub'
+    "-" => 'sub',
+    "^" => 'pow'
   }
 
   PREDEFINED_VARS = {
