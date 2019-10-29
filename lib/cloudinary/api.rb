@@ -78,7 +78,7 @@ class Cloudinary::Api
     resource_type = options[:resource_type] || "image"
     type          = options[:type] || "upload"
     uri           = "resources/#{resource_type}/#{type}/#{public_id}"
-    call_api(:get, uri, 
+    call_api(:get, uri,
              only(options,
                   :cinemagraph_analysis,
                   :colors,
@@ -439,4 +439,31 @@ class Cloudinary::Api
     call_api("post", "resources/#{resource_type}/#{type}/update_access_mode", params, options)
   end
 
+  def self.metadata_fields(options = {})
+    call_api(:get, "metadata_fields", {}, options)
+  end
+
+  def self.metadata_field(external_id, options = {})
+    call_api(:get, "metadata_fields/#{external_id}", {}, options)
+  end
+
+  def self.delete_metadata_field(external_id, options = {})
+    call_api(:delete, "metadata_fields/#{external_id}", {}, options)
+  end
+
+  def self.create_metadata_field(params, options = { content_type: :json })
+    call_api(:post, "metadata_fields", params, options)
+  end
+
+  def self.update_metadata_field(external_id, params, options = { content_type: :json })
+    call_api(:put, "metadata_fields/#{external_id}", params, options)
+  end
+
+  def self.update_metadata_field_datasource(external_id, params, options = { content_type: :json })
+    call_api(:put, "metadata_fields/#{external_id}/datasource", params, options)
+  end
+
+  def self.delete_metadata_field_datasource(external_id, params, options = { content_type: :json })
+    call_api(:delete, "metadata_fields/#{external_id}/datasource", params, options)
+  end
 end

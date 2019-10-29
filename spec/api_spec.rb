@@ -539,12 +539,12 @@ describe Cloudinary::Api do
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
-      
+
       resource = result["published"][0]
-      
+
       expect(resource["public_id"]).to eq(publicId)
       expect(resource["type"]).to eq('upload')
-      
+
       bytes = resource["bytes"]
     end
     it "should publish resources by prefix and overwrite" do
@@ -552,13 +552,13 @@ describe Cloudinary::Api do
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
-      
+
       resource = result["published"][0]
-      
+
       expect(resource["public_id"]).to eq(publicId)
       expect(resource["bytes"]).not_to eq(bytes)
       expect(resource["type"]).to eq('upload')
-      
+
       bytes = resource["bytes"]
     end
     it "should publish resources by tag and overwrite" do
@@ -566,13 +566,13 @@ describe Cloudinary::Api do
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
-      
+
       resource = result["published"][0]
-      
+
       expect(resource["public_id"]).to eq(publicId)
       expect(resource["bytes"]).not_to eq(bytes)
       expect(resource["type"]).to eq('upload')
-      
+
       bytes = resource["bytes"]
     end
   end
@@ -580,6 +580,217 @@ describe Cloudinary::Api do
     it "should retrieve breakpoints as json array" do
       bp = Cloudinary::Api.get_breakpoints(test_id_1, srcset: {min_width:10, max_width:2000, bytes_step: 10, max_images: 20})
       expect(bp).to be_truthy
+    end
+  end
+
+  describe "metadata fields" do
+    let(:type) { "integer" }
+    let(:default_value) { 42 }
+    let(:datasources) { nil }
+    let(:validation) { nil }
+    let(:mandatory) { false }
+    let(:creation_params) do
+      {
+        default_value: default_value,
+        type: type,
+        label: label,
+        mandatory: false,
+        validation: validation,
+        datasource: datasources
+      }
+    end
+
+    after(:all) do
+      fields = described_class.metadata_fields["metadata_fields"]
+      fields.each { |field| described_class.delete_metadata_field(field['external_id']) }
+    end
+
+    describe "creation" do
+      let(:label) { SecureRandom.hex }
+      subject { described_class.create_metadata_field(creation_params)['external_id'] }
+
+      context "without validation object" do
+        it "should create metadata field" do
+          is_expected.to be_present
+        end
+      end
+
+      describe "with validation object" do
+        let(:type) { "date" }
+        let(:label) { "dateOfBirth" }
+        let(:mandatory) { true }
+
+        let(:validation) do
+          {
+            type: "and",
+            rules: [
+              {
+                type: "greater_than",
+                value: 1.day.ago
+              }, {
+                type: "less_than",
+                value: 1.day.from_now
+              }
+            ]
+          }
+        end
+
+        context 'and valid default value' do
+          let(:default_value) { Date.today.iso8601 }
+
+          it 'should create successfuly' do
+            is_expected.to  be_present
+          end
+        end
+
+        context 'and invalid default value' do
+          let(:default_value) { 2.days.from_now.to_date.iso8601 }
+
+          it 'should  not create metadata field' do
+            expect { subject }.to raise_error(Cloudinary::Api::BadRequest)
+          end
+        end
+      end
+    end
+
+    describe "get exisiting" do
+      let(:label) { SecureRandom.hex }
+      let(:external_id) { "#{label}_1"}
+
+      before do
+        described_class.create_metadata_field(creation_params.merge(external_id: external_id))
+      end
+
+      context "all fields" do
+        subject { described_class.metadata_fields["metadata_fields"].count }
+
+        it "should get all exisiting metadata fields" do
+          is_expected.to be >= 1
+        end
+      end
+
+      context "field by external_id" do
+        subject { described_class.metadata_field(external_id)['label'] }
+
+        it "should get all exisiting metadata fields" do
+          is_expected.to eq(label)
+        end
+      end
+    end
+
+    describe "deletion" do
+      let(:label) { SecureRandom.hex }
+      let(:metadata_field_external_id) do
+        described_class.create_metadata_field(creation_params)["external_id"]
+      end
+
+      subject { described_class.delete_metadata_field(metadata_field_external_id) }
+
+      it "should delete existing metadata field" do
+        is_expected.to eq({"message" => "ok"})
+      end
+    end
+
+    describe "update" do
+      let(:label) { SecureRandom.hex }
+      let(:new_label) { SecureRandom.hex }
+      let(:mandatory) { true }
+      let(:metadata_field_external_id) do
+        described_class.create_metadata_field(creation_params)["external_id"]
+      end
+
+      subject do
+        described_class.update_metadata_field(metadata_field_external_id, {
+          label: new_label,
+          mandatory: mandatory
+        })
+      end
+
+      it "should update existing metadata field" do
+        is_expected.to include({
+          "label" => new_label,
+          "mandatory" => mandatory
+        })
+      end
+    end
+
+    describe "datasource" do
+      let(:label) { SecureRandom.hex }
+      let(:type) { "set"  }
+      let(:datasource_1) { "color1" }
+      let(:datasource_2) { "color2" }
+      let(:default_value) { [datasource_1] }
+
+      context "update datasource of the existing metadata field" do
+        let(:datasources) do
+          {
+            values: [{
+                external_id: datasource_1,
+                value: "red"
+            }]
+          }
+        end
+        let(:metadata_field_external_id) do
+          described_class.create_metadata_field(creation_params)["external_id"]
+        end
+        let(:new_datasources) do
+          {
+            "values" => [
+              {
+                "external_id" => datasource_1,
+                "value" => "green"
+              },
+              {
+                "external_id" => datasource_2,
+                "value" => "brown"
+              }
+            ]
+          }
+        end
+
+        subject do
+          described_class.update_metadata_field_datasource(metadata_field_external_id, new_datasources)
+        end
+
+        it "updates datasources" do
+          is_expected.to eq(new_datasources)
+        end
+      end
+
+      context "delete the datasource from the exisiting metadata field" do
+        let(:datasources) do
+          {
+            values: [
+              {
+                external_id: datasource_1,
+                value: "red"
+              },
+              {
+                external_id: datasource_2,
+                value: "green"
+              }
+            ]
+          }
+        end
+        let(:metadata_field_external_id) do
+          described_class.create_metadata_field(creation_params)["external_id"]
+        end
+
+        subject do
+          described_class.delete_metadata_field_datasource(metadata_field_external_id, {
+            external_ids: [datasource_2]
+          })
+        end
+
+        it "deletes existing datasource" do
+          is_expected.to eq({
+            "values"  => [{
+              "external_id" =>  datasource_1,
+              "value" => "red"
+            }]
+          })
+        end
+      end
     end
   end
 end
