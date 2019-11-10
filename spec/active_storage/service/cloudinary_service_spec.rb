@@ -13,7 +13,7 @@ if RUBY_VERSION > '2.2.2'
     before :all do
       @key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), filename: BASENAME
       @service = self.class.const_get(:SERVICE)
-      @service.upload @key, TEST_IMG, tags: [TEST_TAG, TIMESTAMP_TAG, AS_TAG]
+      @service.upload @key, Pathname.new(TEST_IMG), tags: [TEST_TAG, TIMESTAMP_TAG, AS_TAG]
     end
 
     after :all do
