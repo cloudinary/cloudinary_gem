@@ -165,14 +165,23 @@ module ActiveStorage
     end
 
     def resource_type(io, key = "")
-      return 'image' unless key.respond_to? :attributes
-      options = key.attributes
+      options = key.respond_to?(:attributes) ? key.attributes : {}
       content_type = options[:content_type] || (io.nil? ? '' : Marcel::MimeType.for(io))
-      case content_type.split('/')[0]
-      when 'video'
+      type, subtype = content_type.split('/')
+      case type
+      when 'video', 'audio'
         'video'
       when 'text'
         'raw'
+      when 'application'
+        case subtype
+        when 'pdf', 'postscript'
+          'image'
+        when 'vnd.apple.mpegurl', 'x-mpegurl', 'mpegurl' # m3u8
+          'video'
+        else
+          'raw'
+        end
       else
         'image'
       end
