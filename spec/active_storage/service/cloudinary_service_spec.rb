@@ -7,13 +7,17 @@ if RUBY_VERSION > '2.2.2'
   CONFIGURATION_PATH = Pathname.new(File.expand_path("service/configurations.yml", __dir__))
   SERVICE = ActiveStorage::Service.configure(:cloudinary, SERVICE_CONFIGURATIONS)
 
+  TEST_IMG_PATH = Pathname.new(TEST_IMG)
+  TEST_VIDEO_PATH = Pathname.new(TEST_VIDEO)
+  TEST_RAW_PATH = Pathname.new(TEST_RAW)
+
   describe 'active_storage' do
     let(:key) {ActiveStorage::BlobKey.new({key: SecureRandom.base58(24), filename: BASENAME})}
 
     before :all do
       @key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), filename: BASENAME
       @service = self.class.const_get(:SERVICE)
-      @service.upload @key, TEST_IMG, tags: [TEST_TAG, TIMESTAMP_TAG, AS_TAG]
+      @service.upload @key, TEST_IMG_PATH, tags: [TEST_TAG, TIMESTAMP_TAG, AS_TAG]
     end
 
     after :all do
@@ -87,6 +91,17 @@ if RUBY_VERSION > '2.2.2'
       expect(override_tags).not_to eql(tags), "Overriding tags should be different from configuration"
       expect(Cloudinary::Uploader).to receive(:upload).with(TEST_IMG, hash_including(tags: override_tags))
       @service.upload(key, TEST_IMG, tags: override_tags)
+    end
+
+    it "should correctly identify resource_type" do
+      expect(Cloudinary::Uploader).to receive(:upload).with(TEST_IMG_PATH, hash_including(resource_type: 'image'))
+      @service.upload(key, TEST_IMG_PATH)
+
+      expect(Cloudinary::Uploader).to receive(:upload).with(TEST_VIDEO_PATH, hash_including(resource_type: 'video'))
+      @service.upload(key, TEST_VIDEO_PATH)
+
+      expect(Cloudinary::Uploader).to receive(:upload).with(TEST_RAW_PATH, hash_including(resource_type: 'raw'))
+      @service.upload(key, TEST_RAW_PATH)
     end
   end
 end
