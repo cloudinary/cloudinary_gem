@@ -319,39 +319,47 @@ describe Cloudinary::Utils do
   end
 
   describe ":transformation" do
-    it "should support named tranformation" do
+    it "should support named transformation" do
       expect(["test", { :transformation => "blip" }])
         .to produce_url("#{upload_path}/t_blip/test")
               .and empty_options
     end
 
-    it "should support array of named tranformations" do
+    it "should support array of named transformation" do
       expect(["test", { :transformation => ["blip", "blop"] }])
         .to produce_url("#{upload_path}/t_blip.blop/test")
               .and empty_options
     end
 
-    it "should support base tranformation" do
+    it "should support base transformation" do
       expect(["test", { :transformation => { :x => 100, :y => 100, :crop => :fill }, :crop => :crop, :width => 100 }])
         .to produce_url("#{upload_path}/c_fill,x_100,y_100/c_crop,w_100/test")
               .and mutate_options_to({ :width => 100 })
     end
 
-    it "should support array of base tranformations" do
+    it "should support array of base transformation" do
       expect(["test", { :transformation => [{ :x => 100, :y => 100, :width => 200, :crop => :fill }, { :radius => 10 }], :crop => :crop, :width => 100 }])
         .to produce_url("#{upload_path}/c_fill,w_200,x_100,y_100/r_10/c_crop,w_100/test")
               .and mutate_options_to({ :width => 100 })
     end
 
-    it "should support array of tranformations" do
+    it "should support array of transformation" do
       result = Cloudinary::Utils.generate_transformation_string([{ :x => 100, :y => 100, :width => 200, :crop => :fill }, { :radius => 10 }])
       expect(result).to eq("c_fill,w_200,x_100,y_100/r_10")
     end
 
-    it "should not include empty tranformations" do
+    it "should not include empty transformation" do
       expect(["test", { :transformation => [{}, { :x => 100, :y => 100, :crop => :fill }, {}] }])
         .to produce_url("#{upload_path}/c_fill,x_100,y_100/test")
               .and empty_options
+    end
+
+    describe "should support and translate arithmetic operators" do
+      it "should support * / + - ^" do
+        t = [{:width => 'initial_width * 2 / 3 ^ 2', :height => 'initial_height + 2 - 3', :crop => 'scale'}]
+        expected_trans = "c_scale,h_ih_add_2_sub_3,w_iw_mul_2_div_3_pow_2"
+        expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{expected_trans}/sample")
+      end
     end
   end
 
@@ -426,6 +434,34 @@ describe Cloudinary::Utils do
     expect(["test", { :angle => ["auto", "55"] }])
       .to produce_url("#{upload_path}/a_auto.55/test")
             .and empty_options
+  end
+
+  it "should process the radius correctly when given valid values" do
+    valid_radius_test_values = [
+      [10, 'r_10'],
+      ['10', 'r_10'],
+      ['$v', 'r_$v'],
+      [[10, 20, 30], 'r_10:20:30'],
+      [[10, 20, '$v'], 'r_10:20:$v'],
+      [[10, 20, '$v', 40], 'r_10:20:$v:40'],
+      [['10:20'], 'r_10:20'],
+      [['10:20:$v:40'], 'r_10:20:$v:40']
+    ]
+    valid_radius_test_values.each do |options, expected|
+      expect(["test", { :transformation => { :radius => options } }])
+        .to produce_url("#{root_path}/image/upload/#{expected}/test") .and empty_options
+    end
+  end
+
+  it "should throw an error when the radius is given invalid values" do
+    invalid_radius_test_values = [
+      [],
+      [10,20,30,40,50]
+    ]
+    invalid_radius_test_values.each do |options|
+      expect{Cloudinary::Utils.cloudinary_url("test", {:transformation => {:radius => options}})}
+        .to raise_error(CloudinaryException)
+    end
   end
 
   it "should support format for fetch urls" do
@@ -578,6 +614,8 @@ describe Cloudinary::Utils do
           ["text parameter", { :public_id => "test_text", :text => text_layer }, "text:test_text:#{text_encoded}"],
           ["text with font family and size parameters", { :text => text_layer, :font_family => "Arial", :font_size => "18" }, "text:Arial_18:#{text_encoded}"],
           ["text with text style parameter", { :text => text_layer, :font_family => "Arial", :font_size => "18", :font_weight => "bold", :font_style => "italic", :letter_spacing => 4, :line_spacing => 2 }, "text:Arial_18_bold_italic_letter_spacing_4_line_spacing_2:#{text_encoded}"],
+          ["text with antialiasing and font hinting", { :text => "Hello World, Nice to meet you?", :font_family => "Arial", :font_size => "18", :font_antialiasing => "best", :font_hinting => "medium"}, "text:Arial_18_antialias_best_hinting_medium:Hello%20World%252C%20Nice%20to%20meet%20you%3F"],
+          ["text with text style parameter (explicit)", "text:Arial_18_antialias_best_hinting_medium:Hello%20World%252C%20Nice%20to%20meet%20you%3F", "text:Arial_18_antialias_best_hinting_medium:Hello%20World%252C%20Nice%20to%20meet%20you%3F"],
           ["subtitles", { :resource_type => "subtitles", :public_id => "subtitles.srt" }, "subtitles:subtitles.srt"],
           ["subtitles with font family and size", { :resource_type => "subtitles", :public_id => "subtitles.srt", :font_family => "Arial", :font_size => "40" }, "subtitles:Arial_40:subtitles.srt"],
           ["image of type fetch", { :public_id => "http://res.cloudinary.com/demo/image/upload/ci", :type => "fetch" }, "fetch:aHR0cDovL3Jlcy5jbG91ZGluYXJ5LmNvbS9kZW1vL2ltYWdlL3VwbG9hZC9jaQ=="]
@@ -732,6 +770,51 @@ describe Cloudinary::Utils do
             .and empty_options
   end
 
+  it "should default force_version to True if no value is given" do
+    expect(["folder/test", {}])
+      .to produce_url("#{upload_path}/v1/folder/test")
+        .and empty_options
+  end
+
+  it "should exclude the version if resource is stored in a folder and force_version is False" do
+    expect(["folder/test", {:force_version => false}])
+      .to produce_url("#{upload_path}/folder/test")
+        .and empty_options
+  end
+
+  it "should include the version if given explicitly regardless of force_verison (without folder)" do
+    expect(["test", {:force_version => false, :version => 12345}])
+      .to produce_url("#{upload_path}/v12345/test")
+        .and empty_options
+  end
+
+  it "should include the version if given explicitly regardless of force_verison (with folder)" do
+    expect(["folder/test", {:force_version => false, :version => 12345}])
+      .to produce_url("#{upload_path}/v12345/folder/test")
+        .and empty_options
+  end
+
+  it "should use the force_version option if set in the global config" do
+    Cloudinary.config(:force_version => false)
+    expect(["folder/test", {}])
+      .to produce_url("#{upload_path}/folder/test")
+        .and empty_options
+  end
+
+  it "should ignore the global force_version config if version is set explicitly in the options" do
+    Cloudinary.config(:force_version => false)
+    expect(["folder/test", {:version => 12345}])
+      .to produce_url("#{upload_path}/v12345/folder/test")
+        .and empty_options
+  end
+
+  it "should override global config option if force_version is given within options" do
+    Cloudinary.config(:force_version => false)
+    expect(["folder/test", {:force_version => true}])
+      .to produce_url("#{upload_path}/v1/folder/test")
+        .and empty_options
+  end
+
   it "should allow to shorted image/upload urls" do
     expect(["test", { :shorten => true }])
       .to produce_url("#{root_path}/iu/test")
@@ -875,11 +958,9 @@ describe Cloudinary::Utils do
                  :effect =>"grayscale"])
           .to produce_url("#{upload_path}/#{all_operators}/sample")
     end
-
     end
-  end
 
-  describe "variables" do
+    describe "variables" do
     it "array should define a set of variables" do
       options = {
           :if => "face_count > 2",
@@ -909,7 +990,7 @@ describe Cloudinary::Utils do
     end
   end
 
-  describe "context" do
+    describe "context" do
     it 'should escape pipe and backslash characters' do
       context = {"caption" => "different = caption", "alt2" => "alt|alternative"}
       result = Cloudinary::Utils.encode_context(context)
@@ -925,7 +1006,7 @@ describe Cloudinary::Utils do
     end
   end
 
-  describe "customFunction" do
+    describe "customFunction" do
     custom_function_wasm = {
       :function_type => 'wasm',
       :source => 'blur.wasm'
@@ -966,5 +1047,6 @@ describe Cloudinary::Utils do
 
     end
 
+  end
   end
 end

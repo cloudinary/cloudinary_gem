@@ -35,6 +35,14 @@ describe Cloudinary::Api do
     end
   end
 
+  it "should allow using derived_next_cursor when listing details of a single resource" do
+    expected = {
+      [:payload, :derived_next_cursor] => "b16b8bd80426df43a107f26b0348"
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    @api.resource("test", {"derived_next_cursor" => "b16b8bd80426df43a107f26b0348"})
+  end
+
   it "should allow listing resource_types" do
     expect(@api.resource_types()["resource_types"]).to include("image")
   end
@@ -135,6 +143,15 @@ describe Cloudinary::Api do
     expect(resource).not_to be_blank
     expect(resource).to have_key("quality_analysis")
     expect(resource["quality_analysis"]).to have_key("focus")
+  end
+
+  it "should support the cinemagraph_analysis parameter" do
+    expected = {
+        [:payload, :cinemagraph_analysis] => true,
+        [:method] => :get
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    @api.resource(test_id_1, :cinemagraph_analysis => true)
   end
 
   it "should allow deleting derived resource" do
@@ -359,7 +376,7 @@ describe Cloudinary::Api do
   end
 
   it "should support requesting raw conversion" do
-    result = Cloudinary::Uploader.upload("spec/docx.docx", :resource_type => :raw, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    result = Cloudinary::Uploader.upload(TEST_RAW, :resource_type => :raw, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect{Cloudinary::Api.update(result["public_id"], {:resource_type => :raw, :raw_convert => :illegal})}.to raise_error(Cloudinary::Api::BadRequest, /^Illegal value|not a valid/)
   end
 
@@ -395,15 +412,55 @@ describe Cloudinary::Api do
     Cloudinary::Api.resources_by_moderation(:manual, :approved, :max_results => 1000)
   end
 
-  it "should support listing folders" do
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders$/, [:method] => :get))
-    Cloudinary::Api.root_folders
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders\/test_folder1$/, [:method] => :get))
-    Cloudinary::Api.subfolders("test_folder1")
-  end
-
-  it "should throw if folder is missing" do
-    expect{Cloudinary::Api.subfolders("I_do_not_exist")}.to raise_error(Cloudinary::Api::NotFound)
+  describe 'folders' do
+    it 'should create folder' do
+      expected = {
+          [:url] => /.*\/folders\/#{UNIQUE_TEST_FOLDER}$/,
+          [:method] => :post
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.create_folder(UNIQUE_TEST_FOLDER)
+    end
+    it "should support listing folders" do
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders$/, [:method] => :get))
+      Cloudinary::Api.root_folders
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders\/test_folder1$/, [:method] => :get))
+      Cloudinary::Api.subfolders("test_folder1")
+    end
+    it "should URL escape the folder name" do
+      expected = {
+        [:url] => %r".*\/folders\/sub%5Efolder%20test$"
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Api.subfolders("sub^folder test")
+    end
+    it "should throw if folder is missing" do
+      expect{Cloudinary::Api.subfolders("I_do_not_exist")}.to raise_error(Cloudinary::Api::NotFound)
+    end
+    it 'should include max_results and next_cursor for root_folders call' do
+      expected = {
+          [:payload, :max_results] => 3,
+          [:payload, :next_cursor] => NEXT_CURSOR,
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.root_folders :max_results => 3, :next_cursor => NEXT_CURSOR
+    end
+    it 'should include max_results and next_cursor for subfolders call' do
+      expected = {
+          [:payload, :max_results] => 3,
+          [:payload, :next_cursor] => NEXT_CURSOR,
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.subfolders GENERIC_FOLDER_NAME, :max_results => 3, :next_cursor => NEXT_CURSOR
+    end
+    it "should support deleting a folder" do
+      expected = {
+        :url => %r"/folders/#{GENERIC_FOLDER_NAME}$",
+        :method => :delete
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.delete_folder(GENERIC_FOLDER_NAME)
+    end
   end
 
   describe '.restore'  do
@@ -421,9 +478,8 @@ describe Cloudinary::Api do
       expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :template] => "http://res.cloudinary.com"))
       Cloudinary::Api.update_upload_mapping(mapping, "template" =>"http://res.cloudinary.com")
     end
-
-
   end
+
   describe "access_mode" do
     i = 0
 

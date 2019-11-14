@@ -79,7 +79,8 @@ class Cloudinary::Api
     type          = options[:type] || "upload"
     uri           = "resources/#{resource_type}/#{type}/#{public_id}"
     call_api(:get, uri, 
-             only(options, 
+             only(options,
+                  :cinemagraph_analysis,
                   :colors,
                   :coordinates,
                   :exif,
@@ -88,7 +89,8 @@ class Cloudinary::Api
                   :max_results,
                   :pages,
                   :phash,
-                  :quality_analysis
+                  :quality_analysis,
+                  :derived_next_cursor
              ), options)
   end
 
@@ -226,11 +228,21 @@ class Cloudinary::Api
   end
 
   def self.root_folders(options={})
-    call_api(:get, "folders", {}, options)
+    params = only(options, :max_results, :next_cursor)
+    call_api(:get, "folders", params, options)
   end
 
   def self.subfolders(of_folder_path, options={})
-    call_api(:get, "folders/#{of_folder_path}", {}, options)
+    params = only(options, :max_results, :next_cursor)
+    call_api(:get, "folders/#{of_folder_path}", params, options)
+  end
+
+  def self.delete_folder(path, options={})
+    call_api(:delete, "folders/#{path}", {}, options)
+  end
+
+  def self.create_folder(folder_name, options={})
+    call_api(:post, "folders/#{folder_name}", {}, options)
   end
 
   def self.upload_mappings(options={})
@@ -343,6 +355,7 @@ class Cloudinary::Api
     api_key    = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
     api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
     timeout    = options[:timeout] || Cloudinary.config.timeout || 60
+    uri = Cloudinary::Utils.smart_escape(uri)
     api_url    = [cloudinary, "v1_1", cloud_name, uri].join("/")
     # Add authentication
     api_url.sub!(%r(^(https?://)), "\\1#{api_key}:#{api_secret}@")

@@ -307,6 +307,8 @@ RSpec.describe CloudinaryHelper do
         expect(helper.image_path('/bar')).to eq('/bar')
       end
       it "should not transform images staring with /images unless asset is found and static_support is true" do
+        skip if RUBY_VERSION >= '2.2.2'
+
         Cloudinary.config.static_image_support = false
         expect(helper.image_path('/images/foo.jpg')).to eq('/images/foo.jpg')
         expect(helper.image_path('some-folder/foo.gif')).to eq("/images/some-folder/foo.gif")

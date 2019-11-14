@@ -26,7 +26,8 @@ class Cloudinary::Utils
     "*" => 'mul',
     "/" => 'div',
     "+" => 'add',
-    "-" => 'sub'
+    "-" => 'sub',
+    "^" => 'pow'
   }
 
   PREDEFINED_VARS = {
@@ -241,7 +242,7 @@ class Cloudinary::Utils
       :l  => overlay,
       :o => normalize_expression(options.delete(:opacity)),
       :q => normalize_expression(options.delete(:quality)),
-      :r => normalize_expression(options.delete(:radius)),
+      :r => process_radius(options.delete(:radius)),
       :t   => named_transformation,
       :u  => underlay,
       :w   => normalize_expression(width),
@@ -383,6 +384,17 @@ class Cloudinary::Utils
   end
   private_class_method :process_layer
 
+  # Parse radius options
+  # @return [string] radius transformation string
+  # @private
+  def self.process_radius(radius)
+    if radius.is_a?(Array) && !radius.length.between?(1, 4)
+      raise(CloudinaryException, "Invalid radius parameter")
+    end
+    Array(radius).map { |r| normalize_expression(r) }.join(":")
+  end
+  private_class_method :process_radius
+
   LAYER_KEYWORD_PARAMS =[
     [:font_weight     ,"normal"],
     [:font_style      ,"normal"],
@@ -403,6 +415,10 @@ class Cloudinary::Utils
     keywords.push("letter_spacing_#{letter_spacing}") unless letter_spacing.blank?
     line_spacing = layer[:line_spacing]
     keywords.push("line_spacing_#{line_spacing}") unless line_spacing.blank?
+    font_antialiasing = layer[:font_antialiasing]
+    keywords.push("antialias_#{font_antialiasing}") unless font_antialiasing.blank?
+    font_hinting = layer[:font_hinting]
+    keywords.push("hinting_#{font_hinting}") unless font_hinting.blank?
     if !font_size.blank? || !font_family.blank? || !keywords.empty?
       raise(CloudinaryException, "Must supply font_family for text in overlay/underlay") if font_family.blank?
       raise(CloudinaryException, "Must supply font_size for text in overlay/underlay") if font_size.blank?
@@ -463,6 +479,7 @@ class Cloudinary::Utils
 
     resource_type = options.delete(:resource_type)
     version = options.delete(:version)
+    force_version = config_option_consume(options, :force_version, true)
     format = options.delete(:format)
     cloud_name = config_option_consume(options, :cloud_name) || raise(CloudinaryException, "Must supply cloud_name in tag or in configuration")
 
@@ -513,7 +530,12 @@ class Cloudinary::Utils
     resource_type, type = finalize_resource_type(resource_type, type, url_suffix, use_root_path, shorten)
     source, source_to_sign = finalize_source(source, format, url_suffix)
 
-    version ||= 1 if source_to_sign.include?("/") and !source_to_sign.match(/^v[0-9]+/) and !source_to_sign.match(/^https?:\//)
+    if version.nil? && force_version &&
+         source_to_sign.include?("/") &&
+         !source_to_sign.match(/^v[0-9]+/) &&
+         !source_to_sign.match(/^https?:\//)
+      version = 1
+    end
     version &&= "v#{version}"
 
     transformation = transformation.gsub(%r(([^:])//), '\1/')
@@ -839,10 +861,8 @@ class Cloudinary::Utils
     case
     when self.supported_format?(format, IMAGE_FORMATS)
       'image'
-    when self.supported_format?(format, VIDEO_FORMATS)
+    when self.supported_format?(format, VIDEO_FORMATS), self.supported_format?(format, AUDIO_FORMATS)
       'video'
-    when self.supported_format?(format, AUDIO_FORMATS)
-      'audio'
     else
       'raw'
     end
@@ -850,7 +870,8 @@ class Cloudinary::Utils
 
   def self.config_option_consume(options, option_name, default_value = nil)
     return options.delete(option_name) if options.include?(option_name)
-    return Cloudinary.config.send(option_name) || default_value
+    option_value = Cloudinary.config.send(option_name)
+    option_value.nil? ? default_value : option_value
   end
 
   def self.as_bool(value)
@@ -936,6 +957,7 @@ class Cloudinary::Utils
       :keep_derived=>Cloudinary::Utils.as_safe_bool(options[:keep_derived]),
       :tags=>options[:tags] && Cloudinary::Utils.build_array(options[:tags]),
       :public_ids=>options[:public_ids] && Cloudinary::Utils.build_array(options[:public_ids]),
+      :fully_qualified_public_ids=>options[:fully_qualified_public_ids] && Cloudinary::Utils.build_array(options[:fully_qualified_public_ids]),
       :prefixes=>options[:prefixes] && Cloudinary::Utils.build_array(options[:prefixes]),
       :expires_at=>options[:expires_at],
       :transformations => build_eager(options[:transformations]),

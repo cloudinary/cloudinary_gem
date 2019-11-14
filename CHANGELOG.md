@@ -1,3 +1,33 @@
+1.12.0 / 2019-10-02
+=============
+
+New functionality and features
+------------------------------
+
+  * Add Cloudinary service for ActiveStorage
+  * Add `create_folder` Admin API method
+  * Add `delete_folder` Admin API method
+  * Add `cinemagraph_analysis` to `upload`, `explicit` and `resource` API methods
+  * Add `font_antialiasing` and `font_hinting` text style parameters
+  * Add `derived_next_cursor` parameter to `resource` Admin API
+  * Add `next_cursor` and `max_results` for `root_folders` and `subfolders` Admin API functions
+  * Add `jpeg` to `IMAGE_FORMATS`
+  * Add `pow` transformation operator
+  * Add `force_version` to `cloudinary_url`
+  * Support per corner values for the `radius` transformation parameter
+  * Support using multiple resource types when generating archives
+  * Support Google Storage fetch URL
+  
+Other Changes
+-------------
+  * Ensure `CLOUDINARY_URL` starts with `cloudinary://`
+  * Reduce memory usage in `Cloudinary::Utils.cloudinary_url`
+  * Encode URL in Admin API methods
+  * Fix base64 data validation
+  * Return `video` as the `resource_type` for audio files
+  * Add language and platform version for ruby/rails user agent
+  * Fix TravisCI configuration for ruby 1.9
+  
 
 1.11.1 / 2018-12-22
 ===================

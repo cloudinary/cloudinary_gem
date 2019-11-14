@@ -1,0 +1,39 @@
+<p id="notice"><%= notice %></p>
+
+<div>
+  <p>
+    <%= cl_image_tag(@user.avatar.key, height: 50, width: 50, gravity: :face, crop: :thumb, sign_url: true) %>
+    <strong><%= @user.name %></strong>
+  </p>
+  <%= link_to 'Edit My Profile', edit_user_path(@user) %>
+</div>
+
+<p>
+  <strong>My Photos:</strong>
+  <% @user.photos.each do |photo| %>
+    <div style="display: inline-block; width: 200">
+      <%= link_to(cl_image_tag(photo.key, height: 200, width: 200, gravity: :auto, crop: :thumb, sign_url: true, fetch_format: :auto), url_for(photo)) %>
+      <p style="text-align: center;">
+        <%= link_to 'Image Info', user_photo_path(@user, photo) %>
+        <%= link_to 'Delete Image', user_photo_path(@user, photo), method: :delete, data: { confirm: 'Are you sure?' } %>
+      </p>
+    </div>
+  <% end %>
+</p>
+
+<%= form_with(model: @user, local: true) do |form| %>
+  <p>
+    <%= form.label :photos, "Upload New Photos:" %>
+    <%= form.file_field :photos, multiple: true %>
+  </p>
+
+  <%- # Lets the action not error out if they haven't attached a file, since user param will be present %>
+  <%= form.hidden_field :hello %>
+
+  <div class="actions">
+    <%= form.submit "Upload" %>
+  </div>
+<% end %>
+
+<%= link_to 'Direct Upload Demo', user_photos_path(@user) %> |
+<%= link_to 'Back', users_path %>

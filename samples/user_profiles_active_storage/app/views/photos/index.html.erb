@@ -1,0 +1,19 @@
+<h3>My Photos</h3>
+<% @user.photos.each do |photo| %>
+  <%= cl_image_tag(photo.key, width: 100, height: 100, gravity: :auto, crop: :thumb, fetch_format: :auto) %>
+<% end %>
+
+<%= form_with(model: @user, remote: true) do |form| %>
+  <p>
+    <%= form.label :photos, "Upload New Photos (direct upload):" %>
+    <%= form.file_field :photos, multiple: true, direct_upload: true %>
+  </p>
+
+  <%- # Lets the action not error out if they haven't attached a file, since user param will be present %>
+  <%= form.hidden_field :hello %>
+
+  <div class="actions">
+    <%= form.submit "Upload" %>
+  </div>
+<% end %>
+<%= link_to 'Back', user_path(@user) %>

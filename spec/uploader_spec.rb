@@ -49,6 +49,24 @@ describe Cloudinary::Uploader do
     end
   end
 
+  it "should support the cinemagraph_analysis parameter for upload" do
+    expected = {
+        [:payload, :cinemagraph_analysis] => 1,
+        [:method] => :post
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :cinemagraph_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
+  end
+
+  it "should support the cinemagraph_analysis parameter for explicit" do
+    expected = {
+        [:payload, :cinemagraph_analysis] => 1,
+        [:method] => :post
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    Cloudinary::Uploader.explicit('sample', :type => "upload", :cinemagraph_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
+  end
+
   describe '.rename' do
     before(:all) do
       @result        = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
@@ -105,7 +123,7 @@ describe Cloudinary::Uploader do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :public_id] => "sample", [:payload, :eager] => "c_scale,w_2.0"))
     result = Cloudinary::Uploader.explicit("sample", :type=>"upload", :eager=>[{:crop=>"scale", :width=>"2.0"}])
   end
-  
+
   it "should support eager" do
     result = Cloudinary::Uploader.upload(TEST_IMG, :eager =>[{ :crop =>"scale", :width =>"2.0"}], :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result["eager"].length).to be(1)
@@ -286,7 +304,7 @@ describe Cloudinary::Uploader do
   end
     
   it "should support requesting raw conversion" do
-    expect{Cloudinary::Uploader.upload("spec/docx.docx", {:resource_type => :raw, :raw_convert => :illegal, :tags => [TEST_TAG, TIMESTAMP_TAG]})}.to raise_error(CloudinaryException, /Illegal value|not a valid|is invalid/)
+    expect{Cloudinary::Uploader.upload(TEST_RAW, {:resource_type => :raw, :raw_convert => :illegal, :tags => [TEST_TAG, TIMESTAMP_TAG]})}.to raise_error(CloudinaryException, /Illegal value|not a valid|is invalid/)
   end
   
   it "should support requesting categorization" do
@@ -380,7 +398,6 @@ describe Cloudinary::Uploader do
 
 
   describe 'explicit' do
-
     context ":invalidate" do
       it 'should pass the invalidate value to the server' do
         expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :invalidate] => 1))

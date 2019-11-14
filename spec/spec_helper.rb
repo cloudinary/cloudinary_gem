@@ -1,8 +1,11 @@
+SUFFIX = ENV['TRAVIS_JOB_ID'] || rand(999999999).to_s
+
 require 'rspec'
 require 'rexml/parsers/ultralightparser'
 require 'nokogiri'
 require 'rspec/version'
 require 'rest_client'
+require 'active_storage/test_helper' if RUBY_VERSION >= '2.2.2'
 require 'cloudinary'
 
 Cloudinary.config.enhance_image_tag = true
@@ -10,11 +13,15 @@ Cloudinary.config.enhance_image_tag = true
 DUMMY_CLOUD = "test123"
 TEST_IMAGE_URL = "http://cloudinary.com/images/old_logo.png"
 TEST_IMG = "spec/logo.png"
+TEST_VIDEO = "spec/movie.mp4"
+TEST_RAW = "spec/docx.docx"
 TEST_IMG_W = 241
 TEST_IMG_H = 51
-SUFFIX = ENV['TRAVIS_JOB_ID'] || rand(999999999).to_s
 TEST_TAG = 'cloudinary_gem_test'
 TIMESTAMP_TAG = "#{TEST_TAG}_#{SUFFIX}_#{RUBY_VERSION}_#{ defined? Rails::version ? Rails::version : 'no_rails'}"
+UNIQUE_TEST_FOLDER = "#{TEST_TAG}_#{SUFFIX}_folder"
+NEXT_CURSOR = "db27cfb02b3f69cb39049969c23ca430c6d33d5a3a7c3ad1d870c54e1a54ee0faa5acdd9f6d288666986001711759d10"
+GENERIC_FOLDER_NAME = "some_folder"
 
 # Auth token
 KEY     = "00112233FF99"

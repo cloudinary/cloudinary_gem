@@ -1,0 +1,4 @@
+cloudinary:
+  service: Cloudinary
+  tags:
+    - ActiveStorageTestTag
