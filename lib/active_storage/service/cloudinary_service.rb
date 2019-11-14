@@ -102,12 +102,11 @@ module ActiveStorage
       uri = URI(url)
       if block_given?
         instrument :streaming_download, key: key do
-          Net::HTTP.start(uri.host, uri.port) do |http|
+          Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
             request = Net::HTTP::Get.new uri
             http.request request do |response|
               response.read_body &block
             end
-
           end
         end
       else
