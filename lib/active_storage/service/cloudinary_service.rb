@@ -129,7 +129,7 @@ module ActiveStorage
                     else range.end
                     end
         req['range'] = "bytes=#{[range.begin, range_end].join('-')}"
-        res = Net::HTTP.start(uri.hostname, uri.port) do |http|
+        res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https') do |http|
           http.request(req)
         end
         res.body.force_encoding(Encoding::BINARY)
