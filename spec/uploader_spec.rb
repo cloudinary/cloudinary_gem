@@ -22,11 +22,6 @@ describe Cloudinary::Uploader do
     expect(result["width"]).to eq(TEST_IMG_W)
   end
 
-  it "should successfully upload a file from IO" do
-    result = Cloudinary::Uploader.upload(File.open(TEST_IMG, "rb"), :tags => [TEST_TAG, TIMESTAMP_TAG])
-    expect(result["width"]).to eq(TEST_IMG_W)
-  end
-
   it "should successfully upload file by url" do
     result = Cloudinary::Uploader.upload("http://cloudinary.com/images/old_logo.png", :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result["width"]).to eq(TEST_IMG_W)
