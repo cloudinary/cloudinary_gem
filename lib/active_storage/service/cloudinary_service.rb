@@ -22,7 +22,6 @@ module ActiveStorage
 
     def initialize(**options)
       @options = options
-      @helper = ActionView::Base.new
     end
 
     def upload(key, io, filename: nil, checksum: nil, **options)

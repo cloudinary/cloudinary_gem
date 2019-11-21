@@ -35,7 +35,7 @@ describe CloudinaryHelper do
   end
 
   let(:helper) {
-    ActionView::Base.new
+    ActionView::Base.new(ActionView::LookupContext.new([]))
   }
   let(:root_path) { "http://res.cloudinary.com/#{DUMMY_CLOUD}" }
   let(:upload_path) { "#{root_path}/video/upload" }

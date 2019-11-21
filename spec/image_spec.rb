@@ -34,7 +34,7 @@ describe 'Responsive breakpoints' do
   let(:options) {COMMON_TRANS}
   # let(:helper) {helper_class.new}
   let(:helper) {
-    ActionView::Base.new
+    ActionView::Base.new(ActionView::LookupContext.new([]))
   }
   let(:test_tag) {TestTag.new(helper.cl_image_tag('sample.jpg', options))}
   describe 'srcset' do
