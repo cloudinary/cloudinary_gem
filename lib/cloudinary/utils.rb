@@ -880,7 +880,7 @@ class Cloudinary::Utils
     when String then value.downcase == "true" || value == "1"
     when TrueClass then true
     when FalseClass then false
-    when Fixnum then value != 0
+    when Integer then value != 0
     when Symbol then value == :true
     else
       raise "Invalid boolean value #{value} of type #{value.class}"
