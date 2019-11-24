@@ -15,8 +15,7 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "cloudinary"
 
-  s.files         = (`git ls-files`.split("\n") - `git ls-files samples`.split("\n")) + Dir.glob("vendor/assets/javascripts/*/*") + Dir.glob("vendor/assets/html/*")
-  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  s.files         = (`git ls-files`.split("\n") - `git ls-files {test,spec,features,samples}/*`.split("\n")) + Dir.glob("vendor/assets/javascripts/*/*") + Dir.glob("vendor/assets/html/*")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
