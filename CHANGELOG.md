@@ -1,4 +1,12 @@
 
+1.13.1 / 2019-11-24
+===================
+
+  * Remove `test_files` from `gemspec`
+  * Remove redundant binary files from `active_storage` spec
+  * Fix `rspec` deprecation warnings in Rails 6
+  * Add test for uploading IO
+
 1.13.0 / 2019-11-14
 ===================
 
