@@ -77,6 +77,30 @@ if RUBY_VERSION > '2.2.2'
       expect(url).to match(/c_scale,w_100/)
     end
 
+    it "should use extension from the filename and not from the content-type" do
+      @video_key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), content_type: "video/ogg"
+      url = @service.url(@video_key, filename: ActiveStorage::Filename.new(TEST_VIDEO),
+                         content_type: "video/ogg")
+      expect(url).to end_with("#{@video_key}.mp4")
+
+      @file_key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), content_type: "application/not-zip"
+      url = @service.url(@file_key, filename: ActiveStorage::Filename.new("my_zip.zip"),
+                         content_type: "application/not-zip")
+      expect(url).to end_with("#{@file_key}.zip")
+    end
+
+    it "should fall back to the mime-type based detection when no extension is provided" do
+      url = @service.url(@key, filename: ActiveStorage::Filename.new("logo"), content_type: "image/jpeg")
+      expect(url).to end_with("#{@key}.jpg")
+    end
+
+    it "should not fall back to the mime-type based detection with raw file" do
+      @file_key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), content_type: "application/zip"
+      url = @service.url(@file_key, filename: ActiveStorage::Filename.new("my_zip"),
+                         content_type: "application/zip")
+      expect(url).to end_with(@file_key)
+    end
+
     it "should use global configuration options" do
       tags = SERVICE_CONFIGURATIONS[:cloudinary][:tags]
       expect(tags).not_to be_empty, "Please set a tags value under cloudinary in #{CONFIGURATION_PATH}"
