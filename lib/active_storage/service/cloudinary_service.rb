@@ -48,9 +48,10 @@ module ActiveStorage
         url = Cloudinary::Utils.cloudinary_url(
           public_id(key),
           resource_type: resource_type(nil, key),
-          format: ext_for_content_type(content_type),
+          format: ext_for_file(filename, content_type),
           **@options.merge(options.symbolize_keys)
         )
+
         payload[:url] = url
 
         url
@@ -149,7 +150,22 @@ module ActiveStorage
       "#{base_url}?#{upload_params.to_query}"
     end
 
-    def ext_for_content_type(content_type)
+    # Helper method for getting the filename extension.
+    #
+    # It does the best effort when original filename does not include extension, but we know the mime-type.
+    #
+    # @param [ActiveStorage::Filename]  filename     The original filename.
+    # @param [string]                   content_type The content type of the file.
+    #
+    # @return [string] The extension of the filename.
+    def ext_for_file(filename, content_type)
+      ext = filename.respond_to?(:extension_without_delimiter) ? filename.extension_without_delimiter : nil
+      return ext unless ext.blank?
+
+      # Raw files are not convertible, no extension guessing for them
+      return nil if content_type_to_resource_type(content_type).eql?('raw')
+
+      # Fallback when there is no extension.
       @formats ||= Hash.new do |h, key|
         ext = Rack::Mime::MIME_TYPES.invert[key]
         h[key] = ext.slice(1..-1) unless ext.nil?
@@ -162,9 +178,7 @@ module ActiveStorage
       key
     end
 
-    def resource_type(io, key = "")
-      options = key.respond_to?(:attributes) ? key.attributes : {}
-      content_type = options[:content_type] || (io.nil? ? '' : Marcel::MimeType.for(io))
+    def content_type_to_resource_type(content_type)
       type, subtype = content_type.split('/')
       case type
       when 'video', 'audio'
@@ -183,6 +197,12 @@ module ActiveStorage
       else
         'image'
       end
+    end
+
+    def resource_type(io, key = "")
+      options = key.respond_to?(:attributes) ? key.attributes : {}
+      content_type = options[:content_type] || (io.nil? ? '' : Marcel::MimeType.for(io))
+      content_type_to_resource_type(content_type)
     end
   end
 end
