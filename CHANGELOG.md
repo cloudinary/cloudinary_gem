@@ -1,4 +1,9 @@
 
+1.13.2 / 2020-01-19
+===================
+
+  * Fix asset extension detection in active storage service `url` method
+
 1.13.1 / 2019-11-24
 ===================
 
