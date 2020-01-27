@@ -451,19 +451,25 @@ class Cloudinary::Api
     call_api(:delete, "metadata_fields/#{external_id}", {}, options)
   end
 
-  def self.create_metadata_field(params, options = { content_type: :json })
+  def self.create_metadata_field(params = {}, options = { content_type: :json })
     call_api(:post, "metadata_fields", params, options)
   end
 
-  def self.update_metadata_field(external_id, params, options = { content_type: :json })
+  def self.update_metadata_field(external_id, params = {}, options = { content_type: :json })
     call_api(:put, "metadata_fields/#{external_id}", params, options)
   end
 
-  def self.update_metadata_field_datasource(external_id, params, options = { content_type: :json })
+  def self.update_metadata_field_datasource(external_id, params = {}, options = { content_type: :json })
+    params = only(params, :values)
     call_api(:put, "metadata_fields/#{external_id}/datasource", params, options)
   end
 
-  def self.delete_metadata_field_datasource(external_id, params, options = { content_type: :json })
+  def self.delete_metadata_field_datasource(external_id, params = {}, options = { content_type: :json })
     call_api(:delete, "metadata_fields/#{external_id}/datasource", params, options)
+  end
+
+  def self.restore_metadata_field_datasource(external_id, params = {}, options = { content_type: :json })
+    params = only(params, :external_ids)
+    call_api(:post, "metadata_fields/#{external_id}/datasource_restore", params, options)
   end
 end

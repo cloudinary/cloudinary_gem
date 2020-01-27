@@ -1,3 +1,32 @@
+
+1.13.2 / 2020-01-19
+===================
+
+  * Fix asset extension detection in active storage service `url` method
+
+1.13.1 / 2019-11-24
+===================
+
+  * Remove `test_files` from `gemspec`
+  * Remove redundant binary files from `active_storage` spec
+  * Fix `rspec` deprecation warnings in Rails 6
+  * Add test for uploading IO
+
+1.13.0 / 2019-11-14
+===================
+
+New functionality and features
+------------------------------
+  * Add `SassC` `cloudinary-url` function
+  
+Other Changes
+-------------
+
+  * Fix ActiveStorage download not using `ssl` for `https`
+  * Fix resource type detection in ActiveStorage
+  * Fix `storage_type` instance method in `Cloudinary::CarrierWave` module
+  * Fix sample project, limit sqlite3 to a compatible version
+
 1.12.0 / 2019-10-02
 =============
 

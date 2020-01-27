@@ -12,7 +12,7 @@ RSpec.describe CloudinaryHelper do
   end
 
   let(:helper) {
-    ActionView::Base.new
+    ActionView::Base.new(ActionView::LookupContext.new([]))
   }
   let(:cloud_name) {DUMMY_CLOUD}
   let(:root_path) {"http://res.cloudinary.com/#{cloud_name}"}

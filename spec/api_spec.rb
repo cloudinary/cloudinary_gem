@@ -715,8 +715,8 @@ describe Cloudinary::Api do
     end
 
     describe "datasource" do
-      let(:label) { SecureRandom.hex }
       let(:type) { "set"  }
+      let(:label) { SecureRandom.hex }
       let(:datasource_1) { "color1" }
       let(:datasource_2) { "color2" }
       let(:default_value) { [datasource_1] }
@@ -789,6 +789,40 @@ describe Cloudinary::Api do
               "value" => "red"
             }]
           })
+        end
+      end
+
+      context "restore the datasource after deletion" do
+        let(:default_value) { [datasource_2] }
+        let(:datasources) do
+          {
+            values: [
+              {
+                external_id: datasource_1,
+                value: "red"
+              },
+              {
+                external_id: datasource_2,
+                value: "green"
+              }
+            ]
+          }
+        end
+        let(:metadata_field_external_id) do
+          described_class.create_metadata_field(creation_params)["external_id"]
+        end
+
+        subject do
+          described_class.delete_metadata_field_datasource(metadata_field_external_id, {
+            external_ids: [datasource_1]
+          })
+          described_class.restore_metadata_field_datasource(metadata_field_external_id, {
+            external_ids: [datasource_1]
+          })
+        end
+
+        it "restore deleted datasource" do
+          is_expected.to eq(JSON.parse(datasources.to_json))
         end
       end
     end

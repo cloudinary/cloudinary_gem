@@ -22,7 +22,6 @@ module ActiveStorage
 
     def initialize(**options)
       @options = options
-      @helper = ActionView::Base.new
     end
 
     def upload(key, io, filename: nil, checksum: nil, **options)
@@ -49,9 +48,10 @@ module ActiveStorage
         url = Cloudinary::Utils.cloudinary_url(
           public_id(key),
           resource_type: resource_type(nil, key),
-          format: ext_for_content_type(content_type),
+          format: ext_for_file(filename, content_type),
           **@options.merge(options.symbolize_keys)
         )
+
         payload[:url] = url
 
         url
@@ -102,12 +102,11 @@ module ActiveStorage
       uri = URI(url)
       if block_given?
         instrument :streaming_download, key: key do
-          Net::HTTP.start(uri.host, uri.port) do |http|
+          Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
             request = Net::HTTP::Get.new uri
             http.request request do |response|
               response.read_body &block
             end
-
           end
         end
       else
@@ -130,7 +129,7 @@ module ActiveStorage
                     else range.end
                     end
         req['range'] = "bytes=#{[range.begin, range_end].join('-')}"
-        res = Net::HTTP.start(uri.hostname, uri.port) do |http|
+        res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https') do |http|
           http.request(req)
         end
         res.body.force_encoding(Encoding::BINARY)
@@ -151,7 +150,22 @@ module ActiveStorage
       "#{base_url}?#{upload_params.to_query}"
     end
 
-    def ext_for_content_type(content_type)
+    # Helper method for getting the filename extension.
+    #
+    # It does the best effort when original filename does not include extension, but we know the mime-type.
+    #
+    # @param [ActiveStorage::Filename]  filename     The original filename.
+    # @param [string]                   content_type The content type of the file.
+    #
+    # @return [string] The extension of the filename.
+    def ext_for_file(filename, content_type)
+      ext = filename.respond_to?(:extension_without_delimiter) ? filename.extension_without_delimiter : nil
+      return ext unless ext.blank?
+
+      # Raw files are not convertible, no extension guessing for them
+      return nil if content_type_to_resource_type(content_type).eql?('raw')
+
+      # Fallback when there is no extension.
       @formats ||= Hash.new do |h, key|
         ext = Rack::Mime::MIME_TYPES.invert[key]
         h[key] = ext.slice(1..-1) unless ext.nil?
@@ -164,18 +178,31 @@ module ActiveStorage
       key
     end
 
-    def resource_type(io, key = "")
-      return 'image' unless key.respond_to? :attributes
-      options = key.attributes
-      content_type = options[:content_type] || (io.nil? ? '' : Marcel::MimeType.for(io))
-      case content_type.split('/')[0]
-      when 'video'
+    def content_type_to_resource_type(content_type)
+      type, subtype = content_type.split('/')
+      case type
+      when 'video', 'audio'
         'video'
       when 'text'
         'raw'
+      when 'application'
+        case subtype
+        when 'pdf', 'postscript'
+          'image'
+        when 'vnd.apple.mpegurl', 'x-mpegurl', 'mpegurl' # m3u8
+          'video'
+        else
+          'raw'
+        end
       else
         'image'
       end
+    end
+
+    def resource_type(io, key = "")
+      options = key.respond_to?(:attributes) ? key.attributes : {}
+      content_type = options[:content_type] || (io.nil? ? '' : Marcel::MimeType.for(io))
+      content_type_to_resource_type(content_type)
     end
   end
 end
