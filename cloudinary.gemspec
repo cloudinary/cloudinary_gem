@@ -30,5 +30,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rails", "~>5.2" if RUBY_VERSION >= "2.2.2"
   s.add_development_dependency "rspec-rails"
   s.add_development_dependency "rubyzip", "<=1.2.0" # support testing Ruby 1.9
-  s.add_development_dependency "simplecov"
+  if RUBY_VERSION <= "2.4.0"
+    s.add_development_dependency "simplecov", "<= 1.17.1" # support testing Ruby 1.9
+  else
+    s.add_development_dependency "simplecov", ">= 0.18.0"
+  end
 end
