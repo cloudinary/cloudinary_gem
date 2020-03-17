@@ -395,6 +395,11 @@ class Cloudinary::Api
     raise GeneralError.new("Error parsing server response (#{response.code}) - #{response.body}. Got - #{e}")
   end
 
+  def self.call_metadata_api(method, uri, params, options)
+    options[:content_type] = :json
+    call_api(method, "metadata_fields/#{uri}", params, options)
+  end
+
   def self.only(hash, *keys)
     result = {}
     keys.each do |key|
@@ -439,37 +444,54 @@ class Cloudinary::Api
     call_api("post", "resources/#{resource_type}/#{type}/update_access_mode", params, options)
   end
 
-  def self.metadata_fields(options = {})
-    call_api(:get, "metadata_fields", {}, options)
+  def self.list_metadata_fields(options = {})
+    call_metadata_api(:get, "", {}, options)
   end
 
-  def self.metadata_field(external_id, options = {})
-    call_api(:get, "metadata_fields/#{external_id}", {}, options)
+  def self.metadata_field_by_field_id(field_external_id, options = {})
+    call_metadata_api(:get, field_external_id, {}, options)
   end
 
-  def self.delete_metadata_field(external_id, options = {})
-    call_api(:delete, "metadata_fields/#{external_id}", {}, options)
+  def self.delete_metadata_field(field_external_id, options = {})
+    call_metadata_api(:delete, field_external_id, {}, options)
   end
 
-  def self.create_metadata_field(params = {}, options = { content_type: :json })
-    call_api(:post, "metadata_fields", params, options)
+  def self.add_metadata_field(field, options = {})
+    params = only(field,
+      :type,
+      :external_id,
+      :label,
+      :mandatory,
+      :default_value,
+      :validation,
+      :datasource,
+    )
+    call_metadata_api(:post, "", params, options)
   end
 
-  def self.update_metadata_field(external_id, params = {}, options = { content_type: :json })
-    call_api(:put, "metadata_fields/#{external_id}", params, options)
+  def self.update_metadata_field(field_external_id, field, options = {})
+    params = only(field,
+      :label,
+      :mandatory,
+      :default_value,
+      :validation
+    )
+    call_metadata_api(:put, field_external_id, params, options)
   end
 
-  def self.update_metadata_field_datasource(external_id, params = {}, options = { content_type: :json })
-    params = only(params, :values)
-    call_api(:put, "metadata_fields/#{external_id}/datasource", params, options)
+  def self.update_metadata_field_datasource(field_external_id, entries_external_id, options = {})
+    params = only(entries_external_id, :values)
+    params[:values] = params[:values].map { |item| item.slice('external_id', 'value')  }
+                                     .reject(&:empty?)
+    call_metadata_api(:put, "#{field_external_id}/datasource", params, options)
   end
 
-  def self.delete_metadata_field_datasource(external_id, params = {}, options = { content_type: :json })
-    call_api(:delete, "metadata_fields/#{external_id}/datasource", params, options)
+  def self.delete_datasource_entries(field_external_id, entries_external_id, options = {})
+    call_metadata_api(:delete, "#{field_external_id}/datasource", entries_external_id, options)
   end
 
-  def self.restore_metadata_field_datasource(external_id, params = {}, options = { content_type: :json })
-    params = only(params, :external_ids)
-    call_api(:post, "metadata_fields/#{external_id}/datasource_restore", params, options)
+  def self.restore_metadata_field_datasource(field_external_id, entries_external_ids, options = {})
+    params = only(entries_external_ids, :external_ids)
+    call_metadata_api(:post, "#{field_external_id}/datasource_restore", params, options)
   end
 end

@@ -24,11 +24,29 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency "actionpack"
   s.add_development_dependency "nokogiri"
-  s.add_development_dependency "rake"
+
+  if RUBY_VERSION >= "2.2.0"
+    s.add_development_dependency "rake", ">= 13.0.1"
+  else
+    s.add_development_dependency "rake", "<= 12.2.1"
+  end
+
   s.add_development_dependency "sqlite3"
   s.add_development_dependency "rspec", '>=3.5'
   s.add_development_dependency "rails", "~>5.2" if RUBY_VERSION >= "2.2.2"
   s.add_development_dependency "rspec-rails"
+
+  if RUBY_VERSION <= "1.9.3"
+    s.add_development_dependency "railties", "<= 4.2.7"
+    s.add_development_dependency "json", "<= 1.8.6"
+    s.add_development_dependency "minitest", "<= 5.12.2"
+  end
+
   s.add_development_dependency "rubyzip", "<=1.2.0" # support testing Ruby 1.9
-  s.add_development_dependency "simplecov"
+
+  if RUBY_VERSION <= "2.4.0"
+    s.add_development_dependency "simplecov", "<= 0.17.1" # support testing Ruby 1.9
+  else
+    s.add_development_dependency "simplecov", "> 0.18.0"
+  end
 end

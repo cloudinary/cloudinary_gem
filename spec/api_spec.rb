@@ -601,13 +601,13 @@ describe Cloudinary::Api do
     end
 
     after(:all) do
-      fields = described_class.metadata_fields["metadata_fields"]
+      fields = described_class.list_metadata_fields["metadata_fields"]
       fields.each { |field| described_class.delete_metadata_field(field['external_id']) }
     end
 
     describe "creation" do
       let(:label) { SecureRandom.hex }
-      subject { described_class.create_metadata_field(creation_params)['external_id'] }
+      subject { described_class.add_metadata_field(creation_params)['external_id'] }
 
       context "without validation object" do
         it "should create metadata field" do
@@ -658,11 +658,11 @@ describe Cloudinary::Api do
       let(:external_id) { "#{label}_1"}
 
       before do
-        described_class.create_metadata_field(creation_params.merge(external_id: external_id))
+        described_class.add_metadata_field(creation_params.merge(external_id: external_id))
       end
 
       context "all fields" do
-        subject { described_class.metadata_fields["metadata_fields"].count }
+        subject { described_class.list_metadata_fields["metadata_fields"].count }
 
         it "should get all exisiting metadata fields" do
           is_expected.to be >= 1
@@ -670,7 +670,7 @@ describe Cloudinary::Api do
       end
 
       context "field by external_id" do
-        subject { described_class.metadata_field(external_id)['label'] }
+        subject { described_class.metadata_field_by_field_id(external_id)['label'] }
 
         it "should get all exisiting metadata fields" do
           is_expected.to eq(label)
@@ -681,7 +681,7 @@ describe Cloudinary::Api do
     describe "deletion" do
       let(:label) { SecureRandom.hex }
       let(:metadata_field_external_id) do
-        described_class.create_metadata_field(creation_params)["external_id"]
+        described_class.add_metadata_field(creation_params)["external_id"]
       end
 
       subject { described_class.delete_metadata_field(metadata_field_external_id) }
@@ -696,7 +696,7 @@ describe Cloudinary::Api do
       let(:new_label) { SecureRandom.hex }
       let(:mandatory) { true }
       let(:metadata_field_external_id) do
-        described_class.create_metadata_field(creation_params)["external_id"]
+        described_class.add_metadata_field(creation_params)["external_id"]
       end
 
       subject do
@@ -731,7 +731,7 @@ describe Cloudinary::Api do
           }
         end
         let(:metadata_field_external_id) do
-          described_class.create_metadata_field(creation_params)["external_id"]
+          described_class.add_metadata_field(creation_params)["external_id"]
         end
         let(:new_datasources) do
           {
@@ -773,11 +773,11 @@ describe Cloudinary::Api do
           }
         end
         let(:metadata_field_external_id) do
-          described_class.create_metadata_field(creation_params)["external_id"]
+          described_class.add_metadata_field(creation_params)["external_id"]
         end
 
         subject do
-          described_class.delete_metadata_field_datasource(metadata_field_external_id, {
+          described_class.delete_datasource_entries(metadata_field_external_id, {
             external_ids: [datasource_2]
           })
         end
@@ -809,11 +809,11 @@ describe Cloudinary::Api do
           }
         end
         let(:metadata_field_external_id) do
-          described_class.create_metadata_field(creation_params)["external_id"]
+          described_class.add_metadata_field(creation_params)["external_id"]
         end
 
         subject do
-          described_class.delete_metadata_field_datasource(metadata_field_external_id, {
+          described_class.delete_datasource_entries(metadata_field_external_id, {
             external_ids: [datasource_1]
           })
           described_class.restore_metadata_field_datasource(metadata_field_external_id, {
