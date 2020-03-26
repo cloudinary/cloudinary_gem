@@ -14,6 +14,6 @@ class ImageUploader < CarrierWave::Uploader::Base
   end  
 
   # For more options, see
-  # http://cloudinary.com/documentation/rails_integration#carrierwave
+  # https://cloudinary.com/documentation/rails_carrierwave
 
 end
