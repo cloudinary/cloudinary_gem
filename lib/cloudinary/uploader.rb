@@ -317,7 +317,7 @@ class Cloudinary::Uploader
       params[:signature] = Cloudinary::Utils.api_sign_request(params.reject { |k, v| non_signable.include?(k) }, api_secret)
       params[:api_key]   = api_key
     end
-    timeout = options.fetch(:timeout, Cloudinary.config.to_h.fetch(:timeout, 60))
+    timeout = options.fetch(:timeout) { Cloudinary.config.to_h.fetch(:timeout, 60) }
 
     result = nil
 
