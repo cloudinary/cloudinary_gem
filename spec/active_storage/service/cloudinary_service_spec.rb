@@ -108,6 +108,13 @@ if RUBY_VERSION > '2.2.2'
       @service.upload(key, TEST_IMG, tags: tags)
     end
 
+    it "should use global folder configuration" do
+      folder = SERVICE_CONFIGURATIONS[:cloudinary][:folder]
+      expect(folder).not_to be_empty, "Please set a folder value under cloudinary in #{CONFIGURATION_PATH}"
+      url = @service.url(@key, filename: ActiveStorage::Filename.new("logo"), content_type: "image/jpeg")
+      expect(url).to include(folder)
+    end
+
     it "should accept options that override global configuration" do
       tags = SERVICE_CONFIGURATIONS[:cloudinary][:tags]
       expect(tags).not_to be_empty, "Please set a tags value under cloudinary in #{CONFIGURATION_PATH}"

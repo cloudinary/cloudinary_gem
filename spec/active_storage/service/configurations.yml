@@ -2,3 +2,4 @@ cloudinary:
   service: Cloudinary
   tags:
     - ActiveStorageTestTag
+  folder: active_storage_test_folder
