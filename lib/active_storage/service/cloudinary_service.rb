@@ -133,12 +133,9 @@ module ActiveStorage
       instrument :download, key: key do
         req = Net::HTTP::Get.new(uri)
         range_end = case
-                    when range.end.nil? then
-                      ''
-                    when range.exclude_end? then
-                      range.end - 1
-                    else
-                      range.end
+                    when range.end.nil? then ''
+                    when range.exclude_end? then range.end - 1
+                    else range.end
                     end
         req['range'] = "bytes=#{[range.begin, range_end].join('-')}"
         res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https') do |http|
