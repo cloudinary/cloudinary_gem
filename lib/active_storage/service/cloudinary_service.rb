@@ -12,6 +12,15 @@ unless ActiveStorage::Blob.method_defined? :original_key
   end
 end
 
+module CloudinaryHelper
+  alias cloudinary_url_internal_original cloudinary_url_internal
+
+  def cloudinary_url_internal(source, options = {})
+    source = ActiveStorage::Blob.service.public_id(source) if defined? ActiveStorage::Blob.service.public_id
+    cloudinary_url_internal_original(source, options)
+  end
+end
+
 module ActiveStorage
   class Service::CloudinaryService < Service
     module Headers
@@ -31,7 +40,7 @@ module ActiveStorage
           options = @options.merge(options)
           Cloudinary::Uploader.upload(
             io,
-            public_id: public_id(key),
+            public_id: public_id_internal(key),
             resource_type: resource_type(io, key),
             context: {active_storage_key: key, checksum: checksum},
             extra_headers: extra_headers,
@@ -61,7 +70,7 @@ module ActiveStorage
     def url_for_direct_upload(key, **options)
       instrument :url, key: key do |payload|
         options = {:resource_type => resource_type(nil, key)}.merge(@options.merge(options.symbolize_keys))
-        options[:public_id] = public_id(key)
+        options[:public_id] = public_id_internal(key)
         options[:context] = {active_storage_key: key}
         options.delete(:file)
         payload[:url] = api_uri("upload", options)
@@ -124,9 +133,12 @@ module ActiveStorage
       instrument :download, key: key do
         req = Net::HTTP::Get.new(uri)
         range_end = case
-                    when range.end.nil? then ''
-                    when range.exclude_end? then range.end - 1
-                    else range.end
+                    when range.end.nil? then
+                      ''
+                    when range.exclude_end? then
+                      range.end - 1
+                    else
+                      range.end
                     end
         req['range'] = "bytes=#{[range.begin, range_end].join('-')}"
         res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https') do |http|
@@ -137,13 +149,17 @@ module ActiveStorage
 
     end
 
+    def public_id(key)
+      File.join(@options.fetch(:folder), public_id_internal(key))
+    end
+
     private
 
     def api_uri(action, options)
       base_url = Cloudinary::Utils.cloudinary_api_url(action, options)
       upload_params = Cloudinary::Uploader.build_upload_params(options)
 
-      upload_params.reject! {|k, v| Cloudinary::Utils.safe_blank?(v)}
+      upload_params.reject! { |k, v| Cloudinary::Utils.safe_blank?(v) }
       unless options[:unsigned]
         upload_params = Cloudinary::Utils.sign_request(upload_params, options)
       end
@@ -173,7 +189,7 @@ module ActiveStorage
       @formats[content_type]
     end
 
-    def public_id(key)
+    def public_id_internal(key)
       # TODO: Allow custom manipulation of key to obscure how we store in Cloudinary
       key
     end
