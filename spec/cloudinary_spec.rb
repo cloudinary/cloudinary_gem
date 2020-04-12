@@ -24,12 +24,15 @@ describe Cloudinary do
 
   describe 'config' do
     before do
-      @url_backup = ENV["CLOUDINARY_URL"]
+      Cloudinary.reset_config
+      @cloudinary_url_backup = ENV["CLOUDINARY_URL"]
+      @account_url_backup = ENV["CLOUDINARY_ACCOUNT_URL"]
     end
     after do
       ENV.keys.select! { |key| key.start_with? "CLOUDINARY_" }.each { |key| ENV.delete(key) }
-      ENV["CLOUDINARY_URL"] = @url_backup
-      Cloudinary::config_from_url @url_backup
+      ENV["CLOUDINARY_URL"] = @cloudinary_url_backup
+      ENV["CLOUDINARY_ACCOUNT_URL"] = @account_url_backup
+      Cloudinary.reset_config
     end
     it "should allow nested values in CLOUDINARY_URL" do
       ENV["CLOUDINARY_URL"]  = "cloudinary://key:secret@test123?foo[bar]=value"
@@ -43,6 +46,7 @@ describe Cloudinary do
     end
     it "should raise an exception if the CLOUDINARY_URL doesn't start with 'cloudinary://'" do
       invalid_cloudinary_urls = [
+        "account://api-key:api-secret@account-id",
         "CLOUDINARY_URL=cloudinary://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test",
         "https://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test",
         "://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test",
@@ -71,6 +75,68 @@ describe Cloudinary do
       expect(Cloudinary::config.private_cdn).to eq false
       expect(Cloudinary::config.secure).to eq true
 
+    end
+
+    it "should accept a CLOUDINARY_ACCOUNT_URL with the correct scheme (account)" do
+      valid_account_url = "account://api-key:api-secret@account-id"
+      expect{Cloudinary::config_from_account_url valid_account_url}.not_to raise_error
+    end
+
+    it "should raise an exception if the CLOUDINARY_ACCOUNT_URL doesn't start with 'account://'" do
+      invalid_cloudinary_urls = [
+        "cloudinary://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test",
+        "CLOUDINARY_ACCOUNT_URL=account://api-key:api-secret@account_id",
+        "https://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test",
+        "://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test",
+        " "
+      ]
+      invalid_cloudinary_urls.each do |cloudinary_url|
+        expect{Cloudinary::config_from_account_url cloudinary_url}
+          .to raise_error(/bad URI|Invalid CLOUDINARY_ACCOUNT_URL/)
+      end
+    end
+
+    it "should accept both CLOUDINARY_URL and CLOUDINARY_ACCOUNT_URL" do
+      valid_account_url = "account://api-key:api-secret@account-id"
+      valid_cloudinary_url = "cloudinary://key:secret@test123"
+
+      Cloudinary::config_from_account_url valid_account_url
+      Cloudinary::config_from_url valid_cloudinary_url
+
+      expect(Cloudinary::config).to have_cloudinary_config(cloud_name: 'test123',
+                                                           api_key: 'key',
+                                                           api_secret: 'secret')
+
+      expect(Cloudinary::config).to have_cloudinary_account_config(account_id: 'account-id',
+                                                                   provisioning_api_key: 'api-key',
+                                                                   provisioning_api_secret: 'api-secret')
+    end
+
+    it "should accept both CLOUDINARY_URL and CLOUDINARY_ACCOUNT_URL without explicitly setting them" do
+      ENV['CLOUDINARY_ACCOUNT_URL'] = "account://api-key:api-secret@account-id"
+      ENV['CLOUDINARY_URL'] = "cloudinary://key:secret@test123"
+
+      expect(Cloudinary::config).to have_cloudinary_config(cloud_name: 'test123',
+                                                           api_key: 'key',
+                                                           api_secret: 'secret')
+
+      expect(Cloudinary::config).to have_cloudinary_account_config(account_id: 'account-id',
+                                                                   provisioning_api_key: 'api-key',
+                                                                   provisioning_api_secret: 'api-secret')
+    end
+
+    it "should raise an exception if CLOUDINARY_ACCOUNT_URL contains cloudinary url" do
+      ENV['CLOUDINARY_ACCOUNT_URL'] = "cloudinary://key:secret@test123"
+
+      expect{Cloudinary::config}
+        .to raise_error(/bad URI|Invalid CLOUDINARY_ACCOUNT_URL/)
+    end
+
+    it "should raise an exception if CLOUDINARY_URL contains cloudinary account url" do
+      ENV['CLOUDINARY_URL'] = "account://api-key:api-secret@account-id"
+
+      expect{Cloudinary::config}
+        .to raise_error(/bad URI|Invalid CLOUDINARY_URL/)
     end
   end
 end

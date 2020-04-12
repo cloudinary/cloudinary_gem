@@ -28,6 +28,10 @@ module Cloudinary
   AKAMAI_SHARED_CDN     = "res.cloudinary.com"
   OLD_AKAMAI_SHARED_CDN = "cloudinary-a.akamaihd.net"
   SHARED_CDN            = AKAMAI_SHARED_CDN
+  SCHEME_CLOUDINARY     = "cloudinary"
+  SCHEME_ACCOUNT        = "account"
+  ENV_URL_CLOUDINARY    = "CLOUDINARY_URL"
+  ENV_URL_ACCOUNT       = "CLOUDINARY_ACCOUNT_URL"
 
   USER_AGENT      = "CloudinaryRuby/#{VERSION} (Ruby #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL})"
   @@user_platform = defined?(Rails.version) ? "Rails/#{Rails.version}" : ""
@@ -73,28 +77,47 @@ module Cloudinary
   end
 
   def self.config_from_url(url)
+    set_config_from_url!(url, ENV_URL_CLOUDINARY, SCHEME_CLOUDINARY)
+  end
+
+  def self.config_from_account_url(url)
+    set_config_from_url!(url, ENV_URL_ACCOUNT, SCHEME_ACCOUNT)
+  end
+
+  def self.set_config_from_url!(url, env_var_name, expected_scheme)
     @@config ||= OpenStruct.new
     return unless url && !url.empty?
     uri = URI.parse(url)
-    if !uri.scheme || "cloudinary" != uri.scheme.downcase
+    scheme = uri.scheme.to_s.downcase
+
+    if expected_scheme != scheme
       raise(CloudinaryException,
-        "Invalid CLOUDINARY_URL scheme. Expecting to start with 'cloudinary://'")
+            "Invalid #{env_var_name} scheme. Expecting to start with '#{expected_scheme}://'")
     end
-    set_config(
-      "cloud_name"          => uri.host,
-      "api_key"             => uri.user,
-      "api_secret"          => uri.password,
-      "private_cdn"         => !uri.path.blank?,
-      "secure_distribution" => uri.path[1..-1]
-    )
-    uri.query.to_s.split("&").each do
-    |param|
-      key, value = param.split("=")
-      if isNestedKey? key
-        putNestedKey key, value
-      else
-        set_config(key => Utils.smart_unescape(value))
+
+    if SCHEME_CLOUDINARY == scheme
+      set_config(
+        "cloud_name"          => uri.host,
+        "api_key"             => uri.user,
+        "api_secret"          => uri.password,
+        "private_cdn"         => !uri.path.blank?,
+        "secure_distribution" => uri.path[1..-1]
+      )
+      uri.query.to_s.split("&").each do
+      |param|
+        key, value = param.split("=")
+        if isNestedKey? key
+          putNestedKey key, value
+        else
+          set_config(key => Utils.smart_unescape(value))
+        end
       end
+    elsif SCHEME_ACCOUNT == scheme
+      set_config(
+        "account_id" => uri.host,
+        "provisioning_api_key" => uri.user,
+        "provisioning_api_secret" => uri.password
+      )
     end
   end
 
@@ -140,9 +163,11 @@ module Cloudinary
         conf_val = conf_val == 'true' if %w[true false].include?(conf_val) # cast relevant boolean values
         set_config(conf_key => conf_val)
       end
-    elsif ENV["CLOUDINARY_URL"]
-      config_from_url(ENV["CLOUDINARY_URL"])
+    elsif ENV[ENV_URL_CLOUDINARY]
+      set_config_from_url!(ENV[ENV_URL_CLOUDINARY], ENV_URL_CLOUDINARY, SCHEME_CLOUDINARY)
     end
+
+    set_config_from_url!(ENV[ENV_URL_ACCOUNT], ENV_URL_ACCOUNT, SCHEME_ACCOUNT) if ENV[ENV_URL_ACCOUNT]
   end
 
   def self.config_env
@@ -159,6 +184,8 @@ module Cloudinary
   def self.set_config(new_config)
     new_config.each{|k,v| @@config.send(:"#{k}=", v) if !v.nil?}
   end
+
+  private_class_method :set_config_from_url!
 end
   # Prevent require loop if included after Rails is already initialized.
   require "cloudinary/helper" if defined?(::ActionView::Base)
