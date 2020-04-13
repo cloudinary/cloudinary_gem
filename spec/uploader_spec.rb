@@ -385,6 +385,21 @@ describe Cloudinary::Uploader do
     it "should fail if timeout is reached" do
       expect{Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :tags => [TEST_TAG, TIMESTAMP_TAG])}.to raise_error(RestClient::RequestTimeout)
     end
+
+    it "should allow passing nil value" do
+      expect(RestClient::Request).to receive(:execute) do |args|
+        expect(args[:timeout]).to be nil
+      end
+      Cloudinary::Uploader.upload(TEST_IMG, :timeout => nil)
+    end
+
+    it "should fall back to default timeout" do
+      Cloudinary.config.delete_field(:timeout)
+      expect(RestClient::Request).to receive(:execute) do |args|
+        expect(args[:timeout]).to eq(60)
+      end
+      Cloudinary::Uploader.upload(TEST_IMG)
+    end
   end
 
   context ":responsive_breakpoints" do
