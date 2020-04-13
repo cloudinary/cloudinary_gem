@@ -147,6 +147,8 @@ module ActiveStorage
     end
 
     def public_id(key)
+      return key unless @options[:folder]
+
       File.join(@options.fetch(:folder), public_id_internal(key))
     end
 
