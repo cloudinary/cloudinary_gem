@@ -6,7 +6,7 @@ class Cloudinary::Railtie < Rails::Railtie
     ActionView::Base.send :include, CloudinaryHelper
   end
 
-  config.on_load(:action_controller_base) do
+  ActiveSupport.on_load(:action_controller_base) do
     ActionController::Base.send :include, Cloudinary::CloudinaryController
   end
 end
