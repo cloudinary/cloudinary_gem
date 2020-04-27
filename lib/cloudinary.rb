@@ -105,7 +105,7 @@ module Cloudinary
       if isNestedKey? key
         putNestedKey key, value
       else
-        set_config(key => CGI.unescape(value))
+        set_config(key => Utils.smart_unescape(value))
       end
     end
   end
