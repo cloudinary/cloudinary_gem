@@ -42,6 +42,8 @@ class Cloudinary::Utils
     "page_x"               => "px",
     "page_y"               => "py",
     "tags"                 => "tags",
+    "initial_duration"     => "idu",
+    "duration"             => "du",
     "width"                => "w"
   }
 
