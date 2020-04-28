@@ -563,7 +563,7 @@ class Cloudinary::Utils
       source = smart_escape(source)
       source_to_sign = source
     else
-      source = smart_escape(URI.decode(source))
+      source = smart_escape(smart_unescape(source))
       source_to_sign = source
       unless url_suffix.blank?
         raise(CloudinaryException, "url_suffix should not include . or /") if url_suffix.match(%r([\./]))
@@ -767,11 +767,16 @@ class Cloudinary::Utils
     "#{public_id}#{ext}"
   end
 
-  # Based on CGI::unescape. In addition does not escape / :
+  # Based on CGI::escape. In addition does not escape / :
   def self.smart_escape(string, unsafe = /([^a-zA-Z0-9_.\-\/:]+)/)
     string.gsub(unsafe) do |m|
       '%' + m.unpack('H2' * m.bytesize).join('%').upcase
     end
+  end
+
+  # Based on CGI::unescape. In addition keeps '+' character as is
+  def self.smart_unescape(string)
+    CGI.unescape(string.sub('+', '%2B'))
   end
 
   def self.random_public_id
