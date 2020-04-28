@@ -361,6 +361,20 @@ describe Cloudinary::Utils do
         expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{expected_trans}/sample")
       end
     end
+
+    describe "duration conditions" do
+      it "should support duration" do
+        t = [{:if => "duration > 30", :crop => "scale", :width => "100"}]
+        expected_trans = "if_du_gt_30,c_scale,w_100"
+        expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{expected_trans}/sample")
+      end
+
+      it "should support initial_duration" do
+        t = [{:if => "initial_duration > 30", :crop => "scale", :width => "100"}]
+        expected_trans = "if_idu_gt_30,c_scale,w_100"
+        expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{expected_trans}/sample")
+      end
+    end
   end
 
 
