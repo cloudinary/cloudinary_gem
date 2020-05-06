@@ -1,4 +1,23 @@
 
+1.14.0 / 2020-05-06
+===================
+
+New functionality and features
+------------------------------
+
+  * Add support of global folder in ActiveStorage
+  * Add duration to conditions in video
+
+Other Changes
+-------------
+
+  * Fix `URI.unescape is obsolete` warning
+  * Fix lingering Rails 6 autoload warnings
+  * Fix Ruby 1.9 CI build
+  * Allow setting uploader timeout to `nil`
+  * Update link to CarrierWave integration
+  * Update issue templates
+
 1.13.2 / 2020-01-19
 ===================
 
