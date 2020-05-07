@@ -27,6 +27,7 @@ describe Cloudinary do
       @url_backup = ENV["CLOUDINARY_URL"]
     end
     after do
+      ENV.keys.select! { |key| key.start_with? "CLOUDINARY_" }.each { |key| ENV.delete(key) }
       ENV["CLOUDINARY_URL"] = @url_backup
       Cloudinary::config_from_url @url_backup
     end
