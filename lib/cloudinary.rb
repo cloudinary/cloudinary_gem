@@ -133,11 +133,11 @@ module Cloudinary
     # Heroku support
     if ENV["CLOUDINARY_CLOUD_NAME"]
       config_keys = ENV.keys.select! { |key| key.start_with? "CLOUDINARY_" }
-      config_keys -= ["CLOUDINARY_URL"] # handled separately
+      config_keys -= ["CLOUDINARY_URL"] # ignore it when explicit options are passed
       config_keys.each do |full_key|
         conf_key = full_key["CLOUDINARY_".length..-1].downcase # convert "CLOUDINARY_CONFIG_NAME" to "config_name"
         conf_val = ENV[full_key]
-        conf_val = conf_val.to_s == 'true' if %w[true false].include?(conf_val.to_s) # cast relevant boolean values
+        conf_val = conf_val == 'true' if %w[true false].include?(conf_val) # cast relevant boolean values
         set_config(conf_key => conf_val)
       end
     elsif ENV["CLOUDINARY_URL"]
