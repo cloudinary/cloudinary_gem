@@ -64,19 +64,7 @@ module Cloudinary
     first_time = @@config.nil?
     @@config   ||= OpenStruct.new((YAML.load(ERB.new(IO.read(config_dir.join("cloudinary.yml"))).result)[config_env] rescue {}))
 
-    # Heroku support
-    if first_time && ENV["CLOUDINARY_CLOUD_NAME"]
-      set_config(
-        "cloud_name"          => ENV["CLOUDINARY_CLOUD_NAME"],
-        "api_key"             => ENV["CLOUDINARY_API_KEY"],
-        "api_secret"          => ENV["CLOUDINARY_API_SECRET"],
-        "secure_distribution" => ENV["CLOUDINARY_SECURE_DISTRIBUTION"],
-        "private_cdn"         => ENV["CLOUDINARY_PRIVATE_CDN"].to_s == 'true',
-        "secure"              => ENV["CLOUDINARY_SECURE"].to_s == 'true'
-      )
-    elsif first_time && ENV["CLOUDINARY_URL"]
-      config_from_url(ENV["CLOUDINARY_URL"])
-    end
+    config_from_env if first_time
 
     set_config(new_config) if new_config
     yield(@@config) if block_given?
@@ -140,18 +128,34 @@ module Cloudinary
   end
 
   private
-  
+
+  def self.config_from_env
+    # Heroku support
+    if ENV["CLOUDINARY_CLOUD_NAME"]
+      config_keys = ENV.keys.select! { |key| key.start_with? "CLOUDINARY_" }
+      config_keys -= ["CLOUDINARY_URL"] # ignore it when explicit options are passed
+      config_keys.each do |full_key|
+        conf_key = full_key["CLOUDINARY_".length..-1].downcase # convert "CLOUDINARY_CONFIG_NAME" to "config_name"
+        conf_val = ENV[full_key]
+        conf_val = conf_val == 'true' if %w[true false].include?(conf_val) # cast relevant boolean values
+        set_config(conf_key => conf_val)
+      end
+    elsif ENV["CLOUDINARY_URL"]
+      config_from_url(ENV["CLOUDINARY_URL"])
+    end
+  end
+
   def self.config_env
     return ENV["CLOUDINARY_ENV"] if ENV["CLOUDINARY_ENV"]
     return Rails.env if defined? Rails::env
     nil
   end
-  
+
   def self.config_dir
-    return Pathname.new(ENV["CLOUDINARY_CONFIG_DIR"]) if ENV["CLOUDINARY_CONFIG_DIR"] 
+    return Pathname.new(ENV["CLOUDINARY_CONFIG_DIR"]) if ENV["CLOUDINARY_CONFIG_DIR"]
     self.app_root.join("config")
   end
-  
+
   def self.set_config(new_config)
     new_config.each{|k,v| @@config.send(:"#{k}=", v) if !v.nil?}
   end

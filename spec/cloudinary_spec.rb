@@ -27,6 +27,7 @@ describe Cloudinary do
       @url_backup = ENV["CLOUDINARY_URL"]
     end
     after do
+      ENV.keys.select! { |key| key.start_with? "CLOUDINARY_" }.each { |key| ENV.delete(key) }
       ENV["CLOUDINARY_URL"] = @url_backup
       Cloudinary::config_from_url @url_backup
     end
@@ -51,6 +52,25 @@ describe Cloudinary do
         expect{Cloudinary::config_from_url cloudinary_url}
           .to raise_error(/bad URI|Invalid CLOUDINARY_URL/)
       end
+    end
+
+    it "should support CLOUDINARY_ prefixed environment variables" do
+      Cloudinary.reset_config
+
+      ENV["CLOUDINARY_CLOUD_NAME"] = "c"
+      ENV["CLOUDINARY_API_KEY"] = "k"
+      ENV["CLOUDINARY_API_SECRET"] = "s"
+      ENV["CLOUDINARY_SECURE_DISTRIBUTION"] = "sd"
+      ENV["CLOUDINARY_PRIVATE_CDN"] = "false"
+      ENV["CLOUDINARY_SECURE"] = "true"
+
+      expect(Cloudinary::config.cloud_name).to eq "c"
+      expect(Cloudinary::config.api_key).to eq "k"
+      expect(Cloudinary::config.api_secret).to eq "s"
+      expect(Cloudinary::config.secure_distribution).to eq "sd"
+      expect(Cloudinary::config.private_cdn).to eq false
+      expect(Cloudinary::config.secure).to eq true
+
     end
   end
 end
