@@ -933,6 +933,15 @@ describe Cloudinary::Utils do
         end
       end
 
+      describe "empty expression" do
+        it "should not include dangling if parameter when empty value specified" do
+          expect(["sample", {width: "100", crop: "crop", height: "", if: ""}])
+            .to produce_url("#{upload_path}/c_crop,w_100/sample")
+          expect(["sample", {width: "100", crop: "crop", height: "", if: nil}])
+            .to produce_url("#{upload_path}/c_crop,w_100/sample")
+        end
+      end
+
       describe 'if end' do
         it "should include the if_end as the last parameter in its component" do
           expect(["sample", transformation: [{ if: "w_lt_200" },
