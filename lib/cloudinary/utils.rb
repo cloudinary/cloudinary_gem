@@ -302,12 +302,8 @@ class Cloudinary::Utils
   # Translates the condition if provided.
   # @return [string] "if_" + ifValue
   # @private
-  def self.process_if(ifValue)
-    if ifValue
-      ifValue = normalize_expression(ifValue)
-
-      ifValue = "if_" + ifValue
-    end
+  def self.process_if(if_value)
+    "if_" + normalize_expression(if_value) unless if_value.to_s.empty?
   end
 
   EXP_REGEXP = Regexp.new(PREDEFINED_VARS.keys.join("|")+'|('+CONDITIONAL_OPERATORS.keys.reverse.map { |k| Regexp.escape(k) }.join('|')+')(?=[ _])')
