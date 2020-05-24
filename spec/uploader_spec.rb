@@ -48,6 +48,13 @@ describe Cloudinary::Uploader do
     expect(result["quality_analysis"]).to have_key("focus")
   end
 
+  it "should support the accessibility_analysis of an uploaded image" do
+    result = Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :accessibility_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result).to have_key("accessibility_analysis")
+    result = Cloudinary::Uploader.explicit(result['public_id'], :type => "upload", :accessibility_analysis => true)
+    expect(result).to have_key("accessibility_analysis")
+  end
+
   it "should support the quality_override parameter" do
     ['auto:advanced', 'auto:best', '80:420', 'none'].each do |q|
       expected = {[:payload, :quality_override] => q}
@@ -252,32 +259,29 @@ describe Cloudinary::Uploader do
         Cloudinary::Uploader.remove_all_context(["some_public_id1", "some_public_id2"], :type => "private")
       end
     end
-
   end
 
-
-  
   it "should correctly handle unique_filename" do
     result = Cloudinary::Uploader.upload(TEST_IMG, :use_filename => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result["public_id"]).to match(/logo_[a-zA-Z0-9]{6}/)
     result = Cloudinary::Uploader.upload(TEST_IMG, :use_filename => true, :unique_filename => false, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result["public_id"]).to eq("logo")
   end
-  
+
   it "should allow whitelisted formats if allowed_formats", :allowed=>true do
     result = Cloudinary::Uploader.upload(TEST_IMG, :allowed_formats => ["png"], :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result["format"]).to eq("png")
   end
-  
+
   it "should prevent non whitelisted formats from being uploaded if allowed_formats is specified", :allowed=>true do
     expect{Cloudinary::Uploader.upload(TEST_IMG, :allowed_formats => ["jpg"], :tags => [TEST_TAG, TIMESTAMP_TAG])}.to raise_error(CloudinaryException)
   end
-  
+
   it "should allow non whitelisted formats if type is specified and convert to that type", :allowed=>true do
     result = Cloudinary::Uploader.upload(TEST_IMG, :allowed_formats => ["jpg"], :format => "jpg", :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result["format"]).to eq("jpg")
   end
-  
+
   it "should allow sending face coordinates" do
     coordinates = [[120, 30, 109, 150], [121, 31, 110, 151]]
     result_coordinates = [[120, 30, 109, 51], [121, 31, 110, 51]] # actual boundaries fitted by the server
@@ -289,35 +293,35 @@ describe Cloudinary::Uploader do
     info = Cloudinary::Api.resource(result["public_id"], {:faces => true})
     expect(info["faces"]).to eq(different_coordinates)
   end
-  
+
   it "should allow sending context" do
     context = {"key1"=>'value1', "key2" => 'valu\e2', "key3" => 'val=u|e3', "key4" => 'val\=ue'}
     result = Cloudinary::Uploader.upload(TEST_IMG, { :context => context, :tags => [TEST_TAG, TIMESTAMP_TAG]})
     info = Cloudinary::Api.resource(result["public_id"], {:context => true})
     expect(info["context"]).to eq({"custom" => context})
   end
-  
+
   it "should support requesting manual moderation" do
     result = Cloudinary::Uploader.upload(TEST_IMG, { :moderation => :manual, :tags => [TEST_TAG, TIMESTAMP_TAG]})
     expect(result["moderation"][0]["status"]).to eq("pending")
     expect(result["moderation"][0]["kind"]).to eq("manual")
   end
-  
+
   it "should support requesting ocr anlysis" do
     expect(RestClient::Request).to receive(:execute) do |options|
       expect(options[:payload][:ocr]).to eq(:adv_ocr)
     end
     Cloudinary::Uploader.upload(TEST_IMG, { :ocr => :adv_ocr, :tags => [TEST_TAG, TIMESTAMP_TAG]})
   end
-    
+
   it "should support requesting raw conversion" do
     expect{Cloudinary::Uploader.upload(TEST_RAW, {:resource_type => :raw, :raw_convert => :illegal, :tags => [TEST_TAG, TIMESTAMP_TAG]})}.to raise_error(CloudinaryException, /Illegal value|not a valid|is invalid/)
   end
-  
+
   it "should support requesting categorization" do
     expect{Cloudinary::Uploader.upload(TEST_IMG, { :categorization => :illegal, :tags => [TEST_TAG, TIMESTAMP_TAG]})}.to raise_error(CloudinaryException, /Illegal value|not a valid|is not valid/)
   end
-  
+
   it "should support requesting detection" do
     expect{Cloudinary::Uploader.upload(TEST_IMG, { :detection => :illegal, :tags => [TEST_TAG, TIMESTAMP_TAG]})}.to raise_error(CloudinaryException, /Detection is invalid/)
   end
@@ -353,12 +357,12 @@ describe Cloudinary::Uploader do
     end
     Cloudinary::Uploader.upload_large(TEST_IMG, { :tags => [TEST_TAG, TIMESTAMP_TAG]})
   end
-  
+
   context "unsigned" do
     after do
       Cloudinary.class_variable_set(:@@config, nil)
     end
-    
+
     it "should support unsigned uploading using presets", :upload_preset => true do
       preset = Cloudinary::Api.create_upload_preset(:folder => "test_folder_upload", :unsigned => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
 
