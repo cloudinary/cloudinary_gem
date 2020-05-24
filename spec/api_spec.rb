@@ -145,6 +145,12 @@ describe Cloudinary::Api do
     expect(resource["quality_analysis"]).to have_key("focus")
   end
 
+  it "should support the accessibility_analysis parameter" do
+    resource = @api.resource(test_id_1, :accessibility_analysis => true)
+    expect(resource).not_to be_blank
+    expect(resource).to have_key("accessibility_analysis")
+  end
+
   it "should support the cinemagraph_analysis parameter" do
     expected = {
         [:payload, :cinemagraph_analysis] => true,
@@ -539,12 +545,12 @@ describe Cloudinary::Api do
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
-      
+
       resource = result["published"][0]
-      
+
       expect(resource["public_id"]).to eq(publicId)
       expect(resource["type"]).to eq('upload')
-      
+
       bytes = resource["bytes"]
     end
     it "should publish resources by prefix and overwrite" do
@@ -552,13 +558,13 @@ describe Cloudinary::Api do
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
-      
+
       resource = result["published"][0]
-      
+
       expect(resource["public_id"]).to eq(publicId)
       expect(resource["bytes"]).not_to eq(bytes)
       expect(resource["type"]).to eq('upload')
-      
+
       bytes = resource["bytes"]
     end
     it "should publish resources by tag and overwrite" do
@@ -566,13 +572,13 @@ describe Cloudinary::Api do
 
       expect(result["published"]).to be_an_instance_of(Array)
       expect(result["published"].length).to eq(1)
-      
+
       resource = result["published"][0]
-      
+
       expect(resource["public_id"]).to eq(publicId)
       expect(resource["bytes"]).not_to eq(bytes)
       expect(resource["type"]).to eq('upload')
-      
+
       bytes = resource["bytes"]
     end
   end
