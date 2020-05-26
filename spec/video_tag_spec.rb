@@ -113,6 +113,148 @@ describe CloudinaryHelper do
       end
     end
 
+    describe ":sources" do
+      let(:options) { {:sources => CloudinaryHelper::DEFAULT_SOURCES} }
+
+      it "should generate video tag with default sources if not given sources or source_types" do
+        expect(test_tag.children.length).to eq(4)
+        expect(test_tag.children[0][:type]).to eq("video/mp4; codecs=hev1")
+        expect(test_tag.children[0][:src]).to eq("#{upload_path}/vc_h265/movie.mp4")
+
+        expect(test_tag.children[1][:type]).to eq("video/webm; codecs=vp9")
+        expect(test_tag.children[1][:src]).to eq("#{upload_path}/vc_vp9/movie.webm")
+
+        expect(test_tag.children[2][:type]).to eq("video/mp4")
+        expect(test_tag.children[2][:src]).to eq("#{upload_path}/vc_auto/movie.mp4")
+
+        expect(test_tag.children[3][:type]).to eq("video/webm")
+        expect(test_tag.children[3][:src]).to eq("#{upload_path}/vc_auto/movie.webm")
+      end
+
+      it "should generate video tag with given custom sources" do
+        options.merge!(:sources => [
+          {
+            :type => "mp4",
+          },
+          {
+            :type => "webm"
+          },
+        ])
+
+        expect(test_tag[:poster]).to eq(helper.cl_video_thumbnail_path("movie", { :format => 'jpg' }))
+
+        expect(test_tag.children.length).to eq(2)
+
+        expect(test_tag.children[0][:type]).to eq("video/mp4")
+        expect(test_tag.children[0][:src]).to eq("#{upload_path}/movie.mp4")
+
+        expect(test_tag.children[1][:type]).to eq("video/webm")
+        expect(test_tag.children[1][:src]).to eq("#{upload_path}/movie.webm")
+      end
+
+      it "should generate video tag overriding source_types with sources if both are given" do
+        options.merge!(
+          :sources => [
+            {
+              :type => "mp4"
+            }
+          ],
+          :source_types => ["ogv", "mp4", "webm"]
+        )
+
+        expect(test_tag[:poster]).to eq(helper.cl_video_thumbnail_path("movie", { :format => 'jpg' }))
+
+        expect(test_tag.children.length).to eq(1)
+
+        expect(test_tag.children[0][:type]).to eq("video/mp4")
+        expect(test_tag.children[0][:src]).to eq("#{upload_path}/movie.mp4")
+      end
+
+      it "should correctly handle ogg/ogv" do
+        options.merge!(:sources => [{ :type => "ogv" }])
+
+        expect(test_tag[:poster]).to eq(helper.cl_video_thumbnail_path("movie", { :format => 'jpg' }))
+
+        expect(test_tag.children.length).to eq(1)
+
+        expect(test_tag.children[0][:type]).to eq("video/ogg")
+        expect(test_tag.children[0][:src]).to eq("#{upload_path}/movie.ogv")
+      end
+
+      it "should create video tag with multiple sources, codecs and transformations for custom sources" do
+        options.merge!(:sources => [
+          {
+            :type            => "mp4",
+            :codecs          => "vp8, vorbis",
+            :transformations => { :video_codec => "auto" }
+          },
+          {
+            :type            => "webm",
+            :codecs          => "avc1.4D401E, mp4a.40.2",
+            :transformations => { :video_codec => "auto" }
+          }
+        ])
+
+        expect(test_tag.children.length).to eq(2)
+
+        expect(test_tag.children[0][:type]).to eq("video/mp4; codecs=vp8, vorbis")
+        expect(test_tag.children[0][:src]).to eq("#{upload_path}/vc_auto/movie.mp4")
+
+        expect(test_tag.children[1][:type]).to eq("video/webm; codecs=avc1.4D401E, mp4a.40.2")
+        expect(test_tag.children[1][:src]).to eq("#{upload_path}/vc_auto/movie.webm")
+      end
+
+      it "should create video tag with multiple sources, codecs and transformations when codecs is an array" do
+        options.merge!(:sources => [
+          {
+            :type            => "mp4",
+            :codecs          => ["vp8", "vorbis"],
+            :transformations => { :video_codec => "auto" }
+          },
+          {
+            :type            => "webm",
+            :codecs          => ["avc1.4D401E", "mp4a.40.2"],
+            :transformations => { :video_codec => "auto" }
+          }
+        ])
+
+        expect(test_tag.children.length).to eq(2)
+        expect(test_tag.children[0][:type]).to eq("video/mp4; codecs=vp8, vorbis")
+        expect(test_tag.children[0][:src]).to eq("#{upload_path}/vc_auto/movie.mp4")
+
+        expect(test_tag.children[1][:type]).to eq("video/webm; codecs=avc1.4D401E, mp4a.40.2")
+        expect(test_tag.children[1][:src]).to eq("#{upload_path}/vc_auto/movie.webm")
+      end
+
+      it "should create video tag with multiple sources, codecs and transformations and apply source transformations" do
+        options.merge!(:source_types => "mp4",
+                       :html_height  => "100",
+                       :html_width   => "200",
+                       :video_codec  => { :codec => "h264" },
+                       :audio_codec  => "acc",
+                       :start_offset => 3)
+
+        src_to_include = "#{upload_path}/ac_acc,so_3,%s/movie.%s"
+
+        expect(test_tag[:height]).to eq("100")
+        expect(test_tag[:width]).to eq("200")
+        expect(test_tag[:poster]).to eq(sprintf(src_to_include, "vc_h264", "jpg"))
+
+        expect(test_tag.children.length).to eq(4)
+        expect(test_tag.children[0][:type]).to eq("video/mp4; codecs=hev1")
+        expect(test_tag.children[0][:src]).to eq(sprintf(src_to_include, "vc_h265", "mp4"))
+
+        expect(test_tag.children[1][:type]).to eq("video/webm; codecs=vp9")
+        expect(test_tag.children[1][:src]).to eq(sprintf(src_to_include, "vc_vp9", "webm"))
+
+        expect(test_tag.children[2][:type]).to eq("video/mp4")
+        expect(test_tag.children[2][:src]).to eq(sprintf(src_to_include, "vc_auto", "mp4"))
+
+        expect(test_tag.children[3][:type]).to eq("video/webm")
+        expect(test_tag.children[3][:src]).to eq(sprintf(src_to_include, "vc_auto", "webm"))
+      end
+    end
+
     describe ":poster" do
       context "when poster is not provided" do
         it "should default to jpg with the video transformation" do
