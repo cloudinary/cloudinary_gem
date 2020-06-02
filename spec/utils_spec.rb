@@ -134,14 +134,14 @@ describe Cloudinary::Utils do
   end
 
   it "should not sign the url_suffix" do
-    expected_signture = Cloudinary::Utils.cloudinary_url("test", :format => "jpg", :sign_url => true).match(/s--[0-9A-Za-z_-]{8}--/).to_s
+    expected_signature = Cloudinary::Utils.cloudinary_url("test", :format => "jpg", :sign_url => true).match(/s--[0-9A-Za-z_-]{8}--/).to_s
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :format => "jpg", :sign_url => true }])
-      .to produce_url("http://#{cloud_name}-res.cloudinary.com/images/#{expected_signture}/test/hello.jpg")
+      .to produce_url("http://#{cloud_name}-res.cloudinary.com/images/#{expected_signature}/test/hello.jpg")
             .and empty_options
 
-    expected_signture = Cloudinary::Utils.cloudinary_url("test", :format => "jpg", :angle => 0, :sign_url => true).match(/s--[0-9A-Za-z_-]{8}--/).to_s
+    expected_signature = Cloudinary::Utils.cloudinary_url("test", :format => "jpg", :angle => 0, :sign_url => true).match(/s--[0-9A-Za-z_-]{8}--/).to_s
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :format => "jpg", :angle => 0, :sign_url => true }])
-      .to produce_url("http://#{cloud_name}-res.cloudinary.com/images/#{expected_signture}/a_0/test/hello.jpg")
+      .to produce_url("http://#{cloud_name}-res.cloudinary.com/images/#{expected_signature}/a_0/test/hello.jpg")
             .and empty_options
   end
 
