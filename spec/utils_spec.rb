@@ -145,6 +145,13 @@ describe Cloudinary::Utils do
             .and empty_options
   end
 
+  it "should use sha256 for a signature when long_url_signature is true" do
+    expected_signature = Cloudinary::Utils.cloudinary_url("test", :format => "jpg", :sign_url => true, :long_url_signature => true).match(/s--[0-9A-Za-z_-]{32}--/).to_s
+    expect(["test", { :url_suffix => "hello", :private_cdn => true, :format => "jpg", :sign_url => true, :long_url_signature => true }])
+      .to produce_url("http://#{cloud_name}-res.cloudinary.com/images/#{expected_signature}/test/hello.jpg")
+            .and empty_options
+  end
+
   it "should support url_suffix for raw uploads" do
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :resource_type => :raw }])
       .to produce_url("http://#{cloud_name}-res.cloudinary.com/files/test/hello")

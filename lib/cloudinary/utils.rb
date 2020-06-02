@@ -497,6 +497,7 @@ class Cloudinary::Utils
     url_suffix = options.delete(:url_suffix)
     use_root_path = config_option_consume(options, :use_root_path)
     auth_token = config_option_consume(options, :auth_token)
+    long_url_signature = config_option_consume(options, :long_url_signature)
     unless auth_token == false
       auth_token = Cloudinary::AuthToken.merge_auth_token(Cloudinary.config.auth_token, auth_token)
     end
@@ -541,7 +542,7 @@ class Cloudinary::Utils
       raise(CloudinaryException, "Must supply api_secret") if (secret.nil? || secret.empty?)
       to_sign = [transformation, sign_version && version, source_to_sign].reject(&:blank?).join("/")
       to_sign = fully_unescape(to_sign)
-      signature = 's--' + Base64.urlsafe_encode64(Digest::SHA1.digest(to_sign + secret))[0,8] + '--'
+      signature = compute_signature(to_sign + secret, long_url_signature)
     end
 
     prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
@@ -1131,5 +1132,16 @@ class Cloudinary::Utils
 
   def self.is_remote?(url)
     REMOTE_URL_REGEX === url
+  end
+
+  def self.compute_signature(message, long_url_signature)
+    encode_digest =
+      if long_url_signature
+        Base64.urlsafe_encode64(Digest::SHA256.digest(message))[0, 32]
+      else
+        Base64.urlsafe_encode64(Digest::SHA1.digest(message))[0, 8]
+      end
+
+    "s--#{encode_digest}--"
   end
 end
