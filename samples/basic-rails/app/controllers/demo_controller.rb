@@ -1,6 +1,6 @@
 class DemoController < ApplicationController
 
-  before_filter :check_configuration
+  before_action :check_configuration
 
   def check_configuration
     render 'configuration_missing' if Cloudinary.config.api_key.blank?
