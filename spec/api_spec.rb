@@ -427,7 +427,7 @@ describe Cloudinary::Api do
     expected = {
       [:proxy] => proxy
     }
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    expect(Cloudinary::Utils).to receive(:http_request).with(deep_hash_value(expected))
     @api.resource(test_id_1, :api_proxy => proxy)
   end
 

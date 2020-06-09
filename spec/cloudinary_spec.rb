@@ -63,6 +63,7 @@ describe Cloudinary do
       ENV["CLOUDINARY_SECURE_DISTRIBUTION"] = "sd"
       ENV["CLOUDINARY_PRIVATE_CDN"] = "false"
       ENV["CLOUDINARY_SECURE"] = "true"
+      ENV["CLOUDINARY_API_PROXY"] = "https://myuser:mypass@my.proxy.com"
 
       expect(Cloudinary::config.cloud_name).to eq "c"
       expect(Cloudinary::config.api_key).to eq "k"
@@ -70,7 +71,7 @@ describe Cloudinary do
       expect(Cloudinary::config.secure_distribution).to eq "sd"
       expect(Cloudinary::config.private_cdn).to eq false
       expect(Cloudinary::config.secure).to eq true
-
+      expect(Cloudinary::config.api_proxy).to eq "https://myuser:mypass@my.proxy.com"
     end
   end
 end

@@ -1156,4 +1156,42 @@ class Cloudinary::Utils
   end
 
   private_class_method :compute_signature
+
+  # Check if RestClient is version 2.0.0 or newer
+  if Gem::Version.new(RestClient::VERSION) >= Gem::Version.new("2.0.0")
+    # In this case all the options can be passed to rest-client since it supports per-request proxy and accepts
+    # a :proxy key
+    def self.http_request(options, &block) # :nodoc:
+      RestClient::Request.execute(options, &block)
+    end
+  else
+    # Older versions of rest-client do not support per-request proxies but do support setting a global proxy.
+    # Since the shared global variable is involved, mutex is used to eliminate the possibility of having
+    # incorrect state when using this method in a multi-threaded environment
+    @mutex = Mutex.new
+
+    def self.http_request(options, &block) # :nodoc:
+      options = options.clone
+
+      if options.key?(:proxy)
+        # since synchronization is not free it is used only when proxy is provided
+        @mutex.synchronize do
+          begin
+            # users of the gem might already use rest-client for their needs and set the global proxy.
+            # We save its original state so that it can be restored after the request is made.
+            old_proxy = RestClient.proxy
+            # Set global proxy setting
+            RestClient.proxy = options.delete(:proxy)
+            # The request is made via global proxy
+            RestClient::Request.execute(options, &block)
+          ensure
+            # Restore global proxy to previous value
+            RestClient.proxy = old_proxy
+          end
+        end
+      else
+        RestClient::Request.execute(options, &block)
+      end
+    end
+  end
 end

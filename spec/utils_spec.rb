@@ -1103,4 +1103,69 @@ describe Cloudinary::Utils do
 
   end
   end
+
+  describe ".http_request" do
+    let(:global_proxy) { "http://some.global.proxy:8080" }
+    # in case proxy is set globally already
+    before do
+      @rest_client_proxy = RestClient.proxy
+      RestClient.proxy = global_proxy
+    end
+
+    after { RestClient.proxy = @rest_client_proxy }
+
+    let(:request_params) do
+      {
+        :method => :post,
+        :url => "http://cloudinary-url.com",
+        :payload => {
+          :pay => :load
+        },
+        :timeout => 73,
+        :headers => {
+          :accept => "application/json"
+        }
+      }
+    end
+
+    it "uses rest-client to make http requests" do
+      expect(RestClient::Request).to receive(:execute).with(request_params)
+
+      Cloudinary::Utils.http_request(request_params)
+    end
+
+    if Gem::Version.new(RestClient::VERSION) >= Gem::Version.new("2.0.0")
+      it "uses per-request proxy" do
+        proxy = "http://non-existing.proxy"
+        params = request_params.merge(:proxy => proxy)
+
+        expect(RestClient::Request).to receive(:execute).with(params)
+
+        Cloudinary::Utils.http_request(params)
+      end
+    else
+      it "sets and uses a global proxy setting and then reverts it to its previous value" do
+        proxy = "http://non-existing.proxy"
+        params = request_params.merge(:proxy => proxy)
+
+        expect(RestClient::Request).to receive(:execute).with(request_params) do
+          expect(RestClient.proxy).to eq(proxy)
+        end
+
+        Cloudinary::Utils.http_request(params)
+
+        expect(RestClient.proxy).to eq(global_proxy)
+      end
+
+      it "might throw an error but still resets global proxy" do
+        proxy = "http://non-existing.proxy"
+        params = request_params.merge(:proxy => proxy)
+
+        # SocketError means RestClient tried to use proxy but couldn't connect to one since it doesn't exist
+        expect { Cloudinary::Utils.http_request(params) }.to raise_error(SocketError)
+
+        expect(RestClient.proxy).to eq(global_proxy)
+      end
+    end
+  end
 end
