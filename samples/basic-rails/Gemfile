@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails'
+gem 'rails', '~> 6.0.3'
 gem 'cloudinary', :path => "../.."
 
 group :test, :development do
