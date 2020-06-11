@@ -1,4 +1,18 @@
 
+1.15.0 / 2020-06-11
+===================
+
+New functionality and features
+------------------------------
+
+  * Add support for `accessibility_analysis` parameter
+  
+Other Changes
+-------------
+  * Fix `download` function in `Cloudinary::CarrierWave`
+  * Fix handling of empty value in `if` parameter
+  * Fix consumption of configuration from environment variables
+
 1.14.0 / 2020-05-06
 ===================
 
