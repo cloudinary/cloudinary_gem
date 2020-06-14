@@ -16,7 +16,9 @@ require "cloudinary/missing"
 module Cloudinary
   autoload :Utils, 'cloudinary/utils'
   autoload :Uploader, 'cloudinary/uploader'
+  autoload :Request, "cloudinary/request"
   autoload :Api, "cloudinary/api"
+  autoload :AccountApi, "cloudinary/account_api"
   autoload :Downloader, "cloudinary/downloader"
   autoload :Blob, "cloudinary/blob"
   autoload :PreloadedFile, "cloudinary/preloaded_file"
