@@ -139,7 +139,7 @@ class Cloudinary::Utils
       zoom
   ].map(&:to_sym)
 
-  REMOTE_URL_REGEX = %r(^ftp:|^https?:|^s3:|^gs:|^data:([\w-]+\/[\w-]+)?(;[\w-]+=[\w-]+)*;base64,([a-zA-Z0-9\/+\n=]+)$)
+  REMOTE_URL_REGEX = %r(^ftp:|^https?:|^s3:|^gs:|^data:([\w-]+\/[\w-]+(\+[\w-]+)?)?(;[\w-]+=[\w-]+)*;base64,([a-zA-Z0-9\/+\n=]+)$)
 
   def self.extract_config_params(options)
       options.select{|k,v| URL_KEYS.include?(k)}
