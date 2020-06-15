@@ -216,9 +216,9 @@ class Cloudinary::AccountApi
   end
 
   def self.call_account_api(method, uri, params, options)
-    account_id = options[:account_id] || Cloudinary.config.account_id || raise('Must supply account_id')
-    api_key    = options[:provisioning_api_key] || Cloudinary.config.provisioning_api_key || raise('Must supply provisioning api_key')
-    api_secret = options[:provisioning_api_secret] || Cloudinary.config.provisioning_api_secret || raise('Must supply provisioning api_secret')
+    account_id = options[:account_id] || Cloudinary.account_config.account_id || raise('Must supply account_id')
+    api_key    = options[:provisioning_api_key] || Cloudinary.account_config.provisioning_api_key || raise('Must supply provisioning api_key')
+    api_secret = options[:provisioning_api_secret] || Cloudinary.account_config.provisioning_api_secret || raise('Must supply provisioning api_secret')
 
     params.reject! { |_, v| v.nil? }
 

@@ -62,6 +62,7 @@ end
 module Cloudinary
   def self.reset_config
     @@config = nil
+    @@account_config = nil
   end
 
 end

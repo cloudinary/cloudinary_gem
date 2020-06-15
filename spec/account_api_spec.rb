@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'cloudinary'
 
 describe Cloudinary::AccountApi do
-  config = Cloudinary.config
+  config = Cloudinary.account_config
 
   if [config.provisioning_api_key, config.provisioning_api_secret, config.account_id].any? { |c| c.nil? || c.empty? }
     break puts("Please setup environment for account api test to run")
