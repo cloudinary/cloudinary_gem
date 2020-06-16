@@ -1,6 +1,5 @@
 class ImageUploader < CarrierWave::Uploader::Base
-  include Sprockets::Helpers::RailsHelper
-  include Sprockets::Helpers::IsolatedHelper
+  include Sprockets::Rails::Helper
 
   include Cloudinary::CarrierWave
   

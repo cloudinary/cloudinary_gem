@@ -1,7 +1,8 @@
 class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
 
   def store!(file)
-    return if !uploader.enable_processing
+    return unless uploader.enable_processing
+
     if uploader.is_main_uploader?
       case file
       when Cloudinary::CarrierWave::PreloadedCloudinaryFile
