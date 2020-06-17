@@ -9,6 +9,7 @@ module Cloudinary::CarrierWave
 
   def self.included(base)
     base.storage Cloudinary::CarrierWave::Storage
+    base.cache_storage = :file if base.cache_storage.blank?
     base.extend ClassMethods
     base.class_attribute :metadata
     base.class_attribute :storage_type, instance_reader: false
