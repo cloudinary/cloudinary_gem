@@ -1,5 +1,6 @@
 require 'active_storage/blob_key'
 require 'cloudinary/helper'
+require 'net/http'
 
 unless ActiveStorage::Blob.method_defined? :original_key
   class ActiveStorage::Blob
