@@ -58,7 +58,11 @@ describe Cloudinary::Search do
       Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_1, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=in_review')
       Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_2, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=new')
       Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_3, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=validated')
-      sleep(3)
+      sleep(1)
+    end
+
+    around(:each) do |ex|
+      ex.run_with_retry retry: 3
     end
 
     it "should return all images tagged with #{SEARCH_TAG}" do
