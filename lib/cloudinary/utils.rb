@@ -306,7 +306,7 @@ class Cloudinary::Utils
     "if_" + normalize_expression(if_value) unless if_value.to_s.empty?
   end
 
-  EXP_REGEXP = Regexp.new(PREDEFINED_VARS.keys.join("|")+'|('+CONDITIONAL_OPERATORS.keys.reverse.map { |k| Regexp.escape(k) }.join('|')+')(?=[ _])')
+  EXP_REGEXP = Regexp.new('(?<!\$)('+PREDEFINED_VARS.keys.join("|")+')'+'|('+CONDITIONAL_OPERATORS.keys.reverse.map { |k| Regexp.escape(k) }.join('|')+')(?=[ _])')
   EXP_REPLACEMENT = PREDEFINED_VARS.merge(CONDITIONAL_OPERATORS)
 
   def self.normalize_expression(expression)

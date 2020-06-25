@@ -1011,6 +1011,16 @@ describe Cloudinary::Utils do
       expect( ["sample", :crop => "scale", :overlay => {:text => "$(start)Hello $(name)$(ext), $(no ) $( no)$(end)", :font_family => "Arial", :font_size => "18"} ]).to produce_url "#{upload_path}/c_scale,l_text:Arial_18:$(start)Hello%20$(name)$(ext)%252C%20%24%28no%20%29%20%24%28%20no%29$(end)/sample"
 
     end
+
+    it "should not change variable names even if they are keywords" do
+      options = { :transformation => [
+        {"$width" => 10},
+        {:width => "$width + 10 + width"}
+      ] }
+
+      t = Cloudinary::Utils.generate_transformation_string options, true
+      expect(t).to eq("$width_10/w_$width_add_10_add_w")
+    end
   end
 
     describe "context" do
