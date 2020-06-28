@@ -1103,4 +1103,54 @@ describe Cloudinary::Utils do
 
   end
   end
+
+  it "should download a sprite" do
+    sprite_test_tag = "sprite_tag#{SUFFIX}"
+    url1 = "https://res.cloudinary.com/demo/image/upload/sample"
+    url2 = "https://res.cloudinary.com/demo/image/upload/car"
+
+    url_from_tag = Cloudinary::Utils.download_generated_sprite(sprite_test_tag)
+    url_from_urls = Cloudinary::Utils.download_generated_sprite([url1, url2])
+
+    expect(url_from_tag).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/sprite")
+    expect(url_from_urls).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/sprite")
+    expect(url_from_urls).to include("urls[]=#{CGI.escape(url1)}")
+    expect(url_from_urls).to include("urls[]=#{CGI.escape(url2)}")
+
+    parameters = CGI::parse(url_from_tag)
+    expect(parameters["tag"]).to eq([sprite_test_tag])
+    expect(parameters["mode"]).to eq([Cloudinary::Utils::MODE_DOWNLOAD])
+    expect(parameters["timestamp"]).not_to be_nil
+    expect(parameters["signature"]).not_to be_nil
+
+    parameters = CGI::parse(url_from_urls)
+    expect(parameters["mode"]).to eq([Cloudinary::Utils::MODE_DOWNLOAD])
+    expect(parameters["timestamp"]).not_to be_nil
+    expect(parameters["signature"]).not_to be_nil
+  end
+
+  it "should download multi" do
+    multi_test_tag = "multi_test_tag_#{UNIQUE_TEST_ID}"
+    url1 = "https://res.cloudinary.com/demo/image/upload/sample"
+    url2 = "https://res.cloudinary.com/demo/image/upload/car"
+
+    url_from_tag = Cloudinary::Utils.download_multi(multi_test_tag)
+    url_from_urls = Cloudinary::Utils.download_multi([url1, url2])
+
+    expect(url_from_tag).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/multi")
+    expect(url_from_urls).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/multi")
+    expect(url_from_urls).to include("urls[]=#{CGI.escape(url1)}")
+    expect(url_from_urls).to include("urls[]=#{CGI.escape(url2)}")
+
+    parameters = CGI::parse(url_from_tag)
+    expect(parameters["tag"]).to eq([multi_test_tag])
+    expect(parameters["mode"]).to eq([Cloudinary::Utils::MODE_DOWNLOAD])
+    expect(parameters["timestamp"]).not_to be_nil
+    expect(parameters["signature"]).not_to be_nil
+
+    parameters = CGI::parse(url_from_urls)
+    expect(parameters["mode"]).to eq([Cloudinary::Utils::MODE_DOWNLOAD])
+    expect(parameters["timestamp"]).not_to be_nil
+    expect(parameters["signature"]).not_to be_nil
+  end
 end

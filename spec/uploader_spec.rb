@@ -535,4 +535,53 @@ describe Cloudinary::Uploader do
       expect(result["public_ids"]).to include(resource_2["public_id"])
     end
   end
+
+  it "should generate a sprite" do
+    sprite_test_tag = "sprite_test_tag_#{UNIQUE_TEST_ID}"
+    upload_result1 = Cloudinary::Uploader.upload(TEST_IMAGE_URL, :tags => [sprite_test_tag, TEST_TAG, UPLOADER_TAG, TIMESTAMP_TAG], :public_id => "sprite_test_tag_1#{SUFFIX}")
+    upload_result2 = Cloudinary::Uploader.upload(TEST_IMAGE_URL, :tags => [sprite_test_tag, TEST_TAG, UPLOADER_TAG, TIMESTAMP_TAG], :public_id => "sprite_test_tag_2#{SUFFIX}")
+
+    urls = [upload_result1["url"], upload_result2["url"]]
+    result = Cloudinary::Uploader.generate_sprite(urls, :tags => [TEST_TAG, UPLOADER_TAG])
+    Cloudinary::Api.delete_resources(result["public_id"], :type => "sprite")
+    expect(result["image_infos"].count).to eq(2)
+
+    result = Cloudinary::Uploader.generate_sprite(sprite_test_tag, :tags => [TEST_TAG, UPLOADER_TAG])
+    Cloudinary::Api.delete_resources(result["public_id"], :type => "sprite")
+    expect(result["image_infos"].count).to eq(2)
+
+    result = Cloudinary::Uploader.generate_sprite(sprite_test_tag, :transformation => { :crop => "scale", :width => 100 })
+    Cloudinary::Api.delete_resources(result["public_id"], :type => "sprite")
+    expect(result["css_url"]).to include("c_scale,w_100")
+
+    result = Cloudinary::Uploader.generate_sprite(sprite_test_tag, { :format => "jpg", :transformation => { :crop => "scale", :width => 100 } })
+    Cloudinary::Api.delete_resources(result["public_id"], :type => "sprite")
+    expect(result["css_url"]).to include("c_scale,w_100/f_jpg")
+  end
+
+  it "should create a file with multi" do
+    multi_test_tag = "multi_test_tag_#{UNIQUE_TEST_ID}"
+    options = { :tags => [multi_test_tag, TEST_TAG, UPLOADER_TAG, TIMESTAMP_TAG] }
+
+    upload_result1 = Cloudinary::Uploader.upload(TEST_IMAGE_URL, options)
+    upload_result2 = Cloudinary::Uploader.upload(TEST_IMAGE_URL, options)
+
+    urls = [upload_result1["url"], upload_result2["url"]]
+
+    result = Cloudinary::Uploader.multi(urls, :transformation => { :crop => "scale", :width => 0.5 }, tags: [TIMESTAMP_TAG])
+    Cloudinary::Api.delete_resources(result["public_id"], :type => "multi")
+    expect(result["url"]).to end_with(".gif")
+    expect(result["url"]).to include("w_0.5")
+
+    result = Cloudinary::Uploader.multi(multi_test_tag, :transformation => { :crop => "scale", :width => 0.5 })
+    Cloudinary::Api.delete_resources(result["public_id"], :type => "multi")
+
+    pdf_result = Cloudinary::Uploader.multi(multi_test_tag, :format => "pdf", :transformation => { :crop => "scale", :width => 111 })
+    Cloudinary::Api.delete_resources(pdf_result["public_id"], :type => "multi")
+
+    expect(result["url"]).to end_with(".gif")
+    expect(result["url"]).to include("w_0.5")
+    expect(pdf_result["url"]).to include("w_111")
+    expect(pdf_result["url"]).to end_with(".pdf")
+  end
 end

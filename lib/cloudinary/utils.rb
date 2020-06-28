@@ -13,6 +13,7 @@ require 'cloudinary/responsive'
 class Cloudinary::Utils
   # @deprecated Use Cloudinary::SHARED_CDN
   SHARED_CDN = Cloudinary::SHARED_CDN
+  MODE_DOWNLOAD = "download"
   DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {:width => :auto, :crop => :limit}
   CONDITIONAL_OPERATORS = {
     "=" => 'eq',
@@ -677,6 +678,49 @@ class Cloudinary::Utils
     params
   end
 
+  # Helper method for generating download URLs
+  #
+  # @param [String] action @see Cloudinary::Utils.cloudinary_api_url
+  # @param [Hash] params Query parameters in generated URL
+  # @param [Hash] options Additional options
+  # @yield [query_parameters] Invokes the block with query parameters to override how to encode them
+  #
+  # @return [String]
+  def self.cloudinary_api_download_url(action, params, options = {})
+    cloudinary_params = sign_request(params.merge(mode: MODE_DOWNLOAD), options)
+
+    cloudinary_params = if block_given?
+                          yield cloudinary_params
+                        else
+                          hash_query_params(cloudinary_params)
+                        end
+
+    "#{Cloudinary::Utils.cloudinary_api_url(action, options)}?#{cloudinary_params}"
+  end
+  private_class_method :cloudinary_api_download_url
+
+  # Return a signed URL to the 'generate_sprite' endpoint with 'mode=download'.
+  #
+  # @param [Array<String>|String] source Array of urls or a tag
+  # @param [Hash] options Additional options
+  #
+  # @return [String] The signed URL to download sprite
+  def self.download_generated_sprite(source, options = {})
+    params = build_multi_and_sprite_params(source, options)
+    cloudinary_api_download_url("sprite", params, options) { |p| flat_hash_to_query_params(p) }
+  end
+
+  # Return a signed URL to the 'multi' endpoint with 'mode=download'.
+  #
+  # @param [Array<String>|String] source Array of urls or a tag
+  # @param [Hash] options Additional options
+  #
+  # @return [String] The signed URL to download multi
+  def self.download_multi(source, options = {})
+    params = build_multi_and_sprite_params(source, options)
+    cloudinary_api_download_url("multi", params, options) { |p| flat_hash_to_query_params(p) }
+  end
+
   def self.private_download_url(public_id, format, options = {})
     cloudinary_params = sign_request({
         :timestamp=>Time.now.to_i,
@@ -725,10 +769,9 @@ class Cloudinary::Utils
   # @option options [String] :keep_derived (false) keep the derived images used for generating the archive
   # @return [String] archive url
   def self.download_archive_url(options = {})
-    cloudinary_params = sign_request(Cloudinary::Utils.archive_params(options.merge(:mode => "download")), options)
-    return Cloudinary::Utils.cloudinary_api_url("generate_archive", options) + "?" + hash_query_params(cloudinary_params)
+    params = Cloudinary::Utils.archive_params(options)
+    cloudinary_api_download_url("generate_archive", params, options)
   end
-
 
   # Returns a URL that when invokes creates an zip archive and returns it.
   # @see download_archive_url
@@ -1147,6 +1190,32 @@ class Cloudinary::Utils
 
   def self.is_remote?(url)
     REMOTE_URL_REGEX === url
+  end
+
+  # Build params for multi, download_multi, generate_sprite, and download_generated_sprite methods
+  #
+  # @param [Array<String>|String] source Array of urls or a tag
+  # @param [Hash] options Additional options
+  #
+  # @return [Hash]
+  #
+  # @private
+  def self.build_multi_and_sprite_params(source, options)
+    if source.blank?
+      raise "Either tag or urls are required"
+    end
+
+    key = source.is_a?(Array) ? :urls : :tag
+
+    {
+      key => source,
+      :transformation => Cloudinary::Utils.generate_transformation_string(options.merge(:fetch_format => options[:format])),
+      :notification_url => options[:notification_url],
+      :format => options[:format],
+      :async => options[:async],
+      :mode => options[:mode],
+      :timestamp => (options[:timestamp] || Time.now.to_i)
+    }
   end
 
   # Format date in a format accepted by the usage API (e.g., 31-12-2020) if

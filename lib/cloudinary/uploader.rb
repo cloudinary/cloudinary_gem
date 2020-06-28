@@ -206,17 +206,17 @@ class Cloudinary::Uploader
     end
   end
 
-  def self.generate_sprite(tag, options={})
+  # Generates sprites by merging multiple images into a single large image.
+  #
+  # @param [Array<String>|String] source Array of urls or a tag
+  # @param [Hash] options Additional options
+  #
+  # @return [Hash] Hash with meta information URLs of generated sprite resources
+  def self.generate_sprite(source, options = {})
     version_store = options.delete(:version_store)
 
     result = call_api("sprite", options) do
-      {
-        :timestamp        => (options[:timestamp] || Time.now.to_i),
-        :tag              => tag,
-        :async            => options[:async],
-        :notification_url => options[:notification_url],
-        :transformation   => Cloudinary::Utils.generate_transformation_string(options.merge(:fetch_format => options[:format]))
-      }
+      Cloudinary::Utils.build_multi_and_sprite_params(source, options)
     end
 
     if version_store == :file && result && result["version"]
@@ -228,16 +228,15 @@ class Cloudinary::Uploader
     return result
   end
 
-  def self.multi(tag, options={})
+  # Creates either a single animated image, video or a PDF.
+  #
+  # @param [Array<String>|String] source Array of urls or a tag
+  # @param [Hash] options Additional options
+  #
+  # @return [Hash] Hash with meta information URLs of the generated file
+  def self.multi(source, options = {})
     call_api("multi", options) do
-      {
-        :timestamp        => (options[:timestamp] || Time.now.to_i),
-        :tag              => tag,
-        :format           => options[:format],
-        :async            => options[:async],
-        :notification_url => options[:notification_url],
-        :transformation   => Cloudinary::Utils.generate_transformation_string(options.clone)
-      }
+      Cloudinary::Utils.build_multi_and_sprite_params(source, options)
     end
   end
 
