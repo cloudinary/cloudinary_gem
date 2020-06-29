@@ -1,4 +1,19 @@
 
+1.16.0 / 2020-06-29
+===================
+
+New functionality and features
+------------------------------
+
+  * Add support for uploading `StringIO`
+
+Other Changes
+-------------
+
+  * Set default cache storage to `file` in `CarrierWave`
+  * Fix `normalize_expression` to ignore predefined variables
+  * Fix sample projects
+
 1.15.0 / 2020-06-11
 ===================
 
