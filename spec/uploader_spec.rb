@@ -29,6 +29,12 @@ describe Cloudinary::Uploader do
     end
   end
 
+  it "should successfully upload a file from StringIO" do
+    string_io = StringIO.new(CloudinaryHelper::CL_BLANK)
+    result = Cloudinary::Uploader.upload(string_io, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result["width"]).to eq(1)
+  end
+
   it "should successfully upload file by url" do
     result = Cloudinary::Uploader.upload("http://cloudinary.com/images/old_logo.png", :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result["width"]).to eq(TEST_IMG_W)

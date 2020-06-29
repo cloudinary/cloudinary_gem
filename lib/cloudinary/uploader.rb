@@ -78,6 +78,9 @@ class Cloudinary::Uploader
       params = build_upload_params(options)
       if file.is_a?(Pathname)
         params[:file] = File.open(file, "rb")
+      elsif file.is_a?(StringIO)
+        file.rewind
+        params[:file] = Cloudinary::Blob.new(file.read, options)
       elsif file.respond_to?(:read) || Cloudinary::Utils.is_remote?(file)
         params[:file] = file
       else
