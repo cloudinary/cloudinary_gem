@@ -1,4 +1,10 @@
 
+1.16.1 / 2020-07-06
+===================
+
+  * Detect data URLs with suffix in mime type
+  * Fix `Invalid regular expression` error in Safari
+
 1.16.0 / 2020-06-29
 ===================
 
