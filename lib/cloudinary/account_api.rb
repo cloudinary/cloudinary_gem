@@ -1,5 +1,5 @@
 class Cloudinary::AccountApi
-  extend Cloudinary::Request
+  extend Cloudinary::BaseApi
 
   # Creates a new sub-account. Any users that have access to all sub-accounts will also automatically have access to the
   # new sub-account.

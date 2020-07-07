@@ -19,7 +19,7 @@ module Cloudinary
   autoload :BaseConfig, "cloudinary/base_config"
   autoload :Config, "cloudinary/config"
   autoload :AccountConfig, "cloudinary/account_config"
-  autoload :Request, "cloudinary/request"
+  autoload :BaseApi, "cloudinary/base_api"
   autoload :Api, "cloudinary/api"
   autoload :AccountApi, "cloudinary/account_api"
   autoload :Downloader, "cloudinary/downloader"

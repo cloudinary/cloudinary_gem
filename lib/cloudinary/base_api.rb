@@ -1,7 +1,7 @@
 require "rest_client"
 require "json"
 
-module Cloudinary::Request
+module Cloudinary::BaseApi
   class Error < CloudinaryException; end
   class NotFound < Error; end
   class NotAllowed < Error; end

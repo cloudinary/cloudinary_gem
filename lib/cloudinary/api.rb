@@ -1,5 +1,5 @@
 class Cloudinary::Api
-  extend Cloudinary::Request
+  extend Cloudinary::BaseApi
 
   def self.ping(options={})
     call_api(:get, "ping", {}, options)
