@@ -22,7 +22,7 @@ describe Cloudinary do
       expect(Cloudinary.account_config.foo.bar).to eq "value"
     end
 
-    it "should set accept a CLOUDINARY_ACCOUNT_URL with the correct scheme (account)" do
+    it "should accept a CLOUDINARY_ACCOUNT_URL with the correct scheme (account)" do
       valid_account_url = "account://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test"
       expect { Cloudinary.config_from_account_url valid_account_url }.not_to raise_error
     end
@@ -42,7 +42,7 @@ describe Cloudinary do
       end
     end
 
-    it "should not support CLOUDINARY_ prefixed environment variables" do
+    it "should not support CLOUDINARY_ prefixed environment variables that are unrelated to account config" do
       ENV["CLOUDINARY_CLOUD_NAME"] = "c"
       ENV["CLOUDINARY_API_KEY"] = "k"
       ENV["CLOUDINARY_API_SECRET"] = "s"
@@ -58,7 +58,7 @@ describe Cloudinary do
       expect(Cloudinary.account_config.secure).to be_nil
     end
 
-    it "should accept both CLOUDINARY_URL and CLOUDINARY_ACCOUNT_URL" do
+    it "should set values when both CLOUDINARY_URL and CLOUDINARY_ACCOUNT_URL are set" do
       valid_account_url = "account://api-key:api-secret@account-id"
       valid_cloudinary_url = "cloudinary://key:secret@test123"
 
@@ -74,29 +74,18 @@ describe Cloudinary do
                                                                           provisioning_api_secret: "api-secret")
     end
 
-    it "should accept both CLOUDINARY_URL and CLOUDINARY_ACCOUNT_URL without explicitly setting them" do
+    it "should accept CLOUDINARY_ACCOUNT_URL without explicitly setting it" do
       ENV["CLOUDINARY_ACCOUNT_URL"] = "account://api-key:api-secret@account-id"
-      ENV["CLOUDINARY_URL"] = "cloudinary://key:secret@test123"
-
-      expect(Cloudinary.config).to have_cloudinary_config(cloud_name: "test123",
-                                                          api_key: "key",
-                                                          api_secret: "secret")
 
       expect(Cloudinary.account_config).to have_cloudinary_account_config(account_id: "account-id",
                                                                           provisioning_api_key: "api-key",
                                                                           provisioning_api_secret: "api-secret")
     end
 
-    it "should raise an exception if CLOUDINARY_ACCOUNT_URL contains cloudinary url" do
+    it "should raise an exception if CLOUDINARY_ACCOUNT_URL contains Cloudinary url" do
       ENV["CLOUDINARY_ACCOUNT_URL"] = "cloudinary://key:secret@test123"
 
       expect { Cloudinary.account_config }.to raise_error(/bad URI|Invalid CLOUDINARY_ACCOUNT_URL/)
-    end
-
-    it "should raise an exception if CLOUDINARY_URL contains cloudinary account url" do
-      ENV["CLOUDINARY_URL"] = "account://api-key:api-secret@account-id"
-
-      expect { Cloudinary.config }.to raise_error(/bad URI|Invalid CLOUDINARY_URL/)
     end
   end
 end

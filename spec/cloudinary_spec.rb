@@ -37,7 +37,7 @@ describe Cloudinary do
       expect(Cloudinary::config.foo.bar).to eq 'value'
     end
 
-    it "should set accept a CLOUDINARY_URL with the correct scheme (cloudinary)" do
+    it "should accept a CLOUDINARY_URL with the correct scheme (cloudinary)" do
         valid_cloudinary_url = "cloudinary://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test"
         expect{Cloudinary::config_from_url valid_cloudinary_url}.not_to raise_error
     end
