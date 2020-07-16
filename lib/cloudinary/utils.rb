@@ -141,6 +141,9 @@ class Cloudinary::Utils
 
   REMOTE_URL_REGEX = %r(^ftp:|^https?:|^s3:|^gs:|^data:([\w-]+\/[\w-]+)?(;[\w-]+=[\w-]+)*;base64,([a-zA-Z0-9\/+\n=]+)$)
 
+  LONG_URL_SIGNATURE_LENGTH = 32
+  SHORT_URL_SIGNATURE_LENGTH = 8
+
   def self.extract_config_params(options)
       options.select{|k,v| URL_KEYS.include?(k)}
   end
@@ -542,7 +545,7 @@ class Cloudinary::Utils
       raise(CloudinaryException, "Must supply api_secret") if (secret.nil? || secret.empty?)
       to_sign = [transformation, sign_version && version, source_to_sign].reject(&:blank?).join("/")
       to_sign = fully_unescape(to_sign)
-      signature = compute_signature(to_sign + secret, long_url_signature)
+      signature = compute_signature(to_sign, secret, long_url_signature)
     end
 
     prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
@@ -1134,14 +1137,23 @@ class Cloudinary::Utils
     REMOTE_URL_REGEX === url
   end
 
-  def self.compute_signature(message, long_url_signature)
-    encode_digest =
+  # Computes a short or long signature based on a message and secret
+  # @param [String]  message The string to sign
+  # @param [String]  secret A secret that will be added to the message when signing
+  # @param [Boolean] long_signature Whether to create a short or long signature
+  # @return [String] Properly formatted signature
+  def self.compute_signature(message, secret, long_url_signature)
+    combined_message_secret = message + secret
+
+    algo, signature_length =
       if long_url_signature
-        Base64.urlsafe_encode64(Digest::SHA256.digest(message))[0, 32]
+        [Digest::SHA256, LONG_URL_SIGNATURE_LENGTH]
       else
-        Base64.urlsafe_encode64(Digest::SHA1.digest(message))[0, 8]
+        [Digest::SHA1, SHORT_URL_SIGNATURE_LENGTH]
       end
 
-    "s--#{encode_digest}--"
+    "s--#{Base64.urlsafe_encode64(algo.digest(combined_message_secret))[0, signature_length]}--"
   end
+
+  private_class_method :compute_signature
 end
