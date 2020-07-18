@@ -37,6 +37,7 @@ class Cloudinary::Uploader
       :eager_async               => Cloudinary::Utils.as_safe_bool(options[:eager_async]),
       :eager_notification_url    => options[:eager_notification_url],
       :exif                      => Cloudinary::Utils.as_safe_bool(options[:exif]),
+      :eval                      => options[:eval],
       :face_coordinates          => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
       :faces                     => Cloudinary::Utils.as_safe_bool(options[:faces]),
       :folder                    => options[:folder],
