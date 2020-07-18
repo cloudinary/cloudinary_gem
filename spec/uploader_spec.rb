@@ -54,6 +54,12 @@ describe Cloudinary::Uploader do
     expect(result["quality_analysis"]).to have_key("focus")
   end
 
+  it "should support the eval parameter" do
+    expected = {[:payload, :eval] => EVAL_STR}
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :eval => EVAL_STR)
+  end
+
   it "should support the accessibility_analysis of an uploaded image" do
     result = Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :accessibility_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result).to have_key("accessibility_analysis")

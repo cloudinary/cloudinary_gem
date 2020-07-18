@@ -312,10 +312,12 @@ describe Cloudinary::Api do
   it "should allow creating upload_presets" do
     expected = {:url => /.*\/upload_presets$/,
                 [:payload, :name] => "new_preset",
-                [:payload, :folder] => "some_folder"}
+                [:payload, :folder] => "some_folder",
+                [:payload, :eval] => EVAL_STR}
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
 
-    @api.create_upload_preset(:name => "new_preset", :folder => "some_folder", :tags => [TEST_TAG, TIMESTAMP_TAG])
+    @api.create_upload_preset(:name => "new_preset", :folder => "some_folder", :eval => EVAL_STR,
+                              :tags => [TEST_TAG, TIMESTAMP_TAG])
   end
 
   describe "upload_presets" do
@@ -353,11 +355,13 @@ describe Cloudinary::Api do
   it "should allow updating upload_presets", :upload_preset => true do
     name = @api.create_upload_preset(:folder => "folder", :tags => [TEST_TAG, TIMESTAMP_TAG])["name"]
     preset = @api.upload_preset(name)
-    @api.update_upload_preset(name, preset["settings"].merge(:colors => true, :unsigned => true, :disallow_public_id => true))
+    @api.update_upload_preset(name, preset["settings"].merge(:colors => true, :unsigned => true,
+                                                             :disallow_public_id => true, :eval => EVAL_STR))
     preset = @api.upload_preset(name)
     expect(preset["name"]).to eq(name)
     expect(preset["unsigned"]).to eq(true)
-    expect(preset["settings"]).to eq({"folder" => "folder", "colors" => true, "disallow_public_id" => true, "tags" => [TEST_TAG, TIMESTAMP_TAG]})
+    expect(preset["settings"]).to eq({"folder" => "folder", "colors" => true, "disallow_public_id" => true,
+                                      "eval" => EVAL_STR, "tags" => [TEST_TAG, TIMESTAMP_TAG]})
   end
 
   # this test must be last because it deletes (potentially) all dependent transformations which some tests rely on. Excluded by default.
