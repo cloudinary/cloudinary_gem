@@ -486,7 +486,7 @@ describe Cloudinary::Api do
     end
   end
 
-  describe "access_mode" do
+  describe "access_mode", :with_retries do
     i = 0
 
     publicId = ""
