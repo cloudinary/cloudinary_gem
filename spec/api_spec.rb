@@ -486,7 +486,7 @@ describe Cloudinary::Api do
     end
   end
 
-  describe "access_mode" do
+  describe "access_mode", :with_retries do
     i = 0
 
     publicId = ""
@@ -497,10 +497,6 @@ describe Cloudinary::Api do
       result = Cloudinary::Uploader.upload TEST_IMG, access_mode: "authenticated", tags: [TEST_TAG, TIMESTAMP_TAG, access_mode_tag]
       publicId = result["public_id"]
       expect(result["access_mode"]).to eq("authenticated")
-    end
-
-    around(:each) do |ex|
-      ex.run_with_retry retry: 3
     end
 
     it "should update access mode by ids" do

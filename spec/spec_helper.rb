@@ -52,6 +52,10 @@ RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
   config.filter_run_excluding :delete_all => true
   config.default_sleep_interval = 3 # seconds between failed tests
+
+  config.around(:each, :with_retries) do |ex|
+    ex.run_with_retry retry: 3
+  end
 end
 
 RSpec.shared_context "cleanup" do |tag|
