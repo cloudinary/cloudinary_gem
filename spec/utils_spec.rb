@@ -133,6 +133,27 @@ describe Cloudinary::Utils do
     expect(expected).to eq("http://res.cloudinary.com/test/image/authenticated/s--j5Z1ILxd--/l_text:Helvetica_50:test+text/some_public_id.jpg")
   end
 
+  it "should sign an URL using SHA1 and generate a short signature by default" do
+    expected = Cloudinary::Utils.cloudinary_url "sample.jpg",
+                                                :cloud_name => "test123",
+                                                :api_key => "a",
+                                                :api_secret => "b",
+                                                :sign_url => true
+
+    expect(expected).to eq("http://res.cloudinary.com/test123/image/upload/s--v2fTPYTu--/sample.jpg")
+  end
+
+  it "should sign an URL using SHA256 and generate a long signature when long_url_signature is true" do
+    expected = Cloudinary::Utils.cloudinary_url "sample.jpg",
+                                                :cloud_name => "test123",
+                                                :api_key => "a",
+                                                :api_secret => "b",
+                                                :sign_url => true,
+                                                :long_url_signature => true
+
+    expect(expected).to eq("http://res.cloudinary.com/test123/image/upload/s--2hbrSMPOjj5BJ4xV7SgFbRDevFaQNUFf--/sample.jpg")
+  end
+
   it "should not sign the url_suffix" do
     expected_signature = Cloudinary::Utils.cloudinary_url("test", :format => "jpg", :sign_url => true).match(/s--[0-9A-Za-z_-]{8}--/).to_s
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :format => "jpg", :sign_url => true }])
