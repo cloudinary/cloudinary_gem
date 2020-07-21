@@ -1137,6 +1137,14 @@ class Cloudinary::Utils
     REMOTE_URL_REGEX === url
   end
 
+  # Format date in a format accepted by the usage API (e.g., 31-12-2020)
+  #
+  # @param [Date] date
+  # @return [String]
+  def self.to_usage_api_date_format(date)
+    date.strftime('%d-%m-%Y')
+  end
+
   # Computes a short or long signature based on a message and secret
   # @param [String]  message The string to sign
   # @param [String]  secret A secret that will be added to the message when signing
