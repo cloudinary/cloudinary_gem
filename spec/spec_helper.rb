@@ -212,8 +212,8 @@ end
 
 RSpec::Matchers.define :have_cloudinary_config do |expected|
   match do |config|
-    [:cloud_name, :api_key, :api_secret].reduce(true) do |result, config_name|
-      result && (config.public_send(config_name) == expected[config_name])
+    [:cloud_name, :api_key, :api_secret].all? do |config_name|
+      config.public_send(config_name) == expected[config_name]
     end
   end
 end
