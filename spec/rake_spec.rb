@@ -22,12 +22,12 @@ describe 'cloudinary:sync_static' do
     clean_up_temp_files!
   end
 
-  before (:each) do
+  before(:each) do
     allow(Cloudinary).to receive(:app_root).and_return(Pathname.new(temp_root))
     Cloudinary::Static.send(:reset_static_file_config!)
   end
 
-  after (:each) do
+  after(:each) do
     # destroy all uploaded assets
     Cloudinary::Static.send(:build_metadata).each do |_, data|
       Cloudinary::Uploader.destroy(data['public_id'], {:type => :asset})

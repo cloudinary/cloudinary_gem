@@ -1,6 +1,7 @@
 SUFFIX = ENV['TRAVIS_JOB_ID'] || rand(999999999).to_s
 
 require 'rspec'
+require 'rspec/retry'
 require 'rexml/parsers/ultralightparser'
 require 'nokogiri'
 require 'rspec/version'
@@ -22,6 +23,9 @@ TIMESTAMP_TAG = "#{TEST_TAG}_#{SUFFIX}_#{RUBY_VERSION}_#{ defined? Rails::versio
 UNIQUE_TEST_FOLDER = "#{TEST_TAG}_#{SUFFIX}_folder"
 NEXT_CURSOR = "db27cfb02b3f69cb39049969c23ca430c6d33d5a3a7c3ad1d870c54e1a54ee0faa5acdd9f6d288666986001711759d10"
 GENERIC_FOLDER_NAME = "some_folder"
+
+EVAL_STR='if (resource_info["width"] < 450) { upload_options["tags"] = "a,b" };
+          upload_options["context"] = "width=" + resource_info["width"]'
 
 # Auth token
 KEY     = "00112233FF99"
@@ -50,6 +54,11 @@ RSpec.configure do |config|
   end
   config.run_all_when_everything_filtered = true
   config.filter_run_excluding :delete_all => true
+  config.default_sleep_interval = 3 # seconds between failed tests
+
+  config.around(:each, :with_retries) do |ex|
+    ex.run_with_retry retry: 3
+  end
 end
 
 RSpec.shared_context "cleanup" do |tag|

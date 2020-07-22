@@ -1,4 +1,39 @@
 
+1.16.1 / 2020-07-06
+===================
+
+  * Detect data URLs with suffix in mime type
+  * Fix `Invalid regular expression` error in Safari
+
+1.16.0 / 2020-06-29
+===================
+
+New functionality and features
+------------------------------
+
+  * Add support for uploading `StringIO`
+
+Other Changes
+-------------
+
+  * Set default cache storage to `file` in `CarrierWave`
+  * Fix `normalize_expression` to ignore predefined variables
+  * Fix sample projects
+
+1.15.0 / 2020-06-11
+===================
+
+New functionality and features
+------------------------------
+
+  * Add support for `accessibility_analysis` parameter
+  
+Other Changes
+-------------
+  * Fix `download` function in `Cloudinary::CarrierWave`
+  * Fix handling of empty value in `if` parameter
+  * Fix consumption of configuration from environment variables
+
 1.14.0 / 2020-05-06
 ===================
 

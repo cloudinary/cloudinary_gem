@@ -33,6 +33,7 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency "sqlite3"
   s.add_development_dependency "rspec", '>=3.5'
+  s.add_development_dependency "rspec-retry"
   s.add_development_dependency "rails", "~>5.2" if RUBY_VERSION >= "2.2.2"
 
   s.add_development_dependency "railties", "<= 4.2.7" if RUBY_VERSION <= "1.9.3"

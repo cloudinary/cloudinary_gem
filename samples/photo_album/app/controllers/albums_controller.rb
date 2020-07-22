@@ -12,14 +12,21 @@ class AlbumsController < ApplicationController
   end
 
   def create
-    @album = Album.new(params[:album])
+    @album = Album.new(album_params)
 
-    if !@album.save
+    unless @album.save
       @error = @album.errors.full_messages.join('. ')
       render "new"
       return
     end
 
     redirect_to @album
+  end
+
+
+  private
+
+  def album_params
+    params.require(:album).permit(:title)
   end
 end

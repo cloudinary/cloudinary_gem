@@ -32,6 +32,7 @@ Simple application for uploading images and displaying them in a list. Implement
 1. Place the downloaded `cloudinary.yml` file into the `config` directory of the project.
 1. In the project directory, run `bundle install` to install all the required dependencies.
 1. Run `rake db:create` and `rake db:migrate` to create the database for the project.
+1. Run `rake cloudinary:fetch_assets` to fetch the latest JavaScript library files and create the JavaScript index files
 1. Run `rails server` to start the development server.
 1. Open the sample page in a browser: http://localhost:3000
 

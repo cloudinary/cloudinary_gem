@@ -29,6 +29,12 @@ describe Cloudinary::Uploader do
     end
   end
 
+  it "should successfully upload a file from StringIO" do
+    string_io = StringIO.new(CloudinaryHelper::CL_BLANK)
+    result = Cloudinary::Uploader.upload(string_io, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result["width"]).to eq(1)
+  end
+
   it "should successfully upload file by url" do
     result = Cloudinary::Uploader.upload("http://cloudinary.com/images/old_logo.png", :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result["width"]).to eq(TEST_IMG_W)
@@ -46,6 +52,12 @@ describe Cloudinary::Uploader do
     result = Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :quality_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result).to have_key("quality_analysis")
     expect(result["quality_analysis"]).to have_key("focus")
+  end
+
+  it "should support the eval parameter" do
+    expected = {[:payload, :eval] => EVAL_STR}
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :eval => EVAL_STR)
   end
 
   it "should support the accessibility_analysis of an uploaded image" do
