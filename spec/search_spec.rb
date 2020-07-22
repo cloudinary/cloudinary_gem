@@ -47,7 +47,7 @@ describe Cloudinary::Search do
     end
   end
 
-  context 'integration' do
+  context 'integration', :with_retries do
     SEARCH_TAG = TIMESTAMP_TAG + "_search"
     include_context 'cleanup', SEARCH_TAG
     prefix = "api_test_#{SUFFIX}"
@@ -58,7 +58,7 @@ describe Cloudinary::Search do
       Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_1, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=in_review')
       Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_2, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=new')
       Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_3, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=validated')
-      sleep(3)
+      sleep(1)
     end
 
     it "should return all images tagged with #{SEARCH_TAG}" do

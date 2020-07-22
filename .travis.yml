@@ -12,4 +12,8 @@ matrix:
       rvm: ruby-2.5.3
       before_install:
         - gem install bundler
+
+before_script: >
+  export CLOUDINARY_URL=$(bash tools/get_test_cloud.sh);
+  echo cloud_name: "$(echo $CLOUDINARY_URL | cut -d'@' -f2)"
 script: bundle exec rspec
