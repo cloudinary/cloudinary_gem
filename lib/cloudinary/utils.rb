@@ -969,7 +969,8 @@ class Cloudinary::Utils
       :expires_at=>options[:expires_at],
       :transformations => build_eager(options[:transformations]),
       :skip_transformation_name=>Cloudinary::Utils.as_safe_bool(options[:skip_transformation_name]),
-      :allow_missing=>Cloudinary::Utils.as_safe_bool(options[:allow_missing])
+      :allow_missing=>Cloudinary::Utils.as_safe_bool(options[:allow_missing]),
+      :folder_path=>options[:folder_path]
     }
   end
 
@@ -996,7 +997,22 @@ class Cloudinary::Utils
     Cloudinary::AuthToken.generate options
 
   end
-  
+
+  # Creates and returns a URL that when invoked creates an archive of a folder.
+  #
+  # @param [Object] folder_path Full path (from the root) of the folder to download.
+  # @param [Hash] options       Additional options.
+  #
+  # @return [String]
+  def self.download_folder(folder_path, options = {})
+    options[:resource_type] = options[:resource_type] || "all"
+    options[:prefixes] = folder_path
+
+    cloudinary_params = Cloudinary::Utils.sign_request(Cloudinary::Utils.archive_params(options.merge(:mode => "download")), options)
+
+    return Cloudinary::Utils.cloudinary_api_url("generate_archive", options) + "?" + hash_query_params(cloudinary_params)
+  end
+
   private
 
 
