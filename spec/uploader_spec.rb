@@ -335,7 +335,7 @@ describe Cloudinary::Uploader do
   end
 
   it "should support requesting detection" do
-    expect{Cloudinary::Uploader.upload(TEST_IMG, { :detection => :illegal, :tags => [TEST_TAG, TIMESTAMP_TAG]})}.to raise_error(CloudinaryException, /Detection is invalid/)
+    expect{Cloudinary::Uploader.upload(TEST_IMG, { :detection => :illegal, :tags => [TEST_TAG, TIMESTAMP_TAG]})}.to raise_error(CloudinaryException, /Detection invalid model 'illegal'/)
   end
 
   it "should support upload_large", :large => true do
