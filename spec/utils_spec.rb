@@ -154,6 +154,18 @@ describe Cloudinary::Utils do
     expect(expected).to eq("http://res.cloudinary.com/test123/image/upload/s--2hbrSMPOjj5BJ4xV7SgFbRDevFaQNUFf--/sample.jpg")
   end
 
+  it "should sign url with SHA256 algorithm set in configuration" do
+    Cloudinary.config.signature_algorithm = Cloudinary::Utils::ALGO_SHA256
+
+    expected = Cloudinary::Utils.cloudinary_url "sample.jpg",
+                                                :cloud_name => "test123",
+                                                :api_key => "a",
+                                                :api_secret => "b",
+                                                :sign_url => true
+
+    expect(expected).to eq("http://res.cloudinary.com/test123/image/upload/s--2hbrSMPO--/sample.jpg")
+  end
+
   it "should not sign the url_suffix" do
     expected_signature = Cloudinary::Utils.cloudinary_url("test", :format => "jpg", :sign_url => true).match(/s--[0-9A-Za-z_-]{8}--/).to_s
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :format => "jpg", :sign_url => true }])
@@ -923,6 +935,29 @@ describe Cloudinary::Utils do
   it "should correctly encode double arrays" do
     expect(Cloudinary::Utils.encode_double_array([1, 2, 3, 4])).to eq("1,2,3,4")
     expect(Cloudinary::Utils.encode_double_array([[1, 2, 3, 4], [5, 6, 7, 8]])).to eq("1,2,3,4|5,6,7,8")
+  end
+
+  it "should sign an API request using SHA1 by default" do
+    signature = Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged",  :timestamp => 1568810420,  :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac")
+    expect(signature).to eq("14c00ba6d0dfdedbc86b316847d95b9e6cd46d94")
+  end
+
+  it "should sign an API request using SHA256" do
+    Cloudinary.config.signature_algorithm = Cloudinary::Utils::ALGO_SHA256
+    signature = Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged",  :timestamp => 1568810420,  :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac")
+    expect(signature).to eq("45ddaa4fa01f0c2826f32f669d2e4514faf275fe6df053f1a150e7beae58a3bd")
+  end
+
+  it "should sign an API request using SHA256 via parameter" do
+    signature = Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged",  :timestamp => 1568810420,  :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac", :sha256)
+    expect(signature).to eq("45ddaa4fa01f0c2826f32f669d2e4514faf275fe6df053f1a150e7beae58a3bd")
+  end
+
+  it "should raise when unsupported algorithm is passed" do
+    signature_algorithm = "unsupported_algorithm"
+
+    expect{Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged",  :timestamp => 1568810420,  :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac", signature_algorithm)}
+      .to raise_error("Unsupported algorithm 'unsupported_algorithm'")
   end
 
   describe ":if" do
