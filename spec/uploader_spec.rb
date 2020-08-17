@@ -9,6 +9,34 @@ describe Cloudinary::Uploader do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
   include_context "cleanup", TIMESTAMP_TAG
 
+  before(:all) do
+    Cloudinary.reset_config
+
+    @metadata_field_external_id = "metadata_field_external_id_#{UNIQUE_TEST_ID}"
+    @metadata_field_value = "metadata_field_value_#{UNIQUE_TEST_ID}"
+    @metadata_fields = { @metadata_field_external_id => @metadata_field_value }
+
+    begin
+      Cloudinary::Api.add_metadata_field(
+        {
+          external_id: @metadata_field_external_id,
+          type: "string",
+          label: @metadata_field_external_id
+        }
+      )
+    rescue Cloudinary::Api::GeneralError => e
+      raise CloudinaryException, "Exception thrown while adding metadata field in Cloudinary::Uploader::before(:all) - #{e}"
+    end
+  end
+
+  after(:all) do
+    begin
+      Cloudinary::Api.delete_metadata_field(@metadata_field_external_id)
+    rescue Cloudinary::Api::NotFound => e
+      puts("The metadata field #{@metadata_field_external_id} could not be deleted.");
+    end
+  end
+
   it "should successfully upload file" do
     result = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result["width"]).to eq(TEST_IMG_W)
@@ -434,6 +462,13 @@ describe Cloudinary::Uploader do
   end
 
 
+  it 'should upload with metadata' do
+    result = Cloudinary::Uploader.upload(TEST_IMG, {
+      tags: [TEST_TAG, TIMESTAMP_TAG],
+      metadata: @metadata_fields
+    })
+    expect(result["metadata"][@metadata_field_external_id]).to eq(@metadata_field_value)
+  end
 
   describe 'explicit' do
     context ":invalidate" do
@@ -441,6 +476,33 @@ describe Cloudinary::Uploader do
         expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :invalidate] => 1))
         Cloudinary::Uploader.explicit("cloudinary", :type=>"twitter_name", :eager=>[{:crop=>"scale", :width=>"2.0"}], :invalidate => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
       end
+    end
+
+    it 'should support metadata parameter' do
+      resource = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
+      result = Cloudinary::Uploader.explicit(resource["public_id"], {
+        type: "upload",
+        metadata: @metadata_fields
+      })
+      expect(result["metadata"][@metadata_field_external_id]).to eq(@metadata_field_value)
+    end
+  end
+
+  describe 'update_metadata' do
+    it 'should update metadata' do
+      resource = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
+      result = Cloudinary::Uploader.update_metadata(@metadata_fields, resource["public_id"])
+      expect(result["public_ids"].count).to eq(1)
+      expect(result["public_ids"]).to include(resource["public_id"])
+    end
+
+    it 'should update metadata on multiple resources' do
+      resource_1 = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
+      resource_2 = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
+      result = Cloudinary::Uploader.update_metadata(@metadata_fields, [resource_1["public_id"], resource_2["public_id"]])
+      expect(result["public_ids"].count).to eq(2)
+      expect(result["public_ids"]).to include(resource_1["public_id"])
+      expect(result["public_ids"]).to include(resource_2["public_id"])
     end
   end
 end
