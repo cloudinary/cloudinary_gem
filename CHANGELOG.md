@@ -1,4 +1,21 @@
 
+1.17.0 / 2020-08-21
+===================
+
+New functionality and features
+------------------------------
+
+  * Add support for `eval` upload parameter
+  * Add support for 32-char signature length
+  
+Other Changes
+-------------
+
+  * Fix escaping of query string characters in CarrierWave integration
+  * Fix detection integration test
+  * Integrate with sub-account test service
+  * Add pull request template
+
 1.16.1 / 2020-07-06
 ===================
 
