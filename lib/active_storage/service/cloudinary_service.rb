@@ -1,5 +1,6 @@
 require 'active_storage/blob_key'
 require 'cloudinary/helper'
+require 'net/http'
 
 unless ActiveStorage::Blob.method_defined? :original_key
   class ActiveStorage::Blob
@@ -57,7 +58,7 @@ module ActiveStorage
         url = Cloudinary::Utils.cloudinary_url(
           public_id(key),
           resource_type: resource_type(nil, key),
-          format: ext_for_file(filename, content_type),
+          format: ext_for_file(key, filename, content_type),
           **@options.merge(options.symbolize_keys)
         )
 
@@ -107,8 +108,7 @@ module ActiveStorage
     end
 
     def download(key, &block)
-      url = Cloudinary::Utils.unsigned_download_url(public_id(key), resource_type: resource_type(nil, key))
-      uri = URI(url)
+      uri = URI(url(key))
       if block_given?
         instrument :streaming_download, key: key do
           Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
@@ -169,12 +169,18 @@ module ActiveStorage
     #
     # It does the best effort when original filename does not include extension, but we know the mime-type.
     #
+    # @param [ActiveStorage::BlobKey]   key          The blob key with attributes.
     # @param [ActiveStorage::Filename]  filename     The original filename.
     # @param [string]                   content_type The content type of the file.
     #
     # @return [string] The extension of the filename.
-    def ext_for_file(filename, content_type)
+    def ext_for_file(key, filename, content_type)
+      if filename.blank?
+        options = key.respond_to?(:attributes) ? key.attributes : {}
+        filename = ActiveStorage::Filename.new(options[:filename]) if options.has_key?(:filename)
+      end
       ext = filename.respond_to?(:extension_without_delimiter) ? filename.extension_without_delimiter : nil
+
       return ext unless ext.blank?
 
       # Raw files are not convertible, no extension guessing for them
