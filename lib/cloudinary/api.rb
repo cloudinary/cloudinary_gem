@@ -438,7 +438,7 @@ class Cloudinary::Api
   # @raise [Cloudinary::Api::Error]
   def self.delete_datasource_entries(field_external_id, entries_external_id, options = {})
     uri = [field_external_id, "datasource"]
-    params = { "external_ids" => entries_external_id }
+    params = {:external_ids => entries_external_id }
 
     call_metadata_api(:delete, uri, params, options)
   end
@@ -459,8 +459,8 @@ class Cloudinary::Api
   def self.update_metadata_field_datasource(field_external_id, entries_external_id, options = {})
     uri = [field_external_id, "datasource"]
 
-    params = entries_external_id.each_with_object({ "values" => [] }) do |item, hash|
-      item = only(item, "external_id", "value")
+    params = entries_external_id.each_with_object({:values => [] }) do |item, hash|
+      item = only(item, :external_id, :value)
       hash["values"] << item if item.present?
     end
 
@@ -481,7 +481,7 @@ class Cloudinary::Api
   # @raise [Cloudinary::Api::Error]
   def self.restore_metadata_field_datasource(field_external_id, entries_external_ids, options = {})
     uri = [field_external_id, "datasource_restore"]
-    params = { "external_ids" => entries_external_ids }
+    params = {:external_ids => entries_external_ids }
 
     call_metadata_api(:post, uri, params, options)
   end
@@ -534,10 +534,10 @@ class Cloudinary::Api
     raise GeneralError.new("Error parsing server response (#{response.code}) - #{response.body}. Got - #{e}")
   end
 
-  # Private function that assists with performing an API call to the metadata_fields part of the Admin API.
+  # Protected function that assists with performing an API call to the metadata_fields part of the Admin API.
   #
-  # @private
-  # @param [String] method  The HTTP method. Valid methods: get, post, put, delete
+  # @protected
+  # @param [Symbol] method  The HTTP method. Valid methods: get, post, put, delete
   # @param [Array]  uri     REST endpoint of the API (without 'metadata_fields')
   # @param [Hash]   params  Query/body parameters passed to the method
   # @param [Hash]   options Additional options. Can be an override of the configuration, headers, etc.
@@ -549,8 +549,6 @@ class Cloudinary::Api
 
     call_api(method, uri, params, options)
   end
-
-  private_class_method :call_metadata_api
 
   def self.only(hash, *keys)
     result = {}
