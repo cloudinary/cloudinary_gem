@@ -461,7 +461,7 @@ class Cloudinary::Api
 
     params = entries_external_id.each_with_object({:values => [] }) do |item, hash|
       item = only(item, :external_id, :value)
-      hash["values"] << item if item.present?
+      hash[:values ] << item if item.present?
     end
 
     call_metadata_api(:put, uri, params, options)
