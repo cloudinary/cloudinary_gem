@@ -20,6 +20,7 @@ TEST_IMG_W = 241
 TEST_IMG_H = 51
 TEST_TAG = 'cloudinary_gem_test'
 TIMESTAMP_TAG = "#{TEST_TAG}_#{SUFFIX}_#{RUBY_VERSION}_#{ defined? Rails::version ? Rails::version : 'no_rails'}"
+UNIQUE_TEST_ID = "#{TEST_TAG}_#{SUFFIX}"
 UNIQUE_TEST_FOLDER = "#{TEST_TAG}_#{SUFFIX}_folder"
 NEXT_CURSOR = "db27cfb02b3f69cb39049969c23ca430c6d33d5a3a7c3ad1d870c54e1a54ee0faa5acdd9f6d288666986001711759d10"
 GENERIC_FOLDER_NAME = "some_folder"
@@ -235,6 +236,53 @@ RSpec::Matchers.define :deep_hash_value do |expected|
 end
 
 RSpec::Matchers.alias_matcher :have_deep_hash_values_of, :deep_hash_value
+
+# Asserts that a given object fits the generic structure of a metadata field datasource
+#
+# @see https://cloudinary.com/documentation/admin_api#datasource_values Datasource values in Admin API
+RSpec::Matchers.define :be_a_metadata_field_datasource do
+  match do |data_source|
+    expect(data_source).not_to be_empty
+    expect(data_source).to have_key("values")
+
+    if data_source["values"].present?
+      if data_source["values"][0]["state"].present?
+        expect(["active", "inactive"]).to include(data_source["values"][0]["state"])
+      end
+
+      expect(data_source["values"][0]["value"]).to be_a(String)
+      expect(data_source["values"][0]["external_id"]).to be_a(String)
+    end
+  end
+end
+
+# Asserts that a given object fits the generic structure of a metadata field
+#
+# @see https://cloudinary.com/documentation/admin_api#generic_structure_of_a_metadata_field Generic structure of a metadata field in API reference
+RSpec::Matchers.define :be_a_metadata_field do |type, values|
+  match do |metadata_field|
+    expect(metadata_field["external_id"]).to be_a(String)
+
+    if type
+      expect(metadata_field["type"]).to eq(type)
+    else
+      expect(["string", "integer", "date", "enum", "set"]).to include(metadata_field["type"])
+    end
+
+    expect(metadata_field["label"]).to be_a(String)
+    expect(metadata_field["mandatory"]).to be(true).or be(false)
+    expect(metadata_field).to have_key("default_value")
+    expect(metadata_field).to have_key("validation")
+
+    if ["enum", "set"].include?(metadata_field["type"])
+      expect(metadata_field["datasource"]).to be_a_metadata_field_datasource
+    end
+
+    values.each do |key, value|
+      expect(metadata_field[key]).to eq(value)
+    end
+  end
+end
 
 module Cloudinary
   # @api private

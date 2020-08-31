@@ -348,6 +348,144 @@ class Cloudinary::Api
     call_json_api('GET', json_url, {}, 60, {})
   end
 
+  # Returns a list of all metadata field definitions.
+  #
+  # @see https://cloudinary.com/documentation/admin_api#get_metadata_fields Get metadata fields API reference
+  #
+  # @param [Hash] options Additional options
+  # @return [Cloudinary::Api::Response]
+  # @raise [Cloudinary::Api::Error]
+  def self.list_metadata_fields(options = {})
+    call_metadata_api(:get, [], {}, options)
+  end
+
+  # Gets a metadata field by external id.
+  #
+  # @see https://cloudinary.com/documentation/admin_api#get_a_metadata_field_by_external_id Get metadata field by external ID API reference
+  #
+  # @param [String] field_external_id The ID of the metadata field to retrieve
+  # @param [Hash]   options           Additional options
+  # @return [Cloudinary::Api::Response]
+  # @raise [Cloudinary::Api::Error]
+  def self.metadata_field_by_field_id(field_external_id, options = {})
+    uri = [field_external_id]
+
+    call_metadata_api(:get, uri, {}, options)
+  end
+
+  # Creates a new metadata field definition.
+  #
+  # @see https://cloudinary.com/documentation/admin_api#create_a_metadata_field Create metadata field API reference
+  #
+  # @param [Hash] field   The field to add
+  # @param [Hash] options Additional options
+  # @return [Cloudinary::Api::Response]
+  # @raise [Cloudinary::Api::Error]
+  def self.add_metadata_field(field, options = {})
+    params = only(field, :type, :external_id, :label, :mandatory, :default_value, :validation, :datasource)
+
+    call_metadata_api(:post, [], params, options)
+  end
+
+  # Updates a metadata field by external id.
+  #
+  # Updates a metadata field definition (partially, no need to pass the entire object) passed as JSON data.
+  # See https://cloudinary.com/documentation/admin_api#generic_structure_of_a_metadata_field for the generic structure
+  # of a metadata field.
+  #
+  # @see https://cloudinary.com/documentation/admin_api#update_a_metadata_field_by_external_id Update metadata field API reference
+  #
+  # @param [String] field_external_id The id of the metadata field to update
+  # @param [Hash]   field             The field definition
+  # @param [Hash]   options           Additional options
+  # @return [Cloudinary::Api::Response]
+  # @raise [Cloudinary::Api::Error]
+  def self.update_metadata_field(field_external_id, field, options = {})
+    uri = [field_external_id]
+    params = only(field, :label, :mandatory, :default_value, :validation)
+
+    call_metadata_api(:put, uri, params, options)
+  end
+
+  # Deletes a metadata field definition.
+  #
+  # The field should no longer be considered a valid candidate for all other endpoints.
+  #
+  # @see https://cloudinary.com/documentation/admin_api#delete_a_metadata_field_by_external_id Delete metadata field API reference
+  #
+  # @param [String] field_external_id The external id of the field to delete
+  # @param [Hash]   options           Additional options
+  # @return [Cloudinary::Api::Response] A hash with a "message" key. "ok" value indicates a successful deletion
+  # @raise [Cloudinary::Api::Error]
+  def self.delete_metadata_field(field_external_id, options = {})
+    uri = [field_external_id]
+
+    call_metadata_api(:delete, uri, {}, options)
+  end
+
+  # Deletes entries in a metadata field datasource.
+  #
+  # Deletes (blocks) the datasource entries for a specified metadata field definition. Sets the state of the
+  # entries to inactive. This is a soft delete, the entries still exist under the hood and can be activated
+  # again with the restore datasource entries method.
+  #
+  # @see https://cloudinary.com/documentation/admin_api#delete_entries_in_a_metadata_field_datasource Delete entries in a metadata field datasource API reference
+  #
+  # @param [String] field_external_id    The id of the field to update
+  # @param [Array]  entries_external_id  The ids of all the entries to delete from the datasource
+  # @param [Hash]   options              Additional options
+  # @return [Cloudinary::Api::Response] The remaining datasource entries
+  # @raise [Cloudinary::Api::Error]
+  def self.delete_datasource_entries(field_external_id, entries_external_id, options = {})
+    uri = [field_external_id, "datasource"]
+    params = {:external_ids => entries_external_id }
+
+    call_metadata_api(:delete, uri, params, options)
+  end
+
+  # Updates a metadata field datasource.
+  #
+  # Updates the datasource of a supported field type (currently only enum and set), passed as JSON data. The
+  # update is partial: datasource entries with an existing external_id will be updated and entries with new
+  # external_id’s (or without external_id’s) will be appended.
+  #
+  # @see https://cloudinary.com/documentation/admin_api#update_a_metadata_field_datasource Update a metadata field datasource API reference
+  #
+  # @param [String] field_external_id   The external id of the field to update
+  # @param [Array]  entries_external_id
+  # @param [Hash]   options             Additional options
+  # @return [Cloudinary::Api::Response]
+  # @raise [Cloudinary::Api::Error]
+  def self.update_metadata_field_datasource(field_external_id, entries_external_id, options = {})
+    uri = [field_external_id, "datasource"]
+
+    params = entries_external_id.each_with_object({:values => [] }) do |item, hash|
+      item = only(item, :external_id, :value)
+      hash[:values ] << item if item.present?
+    end
+
+    call_metadata_api(:put, uri, params, options)
+  end
+
+  # Restores entries in a metadata field datasource.
+  #
+  # Restores (unblocks) any previously deleted datasource entries for a specified metadata field definition.
+  # Sets the state of the entries to active.
+  #
+  # @see https://cloudinary.com/documentation/admin_api#restore_entries_in_a_metadata_field_datasource Restore entries in a metadata field datasource API reference
+  #
+  # @param [String] field_external_id    The ID of the metadata field
+  # @param [Array]  entries_external_ids An array of IDs of datasource entries to restore (unblock)
+  # @param [Hash]   options              Additional options
+  # @return [Cloudinary::Api::Response]
+  # @raise [Cloudinary::Api::Error]
+  def self.restore_metadata_field_datasource(field_external_id, entries_external_ids, options = {})
+    uri = [field_external_id, "datasource_restore"]
+    params = {:external_ids => entries_external_ids }
+
+    call_metadata_api(:post, uri, params, options)
+  end
+
   protected
 
   def self.call_api(method, uri, params, options)
@@ -394,6 +532,22 @@ class Cloudinary::Api
   rescue => e
     # Error is parsing json
     raise GeneralError.new("Error parsing server response (#{response.code}) - #{response.body}. Got - #{e}")
+  end
+
+  # Protected function that assists with performing an API call to the metadata_fields part of the Admin API.
+  #
+  # @protected
+  # @param [Symbol] method  The HTTP method. Valid methods: get, post, put, delete
+  # @param [Array]  uri     REST endpoint of the API (without 'metadata_fields')
+  # @param [Hash]   params  Query/body parameters passed to the method
+  # @param [Hash]   options Additional options. Can be an override of the configuration, headers, etc.
+  # @return [Cloudinary::Api::Response]
+  # @raise [Cloudinary::Api::Error]
+  def self.call_metadata_api(method, uri, params, options)
+    options[:content_type] = :json
+    uri = ["metadata_fields", uri].reject(&:empty?).join("/")
+
+    call_api(method, uri, params, options)
   end
 
   def self.only(hash, *keys)
