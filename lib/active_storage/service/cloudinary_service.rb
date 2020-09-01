@@ -69,7 +69,11 @@ module ActiveStorage
 
     def url_for_direct_upload(key, **options)
       instrument :url, key: key do |payload|
-        options = {:resource_type => resource_type(nil, key)}.merge(@options.merge(options.symbolize_keys))
+        options = @options.merge(options.symbolize_keys)
+        content_type = options[:content_type] || ''
+
+        options[:resource_type] = content_type_to_resource_type(content_type)
+
         options[:public_id] = public_id_internal(key)
         options[:context] = {active_storage_key: key}
         options.delete(:file)
