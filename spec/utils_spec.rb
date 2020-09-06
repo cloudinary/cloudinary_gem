@@ -1042,6 +1042,18 @@ describe Cloudinary::Utils do
       t = Cloudinary::Utils.generate_transformation_string options, true
       expect(t).to eq("$width_10/w_$width_add_10_add_w")
     end
+
+    it "should use context value as user variables" do
+      options = {
+        :variables => [["$xpos", "ctx:!x_pos!_to_f"], ["$ypos", "ctx:!y_pos!_to_f"]],
+        :crop => "crop",
+        :x => "$xpos * w",
+        :y => "$ypos * h"
+      }
+
+      t = Cloudinary::Utils.generate_transformation_string options
+      expect(t).to eq("$xpos_ctx:!x_pos!_to_f,$ypos_ctx:!y_pos!_to_f,c_crop,x_$xpos_mul_w,y_$ypos_mul_h")
+    end
   end
 
     describe "context" do
