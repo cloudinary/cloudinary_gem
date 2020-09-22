@@ -332,7 +332,7 @@ class Cloudinary::Uploader
     headers['Content-Range'] = options[:content_range] if options[:content_range]
     headers['X-Unique-Upload-Id'] = options[:unique_upload_id] if options[:unique_upload_id]
     headers.merge!(options[:extra_headers]) if options[:extra_headers]
-    Cloudinary::Utils.http_request(:method => :post, :url => api_url, :payload => params.reject { |k, v| v.nil? || v=="" }, :timeout => timeout, :headers => headers, :proxy => proxy) do
+    RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject { |k, v| v.nil? || v=="" }, :timeout => timeout, :headers => headers, :proxy => proxy) do
     |response, request, tmpresult|
       raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" unless [200, 400, 401, 403, 404, 500].include?(response.code)
       begin

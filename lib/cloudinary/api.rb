@@ -373,7 +373,7 @@ class Cloudinary::Api
   end
 
   def self.call_json_api(method, api_url, payload, timeout, headers, proxy = nil)
-    Cloudinary::Utils.http_request(:method => method, :url => api_url, :payload => payload, :timeout => timeout, :headers => headers, :proxy => proxy) do
+    RestClient::Request.execute(:method => method, :url => api_url, :payload => payload, :timeout => timeout, :headers => headers, :proxy => proxy) do
     |response, request, tmpresult|
       return Response.new(response) if response.code == 200
       exception_class = case response.code

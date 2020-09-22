@@ -59,7 +59,7 @@ describe Cloudinary::Uploader do
     expected = {
       [:proxy] => proxy
     }
-    expect(Cloudinary::Utils).to receive(:http_request).with(deep_hash_value(expected))
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
     Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :api_proxy => proxy, :tags => [TEST_TAG, TIMESTAMP_TAG])
   end
 
@@ -71,7 +71,7 @@ describe Cloudinary::Uploader do
       [:proxy] => proxy,
       [:payload, :proxy] => payload_proxy
     }
-    expect(Cloudinary::Utils).to receive(:http_request).with(deep_hash_value(expected))
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
     Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :proxy => payload_proxy, :api_proxy => proxy, :tags => [TEST_TAG, TIMESTAMP_TAG])
   end
 

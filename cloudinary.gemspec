@@ -20,7 +20,12 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency "aws_cf_signer"
-  s.add_dependency "rest-client"
+
+  if RUBY_VERSION >= "2.0.0"
+    s.add_dependency "rest-client", ">= 2.0.0"
+  else
+    s.add_dependency "rest-client"
+  end
 
   s.add_development_dependency "actionpack"
   s.add_development_dependency "nokogiri"
