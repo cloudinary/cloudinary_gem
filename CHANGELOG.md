@@ -1,4 +1,18 @@
 
+1.18.0 / 2020-09-27
+===================
+
+New functionality and features
+------------------------------
+  * Add `download_folder` helper
+  * Add support for `sources` in `video` tag
+  * Add structured metadata to Admin and Upload API
+  
+Other Changes
+-------------
+  * Fix download of a raw file in ActiveStorage
+  * Update embedded `jquery.cloudinary.js` to fix ES5 compatibility issue
+  
 1.17.1 / 2020-08-25
 ===================
 
