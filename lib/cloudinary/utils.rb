@@ -736,6 +736,18 @@ class Cloudinary::Utils
     download_archive_url(options.merge(:target_format => "zip"))
   end
 
+  # Creates and returns a URL that when invoked creates an archive of a folder.
+  #
+  # @param [Object] folder_path Full path (from the root) of the folder to download.
+  # @param [Hash] options       Additional options.
+  #
+  # @return [String]
+  def self.download_folder(folder_path, options = {})
+    resource_type = options[:resource_type] || "all"
+
+    download_archive_url(options.merge(:resource_type => resource_type, :prefixes => folder_path))
+  end
+
   def self.signed_download_url(public_id, options = {})
     aws_private_key_path = options[:aws_private_key_path] || Cloudinary.config.aws_private_key_path
     if aws_private_key_path
