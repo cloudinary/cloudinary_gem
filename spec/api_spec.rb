@@ -423,7 +423,7 @@ describe Cloudinary::Api do
   end
 
   describe 'usage' do
-    let(:yesterday) { Date.parse((Date.today - 1).strftime('%d-%m-%Y')) }
+    let(:yesterday) { Date.today - 1 }
 
     it 'should return usage values for a specific date' do
       result = @api.usage(:date => yesterday)

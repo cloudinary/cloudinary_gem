@@ -45,13 +45,7 @@ class Cloudinary::Api
     uri = 'usage'
     date = options[:date]
 
-    unless date.nil?
-      if date.is_a?(Date)
-        date = Cloudinary::Utils.to_usage_api_date_format(date)
-      end
-
-      uri += "/#{date}"
-    end
+    uri += "/#{Cloudinary::Utils.to_usage_api_date_format(date)}" unless date.nil?
 
     call_api(:get, uri, {}, options)
   end
