@@ -1,4 +1,9 @@
 
+1.18.1 / 2020-09-30
+===================
+
+  * Update embedded `jquery.cloudinary.js` to fix ES5 compatibility issue
+
 1.18.0 / 2020-09-27
 ===================
 
