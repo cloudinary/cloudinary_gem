@@ -422,6 +422,30 @@ describe Cloudinary::Api do
     Cloudinary::Api.resources_by_moderation(:manual, :approved, :max_results => 1000)
   end
 
+  describe 'usage' do
+    let(:yesterday) { Date.today - 1 }
+
+    it 'should return usage values for a specific date' do
+      result = @api.usage(:date => yesterday)
+      expect(result).to be_a_usage_result
+
+      # verify the structure of the response is that of a single day.
+      expect(result['bandwidth']).not_to have_key('limit')
+      expect(result['bandwidth']).not_to have_key('used_percent')
+    end
+
+    it 'should support usage API call' do
+      result = @api.usage(:date => yesterday)
+      expect(result).to be_a_usage_result
+
+      result = @api.usage(:date => Cloudinary::Utils.to_usage_api_date_format(yesterday))
+      expect(result).to be_a_usage_result
+
+      result = @api.usage
+      expect(result).to be_a_usage_result
+    end
+  end
+
   describe 'folders' do
     it 'should create folder' do
       expected = {

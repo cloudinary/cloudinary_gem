@@ -284,6 +284,29 @@ RSpec::Matchers.define :be_a_metadata_field do |type, values|
   end
 end
 
+RSpec::Matchers.define :be_a_usage_result do
+  match do |result|
+    expect(result).not_to be_empty
+
+    keys = [
+      'plan',
+      'last_updated',
+      'transformations',
+      'objects',
+      'bandwidth',
+      'storage',
+      'requests',
+      'resources',
+      'derived_resources',
+      'media_limits'
+    ]
+
+    keys.each do |key|
+      expect(result).to have_key(key)
+    end
+  end
+end
+
 module Cloudinary
   # @api private
   def self.values_match?(expected, actual)

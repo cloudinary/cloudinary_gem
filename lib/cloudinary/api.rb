@@ -30,8 +30,24 @@ class Cloudinary::Api
     call_api(:get, "ping", {}, options)
   end
 
+  # Gets account usage details
+  #
+  # Get a report on the status of your Cloudinary account usage details, including
+  # storage, bandwidth, requests, number of resources, and add-on usage.
+  # Note that numbers are updated periodically.
+  #
+  # @see https://cloudinary.com/documentation/admin_api#get_account_usage_details Get account usage details
+  #
+  # @param [Hash] options Additional options
+  # @return [Cloudinary::Api::Response]
+  # @raise [Cloudinary::Api:Error]
   def self.usage(options={})
-    call_api(:get, "usage", {}, options)
+    uri = 'usage'
+    date = options[:date]
+
+    uri += "/#{Cloudinary::Utils.to_usage_api_date_format(date)}" unless date.nil?
+
+    call_api(:get, uri, {}, options)
   end
 
   def self.resource_types(options={})
