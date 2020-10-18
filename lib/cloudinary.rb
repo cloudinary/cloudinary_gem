@@ -111,6 +111,13 @@ module Cloudinary
     new_config.each{|k,v| @@config.send(:"#{k}=", v) if !v.nil?}
   end
 
+  # Eliminates duplication for first initialization or usage of config
+  #
+  # @param [Symbol] var_name Name of class variable which should hold the config object
+  # @param [Hash] new_config Configuration with which the current config stored in +var_name+ will be updated
+  # @param [Proc] config_factory Builds config if it is the first time this method is called with +var_name+
+  # @yield [config] Update config in block
+  # @return [OpenStruct] Either Cloudinary::Config or Cloudinary::AccountConfig
   def self.manage_config(var_name, new_config, config_factory, &block)
     # first, set class variable to `nil` if class variable is not yet defined
     # otherwise `class_variable_get(var_name)` will throw an error

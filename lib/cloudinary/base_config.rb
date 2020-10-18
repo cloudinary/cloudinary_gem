@@ -1,7 +1,7 @@
 module Cloudinary
-  class BaseConfig
+  class BaseConfig < OpenStruct
     def initialize(config_path)
-      @config = OpenStruct.new((YAML.load(ERB.new(IO.read(config_path)).result)[config_env] rescue {}))
+      super((YAML.load(ERB.new(IO.read(config_path)).result)[Cloudinary.config_env] rescue {}))
 
       load_config_from_env
     end
@@ -22,20 +22,10 @@ module Cloudinary
     end
 
     def update(new_config = {})
-      new_config.each{ |k,v| config.send(:"#{k}=", v) unless v.nil?}
-    end
-
-    def method_missing(method_name, *args, &block)
-      config.public_send(method_name, *args, &block)
-    end
-
-    def respond_to_missing?(method_name, include_private)
-      config.respond_to?(method_name, include_private)
+      new_config.each{ |k,v| public_send(:"#{k}=", v) unless v.nil?}
     end
 
     private
-
-    attr_reader :config
 
     def config_from_parsed_url(parsed_url)
       raise NotImplementedError
@@ -51,7 +41,7 @@ module Cloudinary
 
     def put_nested_key(key, value)
       chain   = key.split(/[\[\]]+/).reject(&:empty?)
-      outer   = config
+      outer   = self
       lastKey = chain.pop
       chain.each do |innerKey|
         inner = outer[innerKey]
