@@ -430,6 +430,30 @@ describe Cloudinary::Api do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
     @api.resource(test_id_1, :api_proxy => proxy)
   end
+  
+  describe 'usage' do
+    let(:yesterday) { Date.today - 1 }
+
+    it 'should return usage values for a specific date' do
+      result = @api.usage(:date => yesterday)
+      expect(result).to be_a_usage_result
+
+      # verify the structure of the response is that of a single day.
+      expect(result['bandwidth']).not_to have_key('limit')
+      expect(result['bandwidth']).not_to have_key('used_percent')
+    end
+
+    it 'should support usage API call' do
+      result = @api.usage(:date => yesterday)
+      expect(result).to be_a_usage_result
+
+      result = @api.usage(:date => Cloudinary::Utils.to_usage_api_date_format(yesterday))
+      expect(result).to be_a_usage_result
+
+      result = @api.usage
+      expect(result).to be_a_usage_result
+    end
+  end
 
   describe 'folders' do
     it 'should create folder' do

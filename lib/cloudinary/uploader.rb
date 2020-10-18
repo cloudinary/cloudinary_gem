@@ -65,7 +65,8 @@ class Cloudinary::Uploader
       :unique_filename           => Cloudinary::Utils.as_safe_bool(options[:unique_filename]),
       :upload_preset             => options[:upload_preset],
       :use_filename              => Cloudinary::Utils.as_safe_bool(options[:use_filename]),
-      :accessibility_analysis    => Cloudinary::Utils.as_safe_bool(options[:accessibility_analysis])
+      :accessibility_analysis    => Cloudinary::Utils.as_safe_bool(options[:accessibility_analysis]),
+      :metadata                  => Cloudinary::Utils.encode_context(options[:metadata])
     }
     params
   end
@@ -270,6 +271,29 @@ class Cloudinary::Uploader
 
   def self.remove_all_tags(public_ids = [], options = {})
     return self.call_tags_api(nil, "remove_all", public_ids, options)
+  end
+
+  # Populates metadata fields with the given values. Existing values will be overwritten.
+  #
+  # Any metadata-value pairs given are merged with any existing metadata-value pairs
+  # (an empty value for an existing metadata field clears the value).
+  #
+  # @param [Hash] metadata    A list of custom metadata fields (by external_id) and the values to assign to each of them.
+  # @param [Array] public_ids An array of Public IDs of assets uploaded to Cloudinary.
+  # @param [Hash] options
+  # @option options [String] :resource_type The type of file. Default: image. Valid values: image, raw, video.
+  # @option options [String] :type          The storage type. Default: upload. Valid values: upload, private, authenticated
+  # @return mixed a list of public IDs that were updated
+  # @raise [Cloudinary::Api:Error]
+  def self.update_metadata(metadata, public_ids, options = {})
+    self.call_api("metadata", options) do
+      {
+        timestamp: (options[:timestamp] || Time.now.to_i),
+        type: options[:type],
+        public_ids: Cloudinary::Utils.build_array(public_ids),
+        metadata: Cloudinary::Utils.encode_context(metadata)
+      }
+    end
   end
 
   private

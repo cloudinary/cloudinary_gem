@@ -1,4 +1,45 @@
 
+1.18.1 / 2020-09-30
+===================
+
+  * Update embedded `jquery.cloudinary.js` to fix ES5 compatibility issue
+
+1.18.0 / 2020-09-27
+===================
+
+New functionality and features
+------------------------------
+  * Add `download_folder` helper
+  * Add support for `sources` in `video` tag
+  * Add structured metadata to Admin and Upload API
+  
+Other Changes
+-------------
+  * Fix download of a raw file in ActiveStorage
+  * Update embedded `jquery.cloudinary.js` to fix ES5 compatibility issue
+  
+1.17.1 / 2020-08-25
+===================
+
+  * Fix options handling issue in SassC
+
+1.17.0 / 2020-08-21
+===================
+
+New functionality and features
+------------------------------
+
+  * Add support for `eval` upload parameter
+  * Add support for 32-char signature length
+  
+Other Changes
+-------------
+
+  * Fix escaping of query string characters in CarrierWave integration
+  * Fix detection integration test
+  * Integrate with sub-account test service
+  * Add pull request template
+
 1.16.1 / 2020-07-06
 ===================
 

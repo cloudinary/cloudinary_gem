@@ -4,7 +4,8 @@ module Cloudinary::CarrierWave
     if respond_to?(:process_uri)
       uri = process_uri(uri)
     else # Backward compatibility with old CarrierWave
-      uri = URI.parse(Cloudinary::Utils.smart_escape(Cloudinary::Utils.smart_unescape(uri)))
+      remote_url_unsafe_chars = /([^a-zA-Z0-9_.\-\/:?&=]+)/ # In addition allow query string characters: "?","&" and "="
+      uri = URI.parse(Cloudinary::Utils.smart_escape(Cloudinary::Utils.smart_unescape(uri), remote_url_unsafe_chars))
     end
     return if uri.to_s.blank?
     self.original_filename = @cache_id = @filename = File.basename(uri.path).gsub(/[^a-zA-Z0-9\.\-\+_]/, '')

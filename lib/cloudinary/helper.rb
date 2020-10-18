@@ -438,7 +438,7 @@ begin
     # @return [::SassC::Script::Value::String]
     def cloudinary_url(public_id, sass_options = {})
       options = {}
-      sass_options.to_h.each { |k, v| options[k.value] = v.value }
+      sass_options.to_h.each { |k, v| options[k.value.to_sym] = v.value }
       url = Cloudinary::Utils.cloudinary_url(public_id.value, {:type => :asset}.merge(options))
       ::SassC::Script::Value::String.new("url(#{url})")
     end
