@@ -50,11 +50,13 @@ describe Cloudinary::Utils do
       it 'should generate a valid url' do
         expect(archive_result).not_to be_empty
       end
-      it 'should include two files' do
-        Zip::File.open_buffer(RestClient.get(archive_result)) do |zip_file|
-          list = zip_file.glob('*').map(&:name)
-          expect(list.length).to be(2)
-          expect(list).to include('tag_sample.jpg', 'tag_samplebw.jpg')
+      if RUBY_VERSION > "2"
+        it 'should include two files' do
+          Zip::File.open_buffer(RestClient.get(archive_result)) do |zip_file|
+            list = zip_file.glob('*').map(&:name)
+            expect(list.length).to be(2)
+            expect(list).to include('tag_sample.jpg', 'tag_samplebw.jpg')
+          end
         end
       end
     end
