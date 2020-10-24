@@ -50,11 +50,13 @@ describe Cloudinary::Utils do
       it 'should generate a valid url' do
         expect(archive_result).not_to be_empty
       end
-      it 'should include two files' do
-        Zip::File.open_buffer(RestClient.get(archive_result)) do |zip_file|
-          list = zip_file.glob('*').map(&:name)
-          expect(list.length).to be(2)
-          expect(list).to include('tag_sample.jpg', 'tag_samplebw.jpg')
+      if RUBY_VERSION > "2"
+        it 'should include two files' do
+          Zip::File.open_buffer(RestClient.get(archive_result)) do |zip_file|
+            list = zip_file.glob('*').map(&:name)
+            expect(list.length).to be(2)
+            expect(list).to include('tag_sample.jpg', 'tag_samplebw.jpg')
+          end
         end
       end
     end
@@ -140,6 +142,39 @@ describe Cloudinary::Uploader do
           :fully_qualified_public_ids => test_ids
         }
       )
+    end
+  end
+
+  describe "download_folder" do
+    it "should return url with resource_type image" do
+      download_folder_url = Cloudinary::Utils.download_folder("samples/", { :resource_type => "image" })
+
+      expect(download_folder_url).to include("image")
+    end
+
+    it "should return valid url" do
+      download_folder_url = Cloudinary::Utils.download_folder("folder/")
+
+      expect(download_folder_url).not_to be_empty
+      expect(download_folder_url).to include("generate_archive")
+    end
+
+    it "should flatten folder" do
+      download_folder_url = Cloudinary::Utils.download_folder("folder/", { :flatten_folders => true })
+
+      expect(download_folder_url).to include("flatten_folders")
+    end
+
+    it "should expire_at folder" do
+      download_folder_url = Cloudinary::Utils.download_folder("folder/", { :expires_at => Time.now.to_i + 60 })
+
+      expect(download_folder_url).to include("expires_at")
+    end
+
+    it "should use original file_name of folder" do
+      download_folder_url = Cloudinary::Utils.download_folder("folder/", { :use_original_filename => true })
+
+      expect(download_folder_url).to include("use_original_filename")
     end
   end
 end

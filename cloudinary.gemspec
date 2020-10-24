@@ -39,7 +39,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "railties", "<= 4.2.7" if RUBY_VERSION <= "1.9.3"
   s.add_development_dependency "rspec-rails"
 
-  s.add_development_dependency "rubyzip", "<=1.2.0" # support testing Ruby 1.9
+  s.add_development_dependency "rubyzip"
 
   if RUBY_VERSION <= "2.4.0"
     s.add_development_dependency "simplecov", "<= 0.17.1" # support testing Ruby 1.9

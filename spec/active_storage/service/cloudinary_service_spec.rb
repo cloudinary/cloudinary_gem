@@ -101,6 +101,15 @@ if RUBY_VERSION > '2.2.2'
       expect(url).to end_with(@file_key)
     end
 
+    it "should use correct url for downloading raw file with extension" do
+      @file_key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), content_type: "application/zip",
+                                             filename: "my_zip.zip"
+      expect(Net::HTTP).to receive(:get_response) do |url|
+        expect(url.to_s).to end_with(@file_key + ".zip")
+      end.and_return(double.as_null_object)
+      @service.download(@file_key)
+    end
+
     it "should use global configuration options" do
       tags = SERVICE_CONFIGURATIONS[:cloudinary][:tags]
       expect(tags).not_to be_empty, "Please set a tags value under cloudinary in #{CONFIGURATION_PATH}"
