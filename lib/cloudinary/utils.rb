@@ -1163,6 +1163,40 @@ class Cloudinary::Utils
     end
   end
 
+  # Produces signature based on string data, timestamp and API secret key.
+  #
+  # @param [String] data String to sign
+  # @param [Fixnum] timestamp Unix timestamp
+  # @param [Hash] options
+  # @option options [String] :api_secret API secret, if not passed taken from global config
+  #
+  # @return [String] Signed string as 40-character hexdigest
+  def self.webhook_signature(data, timestamp, options = {})
+    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
+
+    Digest::SHA1.hexdigest("#{data}#{timestamp}#{api_secret}")
+  end
+
+  # Verifies the authenticity of a notification signature.
+  #
+  # @param [String] body JSON of the request's body
+  # @param [Fixnum] timestamp Unix timestamp. Can be retrieved from the X-Cld-Timestamp header
+  # @param [String] signature Actual signature. Can be retrieved from the X-Cld-Signature header
+  # @param [Fixnum] valid_for The desired time in seconds for considering the request valid
+  # @param [Hash] options
+  # @option options [String] :api_secret API secret, if not passed taken from global config
+  #
+  # @return [Boolean]
+  def self.verify_notification_signature(body, timestamp, signature, valid_for = 7200, options = {})
+    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
+    # verify that signature is valid for the given timestamp
+    return false if timestamp < (Time.now - valid_for).to_i
+
+    payload_hash = webhook_signature(body, timestamp, :api_secret => api_secret)
+
+    signature == payload_hash
+  end
+
   # Computes a short or long signature based on a message and secret
   # @param [String]  message The string to sign
   # @param [String]  secret A secret that will be added to the message when signing

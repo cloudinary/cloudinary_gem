@@ -1103,4 +1103,94 @@ describe Cloudinary::Utils do
 
   end
   end
+
+  describe ".webhook_signature" do
+    let(:api_secret) { "shhh" }
+    let(:timestamp) { 1417727468 }
+    let(:data) { %[{"public_id":"117e5550-7bfa-11e4-80d7-f962166bd3be","version":#{timestamp}}] }
+    let(:expected_signature) { "bac927006d3ce039ef7632e2c03189348d02924a" }
+
+    it "should produce signature taking api_secret from config" do
+      Cloudinary.config(:api_secret => api_secret)
+
+      signature = Cloudinary::Utils.webhook_signature(data, timestamp)
+      expect(signature).to eq(expected_signature)
+    end
+
+    it "should produce signature taking api_secret from params" do
+      signature = Cloudinary::Utils.webhook_signature(data, timestamp, :api_secret => api_secret)
+      expect(signature).to eq(expected_signature)
+    end
+  end
+
+  describe ".verify_notification_signature" do
+    let(:expected_parameters) do
+      {
+        :public_id => "b8sjhoslj8cq8ovoa0ma",
+        :version => "1555337587",
+        :width => 1000,
+        :height => 800,
+      }
+    end
+
+    let(:unexpected_parameters) do
+      {
+        :public_id => "b8sjhoslj8cq8ovoa0er",
+        :version => "1555337587",
+        :width => 100,
+        :height => 100,
+      }
+    end
+
+    let(:valid_response_timestamp) { (Time.now - 5000).to_i }
+    let(:invalid_response_timestamp) { (Time.now - 50 * 1000).to_i }
+    let(:response_json) { expected_parameters.to_json }
+    let(:unexpected_response_json) { unexpected_parameters.to_json }
+
+    let(:options) { { :api_secret => Cloudinary.config.api_secret } }
+
+    it "should return true when signature is valid" do
+      response_signature = Cloudinary::Utils.webhook_signature(response_json, valid_response_timestamp, options)
+      expect(
+        Cloudinary::Utils.verify_notification_signature(
+          response_json,
+          valid_response_timestamp,
+          response_signature)
+      ).to be true
+    end
+
+    it "should return false when signature is not valid" do
+      response_signature = Cloudinary::Utils.webhook_signature(response_json, valid_response_timestamp, options)
+      expect(
+        Cloudinary::Utils.verify_notification_signature(
+          unexpected_response_json,
+          valid_response_timestamp,
+          response_signature
+        )
+      ).to be false
+    end
+
+    it "should return false when timestamp is too far past with default validity expiration time" do
+      response_signature = Cloudinary::Utils.webhook_signature(response_json, invalid_response_timestamp, options)
+      expect(
+        Cloudinary::Utils.verify_notification_signature(
+          response_json,
+          invalid_response_timestamp,
+          response_signature
+        )
+      ).to be false
+    end
+
+    it "should return false when timestamp is too far past with custom validity expiration time" do
+      response_signature = Cloudinary::Utils.webhook_signature(response_json, valid_response_timestamp, options)
+      expect(
+        Cloudinary::Utils.verify_notification_signature(
+          response_json,
+          valid_response_timestamp,
+          response_signature,
+          10
+        )
+      ).to be false
+    end
+  end
 end
