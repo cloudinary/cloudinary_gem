@@ -510,6 +510,7 @@ class Cloudinary::Api
     api_key    = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
     api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
     timeout    = options[:timeout] || Cloudinary.config.timeout || 60
+    proxy      = options[:api_proxy] || Cloudinary.config.api_proxy
     uri = Cloudinary::Utils.smart_escape(uri)
     api_url    = [cloudinary, "v1_1", cloud_name, uri].join("/")
     # Add authentication
@@ -522,11 +523,11 @@ class Cloudinary::Api
     else
       payload = params.reject { |k, v| v.nil? || v=="" }
     end
-    call_json_api(method, api_url, payload, timeout, headers)
+    call_json_api(method, api_url, payload, timeout, headers, proxy)
   end
 
-  def self.call_json_api(method, api_url, payload, timeout, headers)
-    RestClient::Request.execute(:method => method, :url => api_url, :payload => payload, :timeout => timeout, :headers => headers) do
+  def self.call_json_api(method, api_url, payload, timeout, headers, proxy = nil)
+    RestClient::Request.execute(:method => method, :url => api_url, :payload => payload, :timeout => timeout, :headers => headers, :proxy => proxy) do
     |response, request, tmpresult|
       return Response.new(response) if response.code == 200
       exception_class = case response.code

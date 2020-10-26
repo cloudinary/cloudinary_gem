@@ -346,6 +346,7 @@ class Cloudinary::Uploader
       params[:signature] = Cloudinary::Utils.api_sign_request(params.reject { |k, v| non_signable.include?(k) }, api_secret)
       params[:api_key]   = api_key
     end
+    proxy   = options[:api_proxy] || Cloudinary.config.api_proxy
     timeout = options.fetch(:timeout) { Cloudinary.config.to_h.fetch(:timeout, 60) }
 
     result = nil
@@ -355,7 +356,7 @@ class Cloudinary::Uploader
     headers['Content-Range'] = options[:content_range] if options[:content_range]
     headers['X-Unique-Upload-Id'] = options[:unique_upload_id] if options[:unique_upload_id]
     headers.merge!(options[:extra_headers]) if options[:extra_headers]
-    RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject { |k, v| v.nil? || v=="" }, :timeout => timeout, :headers => headers) do
+    RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject { |k, v| v.nil? || v=="" }, :timeout => timeout, :headers => headers, :proxy => proxy) do
     |response, request, tmpresult|
       raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" unless [200, 400, 401, 403, 404, 500].include?(response.code)
       begin

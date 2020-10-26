@@ -82,6 +82,28 @@ describe Cloudinary::Uploader do
     expect(result["quality_analysis"]).to have_key("focus")
   end
 
+  it "should support the api_proxy parameter" do
+    proxy = "https://myuser:mypass@my.proxy.com"
+    expected = {
+      [:proxy] => proxy
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :api_proxy => proxy, :tags => [TEST_TAG, TIMESTAMP_TAG])
+  end
+
+  it "should support both the api_proxy and proxy parameters" do
+    proxy = "https://myuser:mypass@my.proxy.com"
+    payload_proxy = "https://youruser:yourpass@your.proxy.com"
+
+    expected = {
+      [:proxy] => proxy,
+      [:payload, :proxy] => payload_proxy
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :proxy => payload_proxy, :api_proxy => proxy, :tags => [TEST_TAG, TIMESTAMP_TAG])
+  end
+
+
   it "should support the eval parameter" do
     expected = {[:payload, :eval] => EVAL_STR}
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
