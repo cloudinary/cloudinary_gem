@@ -63,18 +63,34 @@ module Cloudinary
     "ept"  => "eps"
   }
 
-  def self.config(new_config=nil, &block)
-    manage_config(:@@config,
-                  new_config,
-                  -> { Config.new(config_dir.join("cloudinary.yml")) },
-                  &block)
+  # Cloudinary config
+  #
+  # @param [Hash] new_config If +new_config+ is passed, Config will be updated with it
+  # @yieldparam [OpenStruct] Config can be updated in the block
+  #
+  # @return [OpenStruct]
+  def self.config(new_config=nil)
+    @@config ||= make_new_config(Config)
+
+    @@config.update(new_config) if new_config
+    yield @@config if block_given?
+
+    @@config
   end
 
-  def self.account_config(new_config=nil, &block)
-    manage_config(:@@account_config,
-                  new_config,
-                  -> { AccountConfig.new(config_dir.join("cloudinary.yml")) },
-                  &block)
+  # Cloudinary account config
+  #
+  # @param [Hash] new_config If +new_config+ is passed, Account Config will be updated with it
+  # @yieldparam [OpenStruct] Account config can be updated in the block
+  #
+  # @return [OpenStruct]
+  def self.account_config(new_config=nil)
+    @@account_config ||= make_new_config(AccountConfig)
+
+    @@account_config.update(new_config) if new_config
+    yield @@account_config if block_given?
+
+    @@account_config
   end
 
   def self.config_from_url(url)
@@ -111,27 +127,19 @@ module Cloudinary
     new_config.each{|k,v| @@config.send(:"#{k}=", v) if !v.nil?}
   end
 
-  # Eliminates duplication for first initialization or usage of config
+  # Builds config from yaml file, extends it with specific module and loads configuration from environment variable
   #
-  # @param [Symbol] var_name Name of class variable which should hold the config object
-  # @param [Hash] new_config Configuration with which the current config stored in +var_name+ will be updated
-  # @param [Proc] config_factory Builds config if it is the first time this method is called with +var_name+
-  # @yield [config] Update config in block
-  # @return [OpenStruct] Either Cloudinary::Config or Cloudinary::AccountConfig
-  def self.manage_config(var_name, new_config, config_factory, &block)
-    # first, set class variable to `nil` if class variable is not yet defined
-    # otherwise `class_variable_get(var_name)` will throw an error
-    class_variable_set(var_name, nil) unless class_variable_defined?(var_name)
-    # then set it to config provided by factory
-    class_variable_set(var_name, config_factory.call) if class_variable_get(var_name).nil?
-
-    class_variable_get(var_name).tap do |config|
-      config.update(new_config) if new_config
-      block.call(config) if block_given?
+  # @param [Module] config_module Config is extended with this module after being built
+  #
+  # @return [OpenStruct]
+  def self.make_new_config(config_module)
+    OpenStruct.new((YAML.load(ERB.new(IO.read(config_dir.join("cloudinary.yml"))).result)[config_env] rescue {})).tap do |config|
+      config.extend(config_module)
+      config.load_config_from_env
     end
   end
 
-  private_class_method :manage_config
+  private_class_method :make_new_config
 end
   # Prevent require loop if included after Rails is already initialized.
   require "cloudinary/helper" if defined?(::ActionView::Base)

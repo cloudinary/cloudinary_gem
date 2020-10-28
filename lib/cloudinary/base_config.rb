@@ -1,11 +1,5 @@
 module Cloudinary
-  class BaseConfig < OpenStruct
-    def initialize(config_path)
-      super((YAML.load(ERB.new(IO.read(config_path)).result)[Cloudinary.config_env] rescue {}))
-
-      load_config_from_env
-    end
-
+  module BaseConfig
     def load_from_url(url)
       return unless url && !url.empty?
 
@@ -14,7 +8,7 @@ module Cloudinary
 
       if expected_scheme != scheme
         raise(CloudinaryException,
-              "Invalid #{self.class::ENV_URL} scheme. Expecting to start with '#{expected_scheme}://'")
+              "Invalid #{env_url} scheme. Expecting to start with '#{expected_scheme}://'")
       end
 
       update(config_from_parsed_url(parsed_url))
@@ -25,18 +19,22 @@ module Cloudinary
       new_config.each{ |k,v| public_send(:"#{k}=", v) unless v.nil?}
     end
 
+    def load_config_from_env
+      raise NotImplementedError
+    end
+
     private
 
     def config_from_parsed_url(parsed_url)
       raise NotImplementedError
     end
 
-    def load_config_from_env
+    def env_url
       raise NotImplementedError
     end
 
     def expected_scheme
-      self.class::SCHEME
+      raise NotImplementedError
     end
 
     def put_nested_key(key, value)

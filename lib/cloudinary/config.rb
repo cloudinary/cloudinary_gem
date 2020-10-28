@@ -1,19 +1,9 @@
 module Cloudinary
-  class Config < BaseConfig
+  module Config
+    include BaseConfig
+
     ENV_URL = "CLOUDINARY_URL"
     SCHEME = "cloudinary"
-
-    private
-
-    def config_from_parsed_url(parsed_url)
-      {
-        "cloud_name"          => parsed_url.host,
-        "api_key"             => parsed_url.user,
-        "api_secret"          => parsed_url.password,
-        "private_cdn"         => !parsed_url.path.blank?,
-        "secure_distribution" => parsed_url.path[1..-1]
-      }
-    end
 
     def load_config_from_env
       if ENV["CLOUDINARY_CLOUD_NAME"]
@@ -28,6 +18,26 @@ module Cloudinary
       elsif ENV[ENV_URL]
         load_from_url(ENV[ENV_URL])
       end
+    end
+
+    private
+
+    def env_url
+      ENV_URL
+    end
+
+    def expected_scheme
+      SCHEME
+    end
+
+    def config_from_parsed_url(parsed_url)
+      {
+        "cloud_name"          => parsed_url.host,
+        "api_key"             => parsed_url.user,
+        "api_secret"          => parsed_url.password,
+        "private_cdn"         => !parsed_url.path.blank?,
+        "secure_distribution" => parsed_url.path[1..-1]
+      }
     end
   end
 end
