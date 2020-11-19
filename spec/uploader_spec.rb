@@ -110,6 +110,14 @@ describe Cloudinary::Uploader do
     Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :eval => EVAL_STR)
   end
 
+  it "should execute custom logic in eval upload parameter" do
+    result = Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :eval => EVAL_STR, :tags => [TEST_TAG, TIMESTAMP_TAG])
+
+    expect(result["context"]["custom"]["width"].to_i).to eq(TEST_IMG_W)
+    expect(result["quality_analysis"]).to be_an_instance_of(Hash)
+    expect(result["quality_analysis"]["focus"]).to be_kind_of(Numeric)
+  end
+
   it "should support the accessibility_analysis of an uploaded image" do
     result = Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :accessibility_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result).to have_key("accessibility_analysis")
