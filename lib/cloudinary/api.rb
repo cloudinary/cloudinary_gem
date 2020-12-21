@@ -177,24 +177,32 @@ class Cloudinary::Api
   end
 
   def self.transformation(transformation, options={})
-    call_api(:get, "transformations/#{transformation_string(transformation)}", only(options, :next_cursor, :max_results), options)
+    params                  = only(options, :next_cursor, :max_results)
+    params[:transformation] = Cloudinary::Utils.build_eager(transformation)
+    call_api(:get, "transformations", params, options)
   end
 
   def self.delete_transformation(transformation, options={})
-    call_api(:delete, "transformations/#{transformation_string(transformation)}", {}, options)
+    call_api(:delete, "transformations", {:transformation => Cloudinary::Utils.build_eager(transformation)}, options)
   end
 
   # updates - supports:
   #   "allowed_for_strict" boolean
   #   "unsafe_update" transformation params - updates a named transformation parameters without regenerating existing images
   def self.update_transformation(transformation, updates, options={})
-    params                 = only(updates, :allowed_for_strict)
-    params[:unsafe_update] = transformation_string(updates[:unsafe_update]) if updates[:unsafe_update]
-    call_api(:put, "transformations/#{transformation_string(transformation)}", params, options)
+    params                  = only(updates, :allowed_for_strict)
+    params[:unsafe_update]  = Cloudinary::Utils.build_eager(updates[:unsafe_update]) if updates[:unsafe_update]
+    params[:transformation] = Cloudinary::Utils.build_eager(transformation)
+    call_api(:put, "transformations", params, options)
   end
 
   def self.create_transformation(name, definition, options={})
-    call_api(:post, "transformations/#{name}", { :transformation => transformation_string(definition) }, options)
+    params = {
+      :name => name,
+      :transformation => Cloudinary::Utils.build_eager(definition)
+    }
+
+    call_api(:post, "transformations", params, options)
   end
 
   # upload presets
