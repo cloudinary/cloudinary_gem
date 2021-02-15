@@ -16,7 +16,12 @@ require "cloudinary/missing"
 module Cloudinary
   autoload :Utils, 'cloudinary/utils'
   autoload :Uploader, 'cloudinary/uploader'
+  autoload :BaseConfig, "cloudinary/base_config"
+  autoload :Config, "cloudinary/config"
+  autoload :AccountConfig, "cloudinary/account_config"
+  autoload :BaseApi, "cloudinary/base_api"
   autoload :Api, "cloudinary/api"
+  autoload :AccountApi, "cloudinary/account_api"
   autoload :Downloader, "cloudinary/downloader"
   autoload :Blob, "cloudinary/blob"
   autoload :PreloadedFile, "cloudinary/preloaded_file"
@@ -58,64 +63,42 @@ module Cloudinary
     "ept"  => "eps"
   }
 
-  @@config = nil
-
+  # Cloudinary config
+  #
+  # @param [Hash] new_config If +new_config+ is passed, Config will be updated with it
+  # @yieldparam [OpenStruct] Config can be updated in the block
+  #
+  # @return [OpenStruct]
   def self.config(new_config=nil)
-    first_time = @@config.nil?
-    @@config   ||= OpenStruct.new((YAML.load(ERB.new(IO.read(config_dir.join("cloudinary.yml"))).result)[config_env] rescue {}))
+    @@config ||= make_new_config(Config)
 
-    config_from_env if first_time
-
-    set_config(new_config) if new_config
-    yield(@@config) if block_given?
+    @@config.update(new_config) if new_config
+    yield @@config if block_given?
 
     @@config
   end
 
+  # Cloudinary account config
+  #
+  # @param [Hash] new_config If +new_config+ is passed, Account Config will be updated with it
+  # @yieldparam [OpenStruct] Account config can be updated in the block
+  #
+  # @return [OpenStruct]
+  def self.account_config(new_config=nil)
+    @@account_config ||= make_new_config(AccountConfig)
+
+    @@account_config.update(new_config) if new_config
+    yield @@account_config if block_given?
+
+    @@account_config
+  end
+
   def self.config_from_url(url)
-    @@config ||= OpenStruct.new
-    return unless url && !url.empty?
-    uri = URI.parse(url)
-    if !uri.scheme || "cloudinary" != uri.scheme.downcase
-      raise(CloudinaryException,
-        "Invalid CLOUDINARY_URL scheme. Expecting to start with 'cloudinary://'")
-    end
-    set_config(
-      "cloud_name"          => uri.host,
-      "api_key"             => uri.user,
-      "api_secret"          => uri.password,
-      "private_cdn"         => !uri.path.blank?,
-      "secure_distribution" => uri.path[1..-1]
-    )
-    uri.query.to_s.split("&").each do
-    |param|
-      key, value = param.split("=")
-      if isNestedKey? key
-        putNestedKey key, value
-      else
-        set_config(key => Utils.smart_unescape(value))
-      end
-    end
+    config.load_from_url(url)
   end
 
-  def self.putNestedKey(key, value)
-    chain   = key.split(/[\[\]]+/).reject { |i| i.empty? }
-    outer   = @@config
-    lastKey = chain.pop()
-    chain.each do |innerKey|
-      inner = outer[innerKey]
-      if inner.nil?
-        inner           = OpenStruct.new
-        outer[innerKey] = inner
-      end
-      outer = inner
-    end
-    outer[lastKey] = value
-  end
-
-
-  def self.isNestedKey?(key)
-    /\w+\[\w+\]/ =~ key
+  def self.config_from_account_url(url)
+    account_config.load_from_url(url)
   end
 
   def self.app_root
@@ -128,22 +111,6 @@ module Cloudinary
   end
 
   private
-
-  def self.config_from_env
-    # Heroku support
-    if ENV["CLOUDINARY_CLOUD_NAME"]
-      config_keys = ENV.keys.select! { |key| key.start_with? "CLOUDINARY_" }
-      config_keys -= ["CLOUDINARY_URL"] # ignore it when explicit options are passed
-      config_keys.each do |full_key|
-        conf_key = full_key["CLOUDINARY_".length..-1].downcase # convert "CLOUDINARY_CONFIG_NAME" to "config_name"
-        conf_val = ENV[full_key]
-        conf_val = conf_val == 'true' if %w[true false].include?(conf_val) # cast relevant boolean values
-        set_config(conf_key => conf_val)
-      end
-    elsif ENV["CLOUDINARY_URL"]
-      config_from_url(ENV["CLOUDINARY_URL"])
-    end
-  end
 
   def self.config_env
     return ENV["CLOUDINARY_ENV"] if ENV["CLOUDINARY_ENV"]
@@ -159,6 +126,20 @@ module Cloudinary
   def self.set_config(new_config)
     new_config.each{|k,v| @@config.send(:"#{k}=", v) if !v.nil?}
   end
+
+  # Builds config from yaml file, extends it with specific module and loads configuration from environment variable
+  #
+  # @param [Module] config_module Config is extended with this module after being built
+  #
+  # @return [OpenStruct]
+  def self.make_new_config(config_module)
+    OpenStruct.new((YAML.load(ERB.new(IO.read(config_dir.join("cloudinary.yml"))).result)[config_env] rescue {})).tap do |config|
+      config.extend(config_module)
+      config.load_config_from_env
+    end
+  end
+
+  private_class_method :make_new_config
 end
   # Prevent require loop if included after Rails is already initialized.
   require "cloudinary/helper" if defined?(::ActionView::Base)

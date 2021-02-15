@@ -1,30 +1,5 @@
-require 'rest_client'
-require 'json'
-
 class Cloudinary::Api
-  class Error < CloudinaryException; end
-  class NotFound < Error; end
-  class NotAllowed < Error; end
-  class AlreadyExists < Error; end
-  class RateLimited < Error; end
-  class BadRequest < Error; end
-  class GeneralError < Error; end
-  class AuthorizationRequired < Error; end
-
-  class Response < Hash
-    attr_reader :rate_limit_reset_at, :rate_limit_remaining, :rate_limit_allowed
-
-    def initialize(response=nil)
-      if response
-        # This sets the instantiated self as the response Hash
-        update Cloudinary::Api.parse_json_response response
-
-        @rate_limit_allowed   = response.headers[:x_featureratelimit_limit].to_i if response.headers[:x_featureratelimit_limit]
-        @rate_limit_reset_at  = Time.parse(response.headers[:x_featureratelimit_reset]) if response.headers[:x_featureratelimit_reset]
-        @rate_limit_remaining = response.headers[:x_featureratelimit_remaining].to_i if response.headers[:x_featureratelimit_remaining]
-      end
-    end
-  end
+  extend Cloudinary::BaseApi
 
   def self.ping(options={})
     call_api(:get, "ping", {}, options)
@@ -505,45 +480,15 @@ class Cloudinary::Api
   protected
 
   def self.call_api(method, uri, params, options)
-    cloudinary = options[:upload_prefix] || Cloudinary.config.upload_prefix || "https://api.cloudinary.com"
-    cloud_name = options[:cloud_name] || Cloudinary.config.cloud_name || raise("Must supply cloud_name")
-    api_key    = options[:api_key] || Cloudinary.config.api_key || raise("Must supply api_key")
-    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
-    timeout    = options[:timeout] || Cloudinary.config.timeout || 60
-    proxy      = options[:api_proxy] || Cloudinary.config.api_proxy
-    uri = Cloudinary::Utils.smart_escape(uri)
-    api_url    = [cloudinary, "v1_1", cloud_name, uri].join("/")
-    # Add authentication
-    api_url.sub!(%r(^(https?://)), "\\1#{api_key}:#{api_secret}@")
+    cloud_name = options[:cloud_name] || Cloudinary.config.cloud_name || raise('Must supply cloud_name')
+    api_key    = options[:api_key] || Cloudinary.config.api_key || raise('Must supply api_key')
+    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise('Must supply api_secret')
 
-    headers = { "User-Agent" => Cloudinary::USER_AGENT }
-    if options[:content_type]== :json
-      payload = params.to_json
-      headers.merge!("Content-Type"=> 'application/json', "Accept"=> 'application/json')
-    else
-      payload = params.reject { |k, v| v.nil? || v=="" }
-    end
-    call_json_api(method, api_url, payload, timeout, headers, proxy)
-  end
-
-  def self.call_json_api(method, api_url, payload, timeout, headers, proxy = nil)
-    RestClient::Request.execute(:method => method, :url => api_url, :payload => payload, :timeout => timeout, :headers => headers, :proxy => proxy) do
-    |response, request, tmpresult|
-      return Response.new(response) if response.code == 200
-      exception_class = case response.code
-                        when 400 then BadRequest
-                        when 401 then AuthorizationRequired
-                        when 403 then NotAllowed
-                        when 404 then NotFound
-                        when 409 then AlreadyExists
-                        when 420 then RateLimited
-                        when 500 then GeneralError
-                        else raise GeneralError.new("Server returned unexpected status code - #{response.code} - #{response.body}")
-                        end
-      json = parse_json_response(response)
-      raise exception_class.new(json["error"]["message"])
+    call_cloudinary_api(method, uri, api_key, api_secret, params, options) do |cloudinary, inner_uri|
+      [cloudinary, 'v1_1', cloud_name, inner_uri]
     end
   end
+
   def self.parse_json_response(response)
     return Cloudinary::Utils.json_decode(response.body)
   rescue => e
@@ -610,5 +555,4 @@ class Cloudinary::Api
     params[by_key] = value
     call_api("post", "resources/#{resource_type}/#{type}/update_access_mode", params, options)
   end
-
 end
