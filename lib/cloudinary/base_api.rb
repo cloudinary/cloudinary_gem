@@ -32,12 +32,13 @@ module Cloudinary::BaseApi
     end
   end
 
-  def call_json_api(method, api_url, payload, timeout, headers, user = nil, password = nil)
+  def call_json_api(method, api_url, payload, timeout, headers, proxy = nil, user = nil, password = nil)
     RestClient::Request.execute(method: method,
                                 url: api_url,
                                 payload: payload,
                                 timeout: timeout,
                                 headers: headers,
+                                proxy: proxy,
                                 user: user,
                                 password: password) do |response|
       return Response.new(response) if response.code == 200
@@ -62,6 +63,7 @@ module Cloudinary::BaseApi
     cloudinary = options[:upload_prefix] || Cloudinary.config.upload_prefix || 'https://api.cloudinary.com'
     api_url    = Cloudinary::Utils.smart_escape(api_url_builder.call(cloudinary, uri).flatten.join('/'))
     timeout    = options[:timeout] || Cloudinary.config.timeout || 60
+    proxy      = options[:api_proxy] || Cloudinary.config.api_proxy
 
     headers = { "User-Agent" => Cloudinary::USER_AGENT }
 
@@ -72,6 +74,6 @@ module Cloudinary::BaseApi
       payload = params.reject { |_, v| v.nil? || v == "" }
     end
 
-    call_json_api(method, api_url, payload, timeout, headers, user, password)
+    call_json_api(method, api_url, payload, timeout, headers, proxy, user, password)
   end
 end

@@ -422,6 +422,15 @@ describe Cloudinary::Api do
     Cloudinary::Api.resources_by_moderation(:manual, :approved, :max_results => 1000)
   end
 
+  it "should support the api_proxy parameter" do
+    proxy = "https://myuser:mypass@my.proxy.com"
+    expected = {
+      [:proxy] => proxy
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    @api.resource(test_id_1, :api_proxy => proxy)
+  end
+  
   describe 'usage' do
     let(:yesterday) { Date.today - 1 }
 
