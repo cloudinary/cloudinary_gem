@@ -377,7 +377,7 @@ describe Cloudinary::Uploader do
     expect(result["moderation"][0]["kind"]).to eq("manual")
   end
 
-  it "should support requesting ocr anlysis" do
+  it "should support requesting ocr analysis" do
     expect(RestClient::Request).to receive(:execute) do |options|
       expect(options[:payload][:ocr]).to eq(:adv_ocr)
     end

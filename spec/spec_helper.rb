@@ -62,6 +62,16 @@ RSpec.configure do |config|
   end
 end
 
+RSpec.configure do |config|
+  config.before(:each) do |example|
+    addon_type = example.metadata[:should_test_addon]
+
+    if addon_type && !Helpers::IntegrationTestCaseHelper.should_test_addon(addon_type)
+      skip "Skipping tests for '#{addon_type}'"
+    end
+  end
+end
+
 RSpec.shared_context "cleanup" do |tag|
   tag ||= TEST_TAG
   after :all do
