@@ -540,7 +540,7 @@ class Cloudinary::Utils
     end
     version &&= "v#{version}"
 
-    transformation = transformation.gsub(%r(([^:])//), '\1/')
+    transformation = transformation.gsub(%r(([^:])//), '\1/').gsub(" ", "%20")
     if sign_url && ( !auth_token || auth_token.empty?)
       raise(CloudinaryException, "Must supply api_secret") if (secret.nil? || secret.empty?)
       to_sign = [transformation, sign_version && version, source_to_sign].reject(&:blank?).join("/")

@@ -352,6 +352,12 @@ describe Cloudinary::Utils do
               .and empty_options
     end
 
+    it "should support named transformation with spaces" do
+      expect(["test", { :transformation => ["blip blop"] }])
+        .to produce_url("#{upload_path}/t_blip%20blop/test")
+              .and empty_options
+    end
+
     it "should support base transformation" do
       expect(["test", { :transformation => { :x => 100, :y => 100, :crop => :fill }, :crop => :crop, :width => 100 }])
         .to produce_url("#{upload_path}/c_fill,x_100,y_100/c_crop,w_100/test")
