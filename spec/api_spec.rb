@@ -11,8 +11,14 @@ describe Cloudinary::Api do
   test_id_2   = "#{prefix}_2"
   test_id_3   = "#{prefix}_3"
   test_key = "test_key_#{SUFFIX}"
-  before(:all) do
 
+  unique_prefix = "#{prefix}prefix_#{UNIQUE_TEST_ID}"
+  public_id_test = "#{unique_prefix}_public_id"
+  unique_test_tag_to_one_image_resource = "#{prefix}unique_tag_to_one_image_asset_#{UNIQUE_TEST_ID}"
+  unique_context_key = "#{prefix}context_key_#{UNIQUE_TEST_ID}"
+  unique_context_value = "#{prefix}context_value_#{UNIQUE_TEST_ID}"
+
+  before(:all) do
     @api = Cloudinary::Api
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
@@ -107,6 +113,64 @@ describe Cloudinary::Api do
     start_at = Time.now
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :start_at] => start_at, [:payload, :direction] => "asc"}))
     @api.resources(:type=>"upload", :start_at=>start_at, :direction => "asc")
+  end
+
+  describe "structured metadata" do
+    it "should return structured metadata in the response of the resources API response" do
+      result = @api.resources(:prefix => public_id_test, :type => "upload", :metadata => true)
+
+      result["resources"].each do |resource|
+        expect(resource).to have_key("metadata")
+      end
+
+      result = @api.resources(:prefix => public_id_test, :type => "upload", :metadata => false)
+
+      result["resources"].each do |resource|
+        expect(resource).not_to have_key("metadata")
+      end
+    end
+
+    it "should return structured metadata in the response of the resources by tag API" do
+      result = @api.resources_by_tag(unique_test_tag_to_one_image_resource, :metadata => true)
+
+      result["resources"].each do |resource|
+        expect(resource).to have_key("metadata")
+      end
+
+      result = @api.resources_by_tag(unique_test_tag_to_one_image_resource, :metadata => false)
+
+      result["resources"].each do |resource|
+        expect(resource).not_to have_key("metadata")
+      end
+    end
+
+    it "should return structured metadata in the response of the resources by context API" do
+      result = @api.resources_by_context(unique_context_key, unique_context_value, :metadata => true)
+
+      result["resources"].each do |resource|
+        expect(resource).to have_key("metadata")
+      end
+
+      result = @api.resources_by_context(unique_context_key, unique_context_value, :metadata => false)
+
+      result["resources"].each do |resource|
+        expect(resource).not_to have_key("metadata")
+      end
+    end
+
+    it "should return structured metadata in the response of the resources by moderation API" do
+      result = @api.resources_by_moderation(:manual, :pending, :metadata => true)
+
+      result["resources"].each do |resource|
+        expect(resource).to have_key("metadata")
+      end
+
+      result = @api.resources_by_moderation(:manual, :pending, :metadata => false)
+
+      result["resources"].each do |resource|
+        expect(resource).not_to have_key("metadata")
+      end
+    end
   end
 
   describe ":direction" do
