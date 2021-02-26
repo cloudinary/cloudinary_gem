@@ -42,6 +42,7 @@ class Cloudinary::Uploader
       :faces                     => Cloudinary::Utils.as_safe_bool(options[:faces]),
       :folder                    => options[:folder],
       :format                    => options[:format],
+      :filename_override         => options[:filename_override],
       :headers                   => build_custom_headers(options[:headers]),
       :image_metadata            => Cloudinary::Utils.as_safe_bool(options[:image_metadata]),
       :invalidate                => Cloudinary::Utils.as_safe_bool(options[:invalidate]),
