@@ -33,6 +33,10 @@ module Cloudinary
         end
       end
 
+      if url.blank? && acl.blank?
+        raise 'AuthToken must contain either an acl or a url property'
+      end
+
       token = []
       token << "ip=#{ip}" if ip
       token << "st=#{start}" if start
