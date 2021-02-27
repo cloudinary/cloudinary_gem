@@ -72,6 +72,14 @@ module ActiveStorage
       instrument :url, key: key do |payload|
         options = {:resource_type => resource_type(nil, key)}.merge(@options.merge(options.symbolize_keys))
         options[:public_id] = public_id_internal(key)
+        # Provide file format for raw files, since js client does not include original file name.
+        #
+        # When the file is uploaded from the server, the request includes original filename. That allows Cloudinary
+        # to identify file extension and append it to the public id of the file (raw files include file extension
+        # in their public id, opposed to transformable assets (images/video) that use only basename). When uploading
+        # through direct upload (client side js), filename is missing, and that leads to inconsistent/broken URLs.
+        # To avoid that, we explicitly pass file format in options.
+        options[:format] = ext_for_file(key) if options[:resource_type] == "raw"
         options[:context] = {active_storage_key: key}
         options.delete(:file)
         payload[:url] = api_uri("upload", options)
@@ -174,7 +182,7 @@ module ActiveStorage
     # @param [string]                   content_type The content type of the file.
     #
     # @return [string] The extension of the filename.
-    def ext_for_file(key, filename, content_type)
+    def ext_for_file(key, filename = nil, content_type = nil)
       if filename.blank?
         options = key.respond_to?(:attributes) ? key.attributes : {}
         filename = ActiveStorage::Filename.new(options[:filename]) if options.has_key?(:filename)
@@ -200,6 +208,8 @@ module ActiveStorage
     end
 
     def content_type_to_resource_type(content_type)
+      return 'image' if content_type.nil?
+
       type, subtype = content_type.split('/')
       case type
       when 'video', 'audio'

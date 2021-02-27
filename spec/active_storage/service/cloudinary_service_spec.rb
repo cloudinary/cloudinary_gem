@@ -36,6 +36,12 @@ if RUBY_VERSION > '2.2.2'
         url = @service.url_for_direct_upload(key)
         expect(url).to include("context=active_storage_key%3D#{key}")
       end
+
+      it "should include format for raw file" do
+        key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), filename: TEST_RAW
+        url = @service.url_for_direct_upload(key, resource_type: "raw")
+        expect(url).to include("format=" + File.extname(TEST_RAW).delete('.'))
+      end
     end
 
     it "should support uploading to Cloudinary" do
