@@ -1,3 +1,22 @@
+                                                                                                                                                                                                                                 1,1           Top
+1.19.0 / 2021-03-05
+==================
+
+New functionality and features
+------------------------------
+
+* Add Account Provisioning API
+* Add support for `api_proxy` parameter
+* Add support for `date` parameter in `usage`  Admin API
+
+Other Changes
+-------------
+
+* Fix direct upload of raw files
+* Improve unit testing of add-ons
+* Change test for `eval` upload parameter
+* Bump vulnerable version of rubyzip
+* Fix `cloudinary.gemspec` glob issue
 
 1.18.1 / 2020-09-30
 ===================
