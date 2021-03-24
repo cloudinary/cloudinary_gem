@@ -144,6 +144,14 @@ class Cloudinary::Utils
   LONG_URL_SIGNATURE_LENGTH = 32
   SHORT_URL_SIGNATURE_LENGTH = 8
 
+  ALGO_SHA1 = :sha1
+  ALGO_SHA256 = :sha256
+
+  ALGORITHM_SIGNATURE = {
+    ALGO_SHA1 => Digest::SHA1,
+    ALGO_SHA256 => Digest::SHA256,
+  }
+
   def self.extract_config_params(options)
       options.select{|k,v| URL_KEYS.include?(k)}
   end
@@ -433,9 +441,9 @@ class Cloudinary::Utils
     params_to_sign.map{|k,v| [k.to_s, v.is_a?(Array) ? v.join(",") : v]}.reject{|k,v| v.nil? || v == ""}.sort_by(&:first).map{|k,v| "#{k}=#{v}"}.join("&")
   end
 
-  def self.api_sign_request(params_to_sign, api_secret)
+  def self.api_sign_request(params_to_sign, api_secret, signature_algorithm = nil)
     to_sign = api_string_to_sign(params_to_sign)
-    Digest::SHA1.hexdigest("#{to_sign}#{api_secret}")
+    hash("#{to_sign}#{api_secret}", signature_algorithm, :hexdigest)
   end
 
   # Returns a JSON array as String.
@@ -501,6 +509,7 @@ class Cloudinary::Utils
     use_root_path = config_option_consume(options, :use_root_path)
     auth_token = config_option_consume(options, :auth_token)
     long_url_signature = config_option_consume(options, :long_url_signature)
+    signature_algorithm = config_option_consume(options, :signature_algorithm)
     unless auth_token == false
       auth_token = Cloudinary::AuthToken.merge_auth_token(Cloudinary.config.auth_token, auth_token)
     end
@@ -545,7 +554,10 @@ class Cloudinary::Utils
       raise(CloudinaryException, "Must supply api_secret") if (secret.nil? || secret.empty?)
       to_sign = [transformation, sign_version && version, source_to_sign].reject(&:blank?).join("/")
       to_sign = fully_unescape(to_sign)
-      signature = compute_signature(to_sign, secret, long_url_signature)
+      signature_algorithm = long_url_signature ? ALGO_SHA256 : signature_algorithm
+      hash = hash("#{to_sign}#{secret}", signature_algorithm)
+      signature = Base64.urlsafe_encode64(hash)
+      signature = "s--#{signature[0, long_url_signature ? LONG_URL_SIGNATURE_LENGTH : SHORT_URL_SIGNATURE_LENGTH ]}--"
     end
 
     prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
@@ -671,8 +683,9 @@ class Cloudinary::Utils
   def self.sign_request(params, options={})
     api_key = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
     api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
+    signature_algorithm = options[:signature_algorithm]
     params = params.reject{|k, v| self.safe_blank?(v)}
-    params[:signature] = Cloudinary::Utils.api_sign_request(params, api_secret)
+    params[:signature] = api_sign_request(params, api_secret, signature_algorithm)
     params[:api_key] = api_key
     params
   end
@@ -1163,23 +1176,18 @@ class Cloudinary::Utils
     end
   end
 
-  # Computes a short or long signature based on a message and secret
-  # @param [String]  message The string to sign
-  # @param [String]  secret A secret that will be added to the message when signing
-  # @param [Boolean] long_signature Whether to create a short or long signature
-  # @return [String] Properly formatted signature
-  def self.compute_signature(message, secret, long_url_signature)
-    combined_message_secret = message + secret
-
-    algo, signature_length =
-      if long_url_signature
-        [Digest::SHA256, LONG_URL_SIGNATURE_LENGTH]
-      else
-        [Digest::SHA1, SHORT_URL_SIGNATURE_LENGTH]
-      end
-
-    "s--#{Base64.urlsafe_encode64(algo.digest(combined_message_secret))[0, signature_length]}--"
+  # Computes hash from input string using specified algorithm.
+  #
+  # @param [String] input                   String which to compute hash from
+  # @param [String|nil] signature_algorithm Algorithm to use for computing hash
+  # @param [Symbol] hash_method             Hash method applied to a signature algorithm (:digest or :hexdigest)
+  #
+  # @return [String] Computed hash value
+  def self.hash(input, signature_algorithm = nil, hash_method = :digest)
+    signature_algorithm ||= Cloudinary.config.signature_algorithm || ALGO_SHA1
+    algorithm = ALGORITHM_SIGNATURE[signature_algorithm] || raise("Unsupported algorithm '#{signature_algorithm}'")
+    algorithm.public_send(hash_method, input)
   end
 
-  private_class_method :compute_signature
+  private_class_method :hash
 end
