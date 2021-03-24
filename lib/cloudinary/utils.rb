@@ -32,19 +32,34 @@ class Cloudinary::Utils
 
   PREDEFINED_VARS = {
     "aspect_ratio"         => "ar",
+    "aspectRatio"          => "ar",
     "current_page"         => "cp",
+    "currentPage"          => "cp",
     "face_count"           => "fc",
+    "faceCount"            => "fc",
     "height"               => "h",
     "initial_aspect_ratio" => "iar",
+    "initialAspectRatio"   => "iar",
+    "trimmed_aspect_ratio" => "tar",
+    "trimmedAspectRatio"   => "tar",
     "initial_height"       => "ih",
+    "initialHeight"        => "ih",
     "initial_width"        => "iw",
+    "initialWidth"         => "iw",
     "page_count"           => "pc",
+    "pageCount"            => "pc",
     "page_x"               => "px",
+    "pageX"                => "px",
     "page_y"               => "py",
+    "pageY"                => "py",
     "tags"                 => "tags",
     "initial_duration"     => "idu",
+    "initialDuration"      => "idu",
     "duration"             => "du",
-    "width"                => "w"
+    "width"                => "w",
+    "illustration_score"   => "ils",
+    "illustrationScore"    => "ils",
+    "context"              => "ctx"
   }
 
   SIMPLE_TRANSFORMATION_PARAMS = {
@@ -317,16 +332,16 @@ class Cloudinary::Utils
     "if_" + normalize_expression(if_value) unless if_value.to_s.empty?
   end
 
-  EXP_REGEXP = Regexp.new('(?<!\$)('+PREDEFINED_VARS.keys.join("|")+')'+'|('+CONDITIONAL_OPERATORS.keys.reverse.map { |k| Regexp.escape(k) }.join('|')+')(?=[ _])')
+  EXP_REGEXP = Regexp.new('(\$_*[^_ ]+)|(?<!\$)('+PREDEFINED_VARS.keys.join("|")+')'+'|('+CONDITIONAL_OPERATORS.keys.reverse.map { |k| Regexp.escape(k) }.join('|')+')(?=[ _])')
   EXP_REPLACEMENT = PREDEFINED_VARS.merge(CONDITIONAL_OPERATORS)
 
   def self.normalize_expression(expression)
     if expression.nil?
-      ''
+      nil
     elsif expression.is_a?( String) && expression =~ /^!.+!$/ # quoted string
       expression
     else
-      expression.to_s.gsub(EXP_REGEXP,EXP_REPLACEMENT).gsub(/[ _]+/, "_")
+      expression.to_s.gsub(EXP_REGEXP) { |match| EXP_REPLACEMENT[match] || match }.gsub(/[ _]+/, "_")
     end
   end
 
