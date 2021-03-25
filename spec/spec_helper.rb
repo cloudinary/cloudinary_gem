@@ -24,6 +24,7 @@ UNIQUE_TEST_ID = "#{TEST_TAG}_#{SUFFIX}"
 UNIQUE_TEST_FOLDER = "#{TEST_TAG}_#{SUFFIX}_folder"
 NEXT_CURSOR = "db27cfb02b3f69cb39049969c23ca430c6d33d5a3a7c3ad1d870c54e1a54ee0faa5acdd9f6d288666986001711759d10"
 GENERIC_FOLDER_NAME = "some_folder"
+UPLOADER_TAG = "#{TEST_TAG}_uploader"
 
 EVAL_STR='if (resource_info["width"] < 450) { upload_options["quality_analysis"] = true };
           upload_options["context"] = "width=" + resource_info["width"]'
