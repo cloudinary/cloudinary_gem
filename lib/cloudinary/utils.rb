@@ -159,6 +159,8 @@ class Cloudinary::Utils
   LONG_URL_SIGNATURE_LENGTH = 32
   SHORT_URL_SIGNATURE_LENGTH = 8
 
+  UPLOAD_PREFIX = 'https://api.cloudinary.com'
+
   ALGO_SHA1 = :sha1
   ALGO_SHA256 = :sha256
 
@@ -688,11 +690,23 @@ class Cloudinary::Utils
     prefix
   end
 
+  # Creates a base URL for the cloudinary api
+  #
+  # @param [Object] path  Resource name
+  # @param [Hash] options Additional options
+  #
+  # @return [String]
+  def self.base_api_url(path, options = {})
+    cloudinary = options[:upload_prefix] || Cloudinary.config.upload_prefix || UPLOAD_PREFIX
+    cloud_name = options[:cloud_name] || Cloudinary.config.cloud_name || raise(CloudinaryException, 'Must supply cloud_name')
+
+    [cloudinary, 'v1_1', cloud_name, path].join('/')
+  end
+
   def self.cloudinary_api_url(action = 'upload', options = {})
-    cloudinary = options[:upload_prefix] || Cloudinary.config.upload_prefix || "https://api.cloudinary.com"
-    cloud_name = options[:cloud_name] || Cloudinary.config.cloud_name || raise(CloudinaryException, "Must supply cloud_name")
-    resource_type = options[:resource_type] || "image"
-    return [cloudinary, "v1_1", cloud_name, resource_type, action].join("/")
+    resource_type = options[:resource_type] || 'image'
+
+    base_api_url([resource_type, action], options)
   end
 
   def self.sign_request(params, options={})
@@ -1175,6 +1189,25 @@ class Cloudinary::Utils
 
   def self.is_remote?(url)
     REMOTE_URL_REGEX === url
+  end
+
+  # The returned url should allow downloading the backedup asset based on the version and asset id
+  #
+  # asset and version id are returned with resource(<PUBLIC_ID1>, { versions: true })
+  #
+  # @param [String] asset_id   Asset identifier
+  # @param [String] version_id Specific version of asset to download
+  # @param [Hash] options      Additional options
+  #
+  # @return [String] An url for downloading a file
+  def self.download_backedup_asset(asset_id, version_id, options = {})
+    params = Cloudinary::Utils.sign_request({
+      :timestamp => (options[:timestamp] || Time.now.to_i),
+      :asset_id => asset_id,
+      :version_id => version_id
+    }, options)
+
+    "#{Cloudinary::Utils.base_api_url("download_backup", options)}?#{Cloudinary::Utils.hash_query_params((params))}"
   end
 
   # Format date in a format accepted by the usage API (e.g., 31-12-2020) if

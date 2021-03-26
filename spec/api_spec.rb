@@ -4,9 +4,14 @@ require 'cloudinary'
 describe Cloudinary::Api do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
   include_context "cleanup", TIMESTAMP_TAG
+
+  prefix = "api_test_#{SUFFIX}"
+
   TEST_WIDTH = rand(1000)
   TEST_TRANSFOMATION = "c_scale,w_#{TEST_WIDTH}"
-  prefix = "api_test_#{SUFFIX}"
+  PUBLIC_ID_BACKUP_1 = "#{prefix}backup_1#{Time.now.to_i}"
+  PUBLIC_ID_BACKUP_2 = "#{prefix}backup_2#{Time.now.to_i}"
+
   test_id_1 = "#{prefix}_1"
   test_id_2   = "#{prefix}_2"
   test_id_3   = "#{prefix}_3"
@@ -228,6 +233,28 @@ describe Cloudinary::Api do
     expect(tags).to include(TIMESTAMP_TAG)
     tags = @api.tags(:prefix=>"api_test_no_such_tag")["tags"]
     expect(tags).to be_blank
+  end
+
+  describe "backup resource" do
+    let(:public_id) { "api_test_backup_#{SUFFIX}" }
+
+    before(:each) do
+      Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG], :public_id => public_id, :backup => true)
+      response = @api.resource(public_id)
+      expect(response).not_to be_nil
+    end
+
+    it "should return the asset details together with all of its backed up versions when versions is true" do
+      resource = @api.resource(public_id, :versions => true)
+
+      expect(resource["versions"]).to be_an_instance_of(Array)
+    end
+
+    it "should return the asset details together without backed up versions when versions is false" do
+      resource = @api.resource(public_id, :versions => false)
+
+      expect(resource["versions"]).to be_nil
+    end
   end
 
   describe 'transformations' do
@@ -507,9 +534,117 @@ describe Cloudinary::Api do
   end
 
   describe '.restore'  do
+    let(:public_id) { "api_test_restore#{SUFFIX}" }
+
+    before(:each) do
+      Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG], :public_id => public_id, :backup => true)
+      sleep(2)
+
+      resource = @api.resource(public_id)
+      expect(resource).not_to be_nil
+      expect(resource["bytes"]).to eq(3381)
+
+      @api.delete_resources(public_id)
+
+      resource = @api.resource(public_id)
+      expect(resource).not_to be_nil
+      expect(resource["bytes"]).to eq(0)
+      expect(resource["placeholder"]).to eq(true)
+    end
+
     it 'should restore a deleted resource' do
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :public_ids] => "api_test_restore", [:url] => /.*\/restore$/))
-      Cloudinary::Api.restore("api_test_restore")
+      response = @api.restore([public_id])
+
+      info = response[public_id]
+      expect(info).not_to be_nil
+      expect(info["bytes"]).to eq(3381)
+
+      resource = @api.resource(public_id)
+      expect(resource).not_to be_nil
+      expect(resource["bytes"]).to eq(3381)
+    end
+
+    it "should restore different versions of a deleted asset" do
+      # Upload the same file twice (upload->delete->upload->delete)
+
+      # Upload and delete a file
+      first_upload = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG], :public_id => PUBLIC_ID_BACKUP_1, :backup => true)
+      sleep(1)
+
+      first_delete = @api.delete_resources([PUBLIC_ID_BACKUP_1])
+
+      # Upload and delete it again, this time add angle to create a different 'version'
+      second_upload = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG], :public_id => PUBLIC_ID_BACKUP_1, :transformation => { :angle => 0 }, :backup => true)
+      sleep(1)
+
+      second_delete = @api.delete_resources([PUBLIC_ID_BACKUP_1])
+      sleep(1)
+
+      # Ensure all files were uploaded correctly
+      expect(first_upload).not_to be_nil
+      expect(second_upload).not_to be_nil
+
+      # Sanity, ensure these uploads are different before we continue
+      expect(first_upload["bytes"]).not_to equal(second_upload["bytes"])
+
+      # Ensure all files were deleted correctly
+      expect(first_delete).to have_key("deleted")
+      expect(second_delete).to have_key("deleted")
+
+      # Get the versions of the deleted asset
+      get_versions_resp = @api.resource(PUBLIC_ID_BACKUP_1, :versions => true)
+
+      first_asset_version = get_versions_resp["versions"][0]["version_id"]
+      second_asset_version = get_versions_resp["versions"][1]["version_id"]
+
+      # Restore first version, ensure it's equal to the upload size
+      sleep(1)
+      first_ver_restore = @api.restore([PUBLIC_ID_BACKUP_1], :versions => [first_asset_version])
+      expect(first_ver_restore[PUBLIC_ID_BACKUP_1]["bytes"]).to eq(first_upload["bytes"])
+
+      # Restore second version, ensure it's equal to the upload size
+      sleep(1)
+      second_ver_restore = @api.restore([PUBLIC_ID_BACKUP_1], { :versions => [second_asset_version] })
+      expect(second_ver_restore[PUBLIC_ID_BACKUP_1]["bytes"]).to eq(second_upload["bytes"])
+
+      # Cleanup
+      final_delete_resp = @api.delete_resources([PUBLIC_ID_BACKUP_1])
+      expect(final_delete_resp).to have_key("deleted")
+    end
+
+    it "should restore two different deleted assets" do
+      # Upload two different files
+      first_upload = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG], :public_id => PUBLIC_ID_BACKUP_1, :backup => true)
+      second_upload = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG], :public_id => PUBLIC_ID_BACKUP_2, :transformation => { :angle => 0 }, :backup => true)
+
+      # delete both resources
+      delete_all = @api.delete_resources([PUBLIC_ID_BACKUP_1, PUBLIC_ID_BACKUP_2])
+
+      # Expect correct deletion of the assets
+      expect(delete_all["deleted"][PUBLIC_ID_BACKUP_1]).to eq("deleted")
+      expect(delete_all["deleted"][PUBLIC_ID_BACKUP_2]).to eq("deleted")
+
+      get_first_asset_version = @api.resource(PUBLIC_ID_BACKUP_1, :versions => true)
+      get_second_asset_version = @api.resource(PUBLIC_ID_BACKUP_2, :versions => true)
+
+      first_asset_version = get_first_asset_version["versions"][0]["version_id"]
+      second_asset_version = get_second_asset_version["versions"][0]["version_id"]
+
+      ids_to_restore = [PUBLIC_ID_BACKUP_1, PUBLIC_ID_BACKUP_2]
+      versions_to_restore = [first_asset_version, second_asset_version]
+
+      restore = @api.restore(ids_to_restore, :versions => versions_to_restore)
+
+      # Expect correct restorations
+      expect(restore[PUBLIC_ID_BACKUP_1]["bytes"]).to eq(first_upload["bytes"])
+      expect(restore[PUBLIC_ID_BACKUP_2]["bytes"]).to eq(second_upload["bytes"])
+
+      # Cleanup
+      final_delete = @api.delete_resources([PUBLIC_ID_BACKUP_1, PUBLIC_ID_BACKUP_2])
+
+      # Expect correct deletion of the assets
+      expect(final_delete["deleted"][PUBLIC_ID_BACKUP_1]).to eq("deleted")
+      expect(final_delete["deleted"][PUBLIC_ID_BACKUP_2]).to eq("deleted")
     end
   end
 
