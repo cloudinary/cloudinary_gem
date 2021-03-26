@@ -1,3 +1,21 @@
+1.20.0 / 2021-03-26
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for `download_backedup_asset` helper method
+  * Add support for `filename_override` upload parameter
+  * Add support for `SHA-256` algorithm in auth signatures
+    
+Other Changes
+-------------
+
+* Fix `type` parameter support in ActiveStorage service
+* Fix expression normalization in advanced cases
+* Add test for context metadata as user variables
+* Improve validation of auth token generation
+
 
 1.19.0 / 2021-03-05
 ==================
