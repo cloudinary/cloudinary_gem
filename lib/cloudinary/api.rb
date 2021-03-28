@@ -82,7 +82,8 @@ class Cloudinary::Api
                   :phash,
                   :quality_analysis,
                   :derived_next_cursor,
-                  :accessibility_analysis
+                  :accessibility_analysis,
+                  :versions
              ), options)
   end
 
@@ -90,7 +91,7 @@ class Cloudinary::Api
     resource_type = options[:resource_type] || "image"
     type          = options[:type] || "upload"
     uri           = "resources/#{resource_type}/#{type}/restore"
-    call_api(:post, uri, { :public_ids => public_ids }, options)
+    call_api(:post, uri, { :public_ids => public_ids, :versions => options[:versions] }, options)
   end
 
   def self.update(public_id, options={})

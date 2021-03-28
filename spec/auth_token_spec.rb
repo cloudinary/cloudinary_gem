@@ -62,6 +62,12 @@ describe 'auth_token' do
       token = { :key => KEY, :expiration => 0, :duration => 0 }
       expect{Cloudinary::Utils.generate_auth_token(token)}.to raise_error(/Must provide either expiration or duration/)
     end
+
+    it "should raise if generate_auth_token is missing acl or url" do
+      expect{Cloudinary::Utils.generate_auth_token(:start_time => 1111111111, :duration => 300)}.to raise_error("AuthToken must contain either an acl or a url property")
+      expect{Cloudinary::Utils.generate_auth_token(:start_time => 1111111111, :duration => 300, :acl => "/*/t_foobar")}.not_to raise_error
+      expect{Cloudinary::Utils.generate_auth_token(:start_time => 1111111111, :duration => 300, :url => "http://res.cloudinary.com/test123/image/upload/v1486020273/sample.jpg")}.not_to raise_error
+    end
   end
   describe "authentication token" do
     it "should generate token string" do
