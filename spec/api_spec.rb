@@ -11,28 +11,38 @@ describe Cloudinary::Api do
   TEST_TRANSFOMATION = "c_scale,w_#{TEST_WIDTH}"
   PUBLIC_ID_BACKUP_1 = "#{prefix}backup_1#{Time.now.to_i}"
   PUBLIC_ID_BACKUP_2 = "#{prefix}backup_2#{Time.now.to_i}"
+  METADATA_EXTERNAL_ID = "#{prefix}_metadata_external_id_#{UNIQUE_TEST_ID}"
+  METADATA_DEFAULT_VALUE = "#{prefix}_metadata_default_value_#{UNIQUE_TEST_ID}"
+  UNIQUE_CONTEXT_KEY = "#{prefix}_context_key_#{UNIQUE_TEST_ID}"
+  UNIQUE_CONTEXT_VALUE = "#{prefix}_context_value_#{UNIQUE_TEST_ID}"
+  UNIQUE_CONTEXT = "#{UNIQUE_CONTEXT_KEY}=#{UNIQUE_CONTEXT_VALUE}"
+  UNIQUE_TEST_TAG_TO_ONE_IMAGE_ASSET = "#{prefix}_unique_tag_to_one_image_asset_#{UNIQUE_TEST_ID}"
 
   test_id_1 = "#{prefix}_1"
   test_id_2   = "#{prefix}_2"
   test_id_3   = "#{prefix}_3"
   test_key = "test_key_#{SUFFIX}"
 
-  unique_prefix = "#{prefix}prefix_#{UNIQUE_TEST_ID}"
-  public_id_test = "#{unique_prefix}_public_id"
-  unique_test_tag_to_one_image_resource = "#{prefix}unique_tag_to_one_image_asset_#{UNIQUE_TEST_ID}"
-  unique_context_key = "#{prefix}context_key_#{UNIQUE_TEST_ID}"
-  unique_context_value = "#{prefix}context_value_#{UNIQUE_TEST_ID}"
-
   before(:all) do
     @api = Cloudinary::Api
+
+    @api.add_metadata_field(
+      :external_id => METADATA_EXTERNAL_ID,
+      :label => METADATA_EXTERNAL_ID,
+      :type => "string",
+      :default_value => METADATA_DEFAULT_VALUE
+    )
+
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "#{test_key}=test", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "#{test_key}=tasty", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :tags => [UNIQUE_TEST_TAG_TO_ONE_IMAGE_ASSET, TEST_TAG, TIMESTAMP_TAG], :context => UNIQUE_CONTEXT, :moderation => :manual)
   end
 
   after(:all) do
+    @api.delete_metadata_field(METADATA_EXTERNAL_ID)
     # in addition to "cleanup" context
     unless Cloudinary.config.keep_test_products
       up = Cloudinary::Api.upload_presets max_results: 500
@@ -121,60 +131,54 @@ describe Cloudinary::Api do
   end
 
   describe "structured metadata" do
+    matcher :have_metadata do
+      match do |expected|
+        expect(expected["resources"]).to be_present
+
+        expected["resources"].each do |resource|
+          expect(resource).to have_key("metadata")
+        end
+      end
+
+      match_when_negated do |expected|
+        expect(expected["resources"]).to be_present
+
+        expected["resources"].each do |resource|
+          expect(resource).to_not have_key("metadata")
+        end
+      end
+    end
+
     it "should return structured metadata in the response of the resources API response" do
-      result = @api.resources(:prefix => public_id_test, :type => "upload", :metadata => true)
+      result = @api.resources(:prefix => test_id_1, :type => "upload", :metadata => true)
+      expect(result).to have_metadata
 
-      result["resources"].each do |resource|
-        expect(resource).to have_key("metadata")
-      end
-
-      result = @api.resources(:prefix => public_id_test, :type => "upload", :metadata => false)
-
-      result["resources"].each do |resource|
-        expect(resource).not_to have_key("metadata")
-      end
+      result = @api.resources(:prefix => test_id_1, :type => "upload", :metadata => false)
+      expect(result).to_not have_metadata
     end
 
     it "should return structured metadata in the response of the resources by tag API" do
-      result = @api.resources_by_tag(unique_test_tag_to_one_image_resource, :metadata => true)
+      result = @api.resources_by_tag(UNIQUE_TEST_TAG_TO_ONE_IMAGE_ASSET, :metadata => true)
+      expect(result).to have_metadata
 
-      result["resources"].each do |resource|
-        expect(resource).to have_key("metadata")
-      end
-
-      result = @api.resources_by_tag(unique_test_tag_to_one_image_resource, :metadata => false)
-
-      result["resources"].each do |resource|
-        expect(resource).not_to have_key("metadata")
-      end
+      result = @api.resources_by_tag(UNIQUE_TEST_TAG_TO_ONE_IMAGE_ASSET, :metadata => false)
+      expect(result).to_not have_metadata
     end
 
     it "should return structured metadata in the response of the resources by context API" do
-      result = @api.resources_by_context(unique_context_key, unique_context_value, :metadata => true)
+      result = @api.resources_by_context(UNIQUE_CONTEXT_KEY, UNIQUE_CONTEXT_VALUE, :metadata => true)
+      expect(result).to have_metadata
 
-      result["resources"].each do |resource|
-        expect(resource).to have_key("metadata")
-      end
-
-      result = @api.resources_by_context(unique_context_key, unique_context_value, :metadata => false)
-
-      result["resources"].each do |resource|
-        expect(resource).not_to have_key("metadata")
-      end
+      result = @api.resources_by_context(UNIQUE_CONTEXT_KEY, UNIQUE_CONTEXT_VALUE, :metadata => false)
+      expect(result).to_not have_metadata
     end
 
     it "should return structured metadata in the response of the resources by moderation API" do
       result = @api.resources_by_moderation(:manual, :pending, :metadata => true)
-
-      result["resources"].each do |resource|
-        expect(resource).to have_key("metadata")
-      end
+      expect(result).to have_metadata
 
       result = @api.resources_by_moderation(:manual, :pending, :metadata => false)
-
-      result["resources"].each do |resource|
-        expect(resource).not_to have_key("metadata")
-      end
+      expect(result).to_not have_metadata
     end
   end
 
