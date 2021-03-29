@@ -34,25 +34,25 @@ class Cloudinary::Api
     type          = options[:type]
     uri           = "resources/#{resource_type}"
     uri           += "/#{type}" unless type.blank?
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context, :moderations, :direction, :start_at), options)
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context, :moderations, :direction, :start_at, :metadata), options)
   end
 
   def self.resources_by_tag(tag, options={})
     resource_type = options[:resource_type] || "image"
     uri           = "resources/#{resource_type}/tags/#{tag}"
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction), options)
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction, :metadata), options)
   end
 
   def self.resources_by_moderation(kind, status, options={})
     resource_type = options[:resource_type] || "image"
     uri           = "resources/#{resource_type}/moderations/#{kind}/#{status}"
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction), options)
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction, :metadata), options)
   end
 
   def self.resources_by_context(key, value=nil, options={})
     resource_type = options[:resource_type] || "image"
     uri           = "resources/#{resource_type}/context"
-    params = only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction,:key,:value)
+    params = only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction, :key, :value, :metadata)
     params[:key] = key
     params[:value] = value
     call_api(:get, uri, params, options)
