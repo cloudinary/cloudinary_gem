@@ -11,6 +11,9 @@ describe Cloudinary do
 
   CLOUDINARY_USER_AGENT_REGEXP    = %r"^CloudinaryRuby\/[\d.]+ \(Ruby [\d\.]+-p\d+\)$"
   CLOUDINARY_USER_PLATFORM_REGEXP = %r"^Rails\/[\d.]+ CloudinaryRuby\/[\d.]+ \(Ruby [\d\.]+-p\d+\)$"
+  OAUTH_TOKEN = "NTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZj17"
+  URL_WITH_OAUTH_TOKEN = "cloudinary://#{DUMMY_CLOUD}?oauth_token=#{OAUTH_TOKEN}"
+  URL_WITH_CREDENTIALS_AND_OAUTH_TOKEN = "cloudinary://#{API_KEY}:#{API_SECRET}@#{DUMMY_CLOUD}?oauth_token=#{OAUTH_TOKEN}"
 
   it "should return the USER_AGENT without user_platform if there's no Rails or set to empty" do
     Cloudinary.user_platform = ""
@@ -72,6 +75,26 @@ describe Cloudinary do
       expect(Cloudinary::config.private_cdn).to eq false
       expect(Cloudinary::config.secure).to eq true
       expect(Cloudinary::config.api_proxy).to eq "https://myuser:mypass@my.proxy.com"
+    end
+
+    it "supports config from urls without key and secret but with oauth token" do
+      Cloudinary.reset_config
+      ENV["CLOUDINARY_URL"] = URL_WITH_OAUTH_TOKEN
+
+      expect(Cloudinary::config.cloud_name).to eq(DUMMY_CLOUD)
+      expect(Cloudinary::config.oauth_token).to eq(OAUTH_TOKEN)
+      expect(Cloudinary::config.api_key).to be_nil
+      expect(Cloudinary::config.api_secret).to be_nil
+    end
+
+    it "supports config from urls with key and secret and oauth token" do
+      Cloudinary.reset_config
+      ENV["CLOUDINARY_URL"] = URL_WITH_CREDENTIALS_AND_OAUTH_TOKEN
+
+      expect(Cloudinary::config.cloud_name).to eq(DUMMY_CLOUD)
+      expect(Cloudinary::config.api_key).to eq(API_KEY)
+      expect(Cloudinary::config.api_secret).to eq(API_SECRET)
+      expect(Cloudinary::config.oauth_token).to eq(OAUTH_TOKEN)
     end
   end
 end

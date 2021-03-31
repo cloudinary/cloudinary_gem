@@ -59,13 +59,14 @@ module Cloudinary::BaseApi
 
   private
 
-  def call_cloudinary_api(method, uri, user, password, params, options, &api_url_builder)
+  def call_cloudinary_api(method, uri, auth, params, options, &api_url_builder)
     cloudinary = options[:upload_prefix] || Cloudinary.config.upload_prefix || 'https://api.cloudinary.com'
     api_url    = Cloudinary::Utils.smart_escape(api_url_builder.call(cloudinary, uri).flatten.join('/'))
     timeout    = options[:timeout] || Cloudinary.config.timeout || 60
     proxy      = options[:api_proxy] || Cloudinary.config.api_proxy
 
     headers = { "User-Agent" => Cloudinary::USER_AGENT }
+    headers.merge!("Authorization" => get_authorization_header_value(auth))
 
     if options[:content_type] == :json
       payload = params.to_json
@@ -74,6 +75,21 @@ module Cloudinary::BaseApi
       payload = params.reject { |_, v| v.nil? || v == "" }
     end
 
-    call_json_api(method, api_url, payload, timeout, headers, proxy, user, password)
+    call_json_api(method, api_url, payload, timeout, headers, proxy)
+  end
+
+  def get_authorization_header_value(auth)
+    if auth[:oauth_token].present?
+      "Bearer #{auth[:oauth_token]}"
+    else
+      "Basic #{Base64.urlsafe_encode64("#{auth[:key]}:#{auth[:secret]}")}"
+    end
+  end
+
+  def validate_authorization(api_key, api_secret, oauth_token)
+    return if oauth_token.present?
+
+    raise("Must supply api_key") if api_key.nil?
+    raise("Must supply api_secret") if api_secret.nil?
   end
 end

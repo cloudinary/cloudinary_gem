@@ -12,6 +12,8 @@ require 'cloudinary'
 Cloudinary.config.enhance_image_tag = true
 
 DUMMY_CLOUD = "test123"
+API_KEY = "key"
+API_SECRET = "secret"
 TEST_IMAGE_URL = "http://cloudinary.com/images/old_logo.png"
 TEST_IMG = "spec/logo.png"
 TEST_VIDEO = "spec/movie.mp4"
