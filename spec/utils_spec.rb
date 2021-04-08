@@ -1110,12 +1110,12 @@ describe Cloudinary::Utils do
     url2 = "https://res.cloudinary.com/demo/image/upload/car"
 
     url_from_tag = Cloudinary::Utils.download_generated_sprite(sprite_test_tag)
-    url_from_urls = Cloudinary::Utils.download_generated_sprite([url1, url2])
+    url_from_urls = URI.decode(Cloudinary::Utils.download_generated_sprite(:urls => [url1, url2]))
 
     expect(url_from_tag).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/sprite")
     expect(url_from_urls).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/sprite")
-    expect(url_from_urls).to include("urls[]=#{CGI.escape(url1)}")
-    expect(url_from_urls).to include("urls[]=#{CGI.escape(url2)}")
+    expect(url_from_urls).to include("urls[]=#{url1}")
+    expect(url_from_urls).to include("urls[]=#{url2}")
 
     parameters = CGI::parse(url_from_tag)
     expect(parameters["tag"]).to eq([sprite_test_tag])
@@ -1135,12 +1135,12 @@ describe Cloudinary::Utils do
     url2 = "https://res.cloudinary.com/demo/image/upload/car"
 
     url_from_tag = Cloudinary::Utils.download_multi(multi_test_tag)
-    url_from_urls = Cloudinary::Utils.download_multi([url1, url2])
+    url_from_urls = URI.decode(Cloudinary::Utils.download_multi(:urls => [url1, url2]))
 
     expect(url_from_tag).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/multi")
     expect(url_from_urls).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/multi")
-    expect(url_from_urls).to include("urls[]=#{CGI.escape(url1)}")
-    expect(url_from_urls).to include("urls[]=#{CGI.escape(url2)}")
+    expect(url_from_urls).to include("urls[]=#{url1}")
+    expect(url_from_urls).to include("urls[]=#{url2}")
 
     parameters = CGI::parse(url_from_tag)
     expect(parameters["tag"]).to eq([multi_test_tag])

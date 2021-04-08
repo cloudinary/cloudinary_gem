@@ -208,15 +208,15 @@ class Cloudinary::Uploader
 
   # Generates sprites by merging multiple images into a single large image.
   #
-  # @param [Array<String>|String] source Array of urls or a tag
-  # @param [Hash] options Additional options
+  # @param [String|Hash] tag Treated as additional options when hash is passed, otherwise as a tag
+  # @param [Hash] options Additional options. Should be omitted when +tag_or_options+ is a Hash
   #
   # @return [Hash] Hash with meta information URLs of generated sprite resources
-  def self.generate_sprite(source, options = {})
+  def self.generate_sprite(tag, options = {})
     version_store = options.delete(:version_store)
 
     result = call_api("sprite", options) do
-      Cloudinary::Utils.build_multi_and_sprite_params(source, options)
+      Cloudinary::Utils.build_multi_and_sprite_params(tag, options)
     end
 
     if version_store == :file && result && result["version"]
@@ -230,13 +230,13 @@ class Cloudinary::Uploader
 
   # Creates either a single animated image, video or a PDF.
   #
-  # @param [Array<String>|String] source Array of urls or a tag
-  # @param [Hash] options Additional options
+  # @param [String|Hash] tag Treated as additional options when hash is passed, otherwise as a tag
+  # @param [Hash] options Additional options. Should be omitted when +tag_or_options+ is a Hash
   #
   # @return [Hash] Hash with meta information URLs of the generated file
-  def self.multi(source, options = {})
+  def self.multi(tag, options = {})
     call_api("multi", options) do
-      Cloudinary::Utils.build_multi_and_sprite_params(source, options)
+      Cloudinary::Utils.build_multi_and_sprite_params(tag, options)
     end
   end
 

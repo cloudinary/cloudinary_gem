@@ -542,7 +542,7 @@ describe Cloudinary::Uploader do
     upload_result2 = Cloudinary::Uploader.upload(TEST_IMAGE_URL, :tags => [sprite_test_tag, TEST_TAG, UPLOADER_TAG, TIMESTAMP_TAG], :public_id => "sprite_test_tag_2#{SUFFIX}")
 
     urls = [upload_result1["url"], upload_result2["url"]]
-    result = Cloudinary::Uploader.generate_sprite(urls, :tags => [TEST_TAG, UPLOADER_TAG])
+    result = Cloudinary::Uploader.generate_sprite(:urls => urls, :tags => [TEST_TAG, UPLOADER_TAG])
     Cloudinary::Api.delete_resources(result["public_id"], :type => "sprite")
     expect(result["image_infos"].count).to eq(2)
 
@@ -568,7 +568,7 @@ describe Cloudinary::Uploader do
 
     urls = [upload_result1["url"], upload_result2["url"]]
 
-    result = Cloudinary::Uploader.multi(urls, :transformation => { :crop => "scale", :width => 0.5 }, tags: [TIMESTAMP_TAG])
+    result = Cloudinary::Uploader.multi(:urls => urls, :transformation => { :crop => "scale", :width => 0.5 }, tags: [TIMESTAMP_TAG])
     Cloudinary::Api.delete_resources(result["public_id"], :type => "multi")
     expect(result["url"]).to end_with(".gif")
     expect(result["url"]).to include("w_0.5")

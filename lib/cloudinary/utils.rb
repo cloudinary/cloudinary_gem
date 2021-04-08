@@ -689,36 +689,30 @@ class Cloudinary::Utils
   def self.cloudinary_api_download_url(action, params, options = {})
     cloudinary_params = sign_request(params.merge(mode: MODE_DOWNLOAD), options)
 
-    cloudinary_params = if block_given?
-                          yield cloudinary_params
-                        else
-                          hash_query_params(cloudinary_params)
-                        end
-
-    "#{Cloudinary::Utils.cloudinary_api_url(action, options)}?#{cloudinary_params}"
+    "#{Cloudinary::Utils.cloudinary_api_url(action, options)}?#{hash_query_params(cloudinary_params)}"
   end
   private_class_method :cloudinary_api_download_url
 
   # Return a signed URL to the 'generate_sprite' endpoint with 'mode=download'.
   #
-  # @param [Array<String>|String] source Array of urls or a tag
-  # @param [Hash] options Additional options
+  # @param [String|Hash] tag Treated as additional options when hash is passed, otherwise as a tag
+  # @param [Hash] options Additional options. Should be omitted when +tag_or_options+ is a Hash
   #
   # @return [String] The signed URL to download sprite
-  def self.download_generated_sprite(source, options = {})
-    params = build_multi_and_sprite_params(source, options)
-    cloudinary_api_download_url("sprite", params, options) { |p| flat_hash_to_query_params(p) }
+  def self.download_generated_sprite(tag, options = {})
+    params = build_multi_and_sprite_params(tag, options)
+    cloudinary_api_download_url("sprite", params, options)
   end
 
   # Return a signed URL to the 'multi' endpoint with 'mode=download'.
   #
-  # @param [Array<String>|String] source Array of urls or a tag
-  # @param [Hash] options Additional options
+  # @param [String|Hash] tag Treated as additional options when hash is passed, otherwise as a tag
+  # @param [Hash] options Additional options. Should be omitted when +tag_or_options+ is a Hash
   #
   # @return [String] The signed URL to download multi
-  def self.download_multi(source, options = {})
-    params = build_multi_and_sprite_params(source, options)
-    cloudinary_api_download_url("multi", params, options) { |p| flat_hash_to_query_params(p) }
+  def self.download_multi(tag, options = {})
+    params = build_multi_and_sprite_params(tag, options)
+    cloudinary_api_download_url("multi", params, options)
   end
 
   def self.private_download_url(public_id, format, options = {})
@@ -1194,21 +1188,30 @@ class Cloudinary::Utils
 
   # Build params for multi, download_multi, generate_sprite, and download_generated_sprite methods
   #
-  # @param [Array<String>|String] source Array of urls or a tag
-  # @param [Hash] options Additional options
+  # @param [String|Hash] tag_or_options Treated as additional options when hash is passed, otherwise as a tag
+  # @param [Hash] options Additional options. Should be omitted when +tag_or_options+ is a Hash
   #
   # @return [Hash]
   #
   # @private
-  def self.build_multi_and_sprite_params(source, options)
-    if source.blank?
+  def self.build_multi_and_sprite_params(tag_or_options, options)
+    if tag_or_options.is_a?(Hash)
+      if options.blank?
+        options = tag_or_options
+        tag_or_options = nil
+      else
+        raise "First argument must be a tag when additional options are passed"
+      end
+    end
+    urls = options.delete(:urls)
+
+    if tag_or_options.blank? && urls.blank?
       raise "Either tag or urls are required"
     end
 
-    key = source.is_a?(Array) ? :urls : :tag
-
     {
-      key => source,
+      :tag => tag_or_options,
+      :urls => urls,
       :transformation => Cloudinary::Utils.generate_transformation_string(options.merge(:fetch_format => options[:format])),
       :notification_url => options[:notification_url],
       :format => options[:format],
