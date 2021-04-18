@@ -1,5 +1,6 @@
 cloudinary:
   service: Cloudinary
+  type: authenticated
   tags:
     - ActiveStorageTestTag
   folder: active_storage_test_folder

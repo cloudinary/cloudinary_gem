@@ -61,6 +61,15 @@ describe Cloudinary::Utils do
       end
     end
   end
+
+  describe "download_backedup_asset" do
+    it "should return url with asset and version id" do
+      download_backedup_asset_url = Cloudinary::Utils.download_backedup_asset("b71b23d9c89a81a254b88a91a9dad8cd", "0e493356d8a40b856c4863c026891a4e")
+
+      expect(download_backedup_asset_url).to include("asset_id")
+      expect(download_backedup_asset_url).to include("version_id")
+    end
+  end
 end
 
 describe Cloudinary::Uploader do
