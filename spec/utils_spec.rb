@@ -1,6 +1,5 @@
 require 'spec_helper'
 require 'cloudinary'
-require 'securerandom'
 
 describe Cloudinary::Utils do
   SIGNATURE_VERIFICATION_API_SECRET = "X7qLTrsES31MzxxkxPPA-pAGGfU"
