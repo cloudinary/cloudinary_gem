@@ -1,8 +1,9 @@
 require 'spec_helper'
 require 'cloudinary'
+require 'securerandom'
 
 describe Cloudinary::Utils do
-
+  SIGNATURE_VERIFICATION_API_SECRET = "X7qLTrsES31MzxxkxPPA-pAGGfU"
 
   before :each do
     Cloudinary.reset_config
@@ -1163,93 +1164,137 @@ describe Cloudinary::Utils do
   end
   end
 
-  describe ".webhook_signature" do
-    let(:api_secret) { "shhh" }
-    let(:timestamp) { 1417727468 }
-    let(:data) { %[{"public_id":"117e5550-7bfa-11e4-80d7-f962166bd3be","version":#{timestamp}}] }
-    let(:expected_signature) { "bac927006d3ce039ef7632e2c03189348d02924a" }
+  describe ".verify_api_response_signature" do
+    let(:public_id) { 'tests/logo.png' }
+    let(:test_version) { 1 }
+    let(:api_response_signature_sha1) { '08d3107a5b2ad82e7d82c0b972218fbf20b5b1e0' }
+    let(:api_response_signature_sha256) { 'cc69ae4ed73303fbf4a55f2ae5fc7e34ad3a5c387724bfcde447a2957cacdfea' }
 
-    it "should produce signature taking api_secret from config" do
-      Cloudinary.config(:api_secret => api_secret)
-
-      signature = Cloudinary::Utils.webhook_signature(data, timestamp)
-      expect(signature).to eq(expected_signature)
+    before do
+      Cloudinary.config.update(:api_secret => SIGNATURE_VERIFICATION_API_SECRET)
     end
 
-    it "should produce signature taking api_secret from params" do
-      signature = Cloudinary::Utils.webhook_signature(data, timestamp, :api_secret => api_secret)
-      expect(signature).to eq(expected_signature)
+    it "should return true when signature is valid" do
+      expect(
+        Cloudinary::Utils.verify_api_response_signature(public_id, test_version, api_response_signature_sha1)
+      ).to be true
+    end
+
+    it "should return false when signature is invalid" do
+      expect(
+        Cloudinary::Utils.verify_api_response_signature(public_id, test_version + 1, api_response_signature_sha1)
+      ).to be false
+    end
+
+    it "should support sha256 signature algorithm" do
+      expect(
+        Cloudinary::Utils.verify_api_response_signature(
+          public_id,
+          test_version,
+          api_response_signature_sha256,
+          Cloudinary::Utils::ALGO_SHA256)
+      ).to be true
     end
   end
 
   describe ".verify_notification_signature" do
-    let(:expected_parameters) do
-      {
-        :public_id => "b8sjhoslj8cq8ovoa0ma",
-        :version => "1555337587",
-        :width => 1000,
-        :height => 800,
-      }
+    let(:signature_sha1) { 'dfe82de1d9083fe0b7ea68070649f9a15b8874da' }
+    let(:signature_sha256) { 'd5497e1a206ad0ba29ad09a7c0c5f22e939682d15009c15ab3199f62fefbd14b' }
+    let(:valid_for) { 60 }
+    let(:valid_response_timestamp) { (Time.now - valid_for).to_i }
+    let(:body) do
+      '{"notification_type":"eager","eager":[{"transformation":"sp_full_hd/mp4","bytes":1055,' \
+               '"url":"http://res.cloudinary.com/demo/video/upload/sp_full_hd/v1533125278/dog.mp4",' \
+               '"secure_url":"https://res.cloudinary.com/demo/video/upload/sp_full_hd/v1533125278/dog.mp4"}],' \
+               '"public_id":"dog","batch_id":"9b11fa058c61fa577f4ec516bf6ee756ac2aefef095af99aef1302142cc1694a"}'
     end
-
-    let(:unexpected_parameters) do
-      {
-        :public_id => "b8sjhoslj8cq8ovoa0er",
-        :version => "1555337587",
-        :width => 100,
-        :height => 100,
-      }
-    end
-
-    let(:valid_response_timestamp) { (Time.now - 5000).to_i }
-    let(:invalid_response_timestamp) { (Time.now - 50 * 1000).to_i }
     let(:response_json) { expected_parameters.to_json }
     let(:unexpected_response_json) { unexpected_parameters.to_json }
+    let(:mocked_now) { 1549533574 }
 
-    let(:options) { { :api_secret => Cloudinary.config.api_secret } }
+    before do
+      allow(Time).to receive(:now).and_return(mocked_now)
+      Cloudinary.config.update(:api_secret => SIGNATURE_VERIFICATION_API_SECRET)
+    end
 
-    it "should return true when signature is valid" do
-      response_signature = Cloudinary::Utils.webhook_signature(response_json, valid_response_timestamp, options)
+    it "should return true for matching and not expired signature" do
       expect(
         Cloudinary::Utils.verify_notification_signature(
-          response_json,
+          body,
           valid_response_timestamp,
-          response_signature)
+          signature_sha1,
+          valid_for
+        )
       ).to be true
     end
 
-    it "should return false when signature is not valid" do
-      response_signature = Cloudinary::Utils.webhook_signature(response_json, valid_response_timestamp, options)
+    it "should return false for matching but expired signature" do
       expect(
         Cloudinary::Utils.verify_notification_signature(
-          unexpected_response_json,
+          body,
           valid_response_timestamp,
-          response_signature
+          signature_sha1,
+          valid_for - 1
         )
       ).to be false
     end
 
-    it "should return false when timestamp is too far past with default validity expiration time" do
-      response_signature = Cloudinary::Utils.webhook_signature(response_json, invalid_response_timestamp, options)
+    it "should return false for non matching and not expired signature" do
       expect(
         Cloudinary::Utils.verify_notification_signature(
-          response_json,
-          invalid_response_timestamp,
-          response_signature
+          body,
+          valid_response_timestamp,
+          "#{signature_sha1}chars"
         )
       ).to be false
     end
 
-    it "should return false when timestamp is too far past with custom validity expiration time" do
-      response_signature = Cloudinary::Utils.webhook_signature(response_json, valid_response_timestamp, options)
+    it "should return false for non matching and expired signature" do
       expect(
         Cloudinary::Utils.verify_notification_signature(
-          response_json,
+          body,
           valid_response_timestamp,
-          response_signature,
-          10
+          "#{signature_sha1}chars",
+          valid_for - 1
         )
       ).to be false
+    end
+
+    it "should raise when body is not a string" do
+      expect {
+        Cloudinary::Utils.verify_notification_signature(
+          1,
+          valid_response_timestamp,
+          signature_sha1,
+          valid_for
+        )
+      }.to raise_error("Body should be of String type")
+    end
+
+    it "should raise when api secret is not provided" do
+      Cloudinary.config.api_secret = nil
+
+      expect {
+        Cloudinary::Utils.verify_notification_signature(
+          body,
+          valid_response_timestamp,
+          signature_sha1,
+          valid_for
+        )
+      }.to raise_error("Must supply api_secret")
+    end
+
+    it "should support sha256 signature algorithm" do
+      expect(
+        Cloudinary::Utils.verify_notification_signature(
+          "{}",
+          0,
+          signature_sha256,
+          mocked_now,
+          Cloudinary::Utils::ALGO_SHA256,
+          :api_secret => "someApiSecret"
+        )
+      ).to be true
     end
   end
 end

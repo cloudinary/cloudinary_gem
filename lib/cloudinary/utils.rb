@@ -1224,18 +1224,25 @@ class Cloudinary::Utils
     end
   end
 
-  # Produces signature based on string data, timestamp and API secret key.
+  # Verifies the authenticity of an API response signature.
   #
-  # @param [String] data String to sign
-  # @param [Fixnum] timestamp Unix timestamp
+  # @param [String] public_id he public id of the asset as returned in the API response
+  # @param [Fixnum] version The version of the asset as returned in the API response
+  # @param [String] signature Actual signature. Can be retrieved from the X-Cld-Signature header
+  # @param [Symbol|nil] signature_algorithm Algorithm to use for computing hash
   # @param [Hash] options
   # @option options [String] :api_secret API secret, if not passed taken from global config
   #
-  # @return [String] Signed string as 40-character hexdigest
-  def self.webhook_signature(data, timestamp, options = {})
+  # @return [Boolean]
+  def self.verify_api_response_signature(public_id, version, signature, signature_algorithm = nil, options = {})
     api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
 
-    Digest::SHA1.hexdigest("#{data}#{timestamp}#{api_secret}")
+    parameters_to_sign = {
+      :public_id => public_id,
+      :version => version
+    }
+
+    signature == api_sign_request(parameters_to_sign, api_secret, signature_algorithm)
   end
 
   # Verifies the authenticity of a notification signature.
@@ -1244,16 +1251,18 @@ class Cloudinary::Utils
   # @param [Fixnum] timestamp Unix timestamp. Can be retrieved from the X-Cld-Timestamp header
   # @param [String] signature Actual signature. Can be retrieved from the X-Cld-Signature header
   # @param [Fixnum] valid_for The desired time in seconds for considering the request valid
+  # @param [Symbol|nil] signature_algorithm Algorithm to use for computing hash
   # @param [Hash] options
   # @option options [String] :api_secret API secret, if not passed taken from global config
   #
   # @return [Boolean]
-  def self.verify_notification_signature(body, timestamp, signature, valid_for = 7200, options = {})
+  def self.verify_notification_signature(body, timestamp, signature, valid_for = 7200, signature_algorithm = nil, options = {})
     api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise("Must supply api_secret")
+    raise("Body should be of String type") unless body.is_a?(String)
     # verify that signature is valid for the given timestamp
     return false if timestamp < (Time.now - valid_for).to_i
 
-    payload_hash = webhook_signature(body, timestamp, :api_secret => api_secret)
+    payload_hash = hash("#{body}#{timestamp}#{api_secret}", signature_algorithm, :hexdigest)
 
     signature == payload_hash
   end
@@ -1261,7 +1270,7 @@ class Cloudinary::Utils
   # Computes hash from input string using specified algorithm.
   #
   # @param [String] input                   String which to compute hash from
-  # @param [String|nil] signature_algorithm Algorithm to use for computing hash
+  # @param [Symbol|nil] signature_algorithm Algorithm to use for computing hash
   # @param [Symbol] hash_method             Hash method applied to a signature algorithm (:digest or :hexdigest)
   #
   # @return [String] Computed hash value
