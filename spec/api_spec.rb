@@ -377,16 +377,22 @@ describe Cloudinary::Api do
 
       it "should allow deleting named transformation" do
         public_id = "api_test_transformation_#{Time.now.to_i}"
-        expect(RestClient::Request).to receive(:execute).with(deep_hash_value( :url => /.*\/transformations\/#{public_id}/, :method => :delete))
+        expected = {
+          :url => /.*\/transformations$/,
+          :method => :delete,
+          [:payload, :transformation] => public_id
+        }
+        expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
         @api.delete_transformation(public_id)
       end
 
       it "should allow unsafe update of named transformation" do
         public_id = "api_test_transformation_#{Time.now.to_i}"
         expected = {
-            :url => /.*\/transformations\/#{public_id}$/,
+            :url => /.*\/transformations$/,
             :method => :put,
-            [:payload, :unsafe_update] => "c_scale,w_103"}
+            [:payload, :unsafe_update] => "c_scale,w_103",
+            [:payload, :transformation] => public_id}
         expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
         @api.update_transformation(public_id, :unsafe_update => { "crop" => "scale", "width" => 103 })
       end
