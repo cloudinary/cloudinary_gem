@@ -251,8 +251,8 @@ module CloudinaryHelper
         include ActionView::Helpers::AssetTagHelper
       end
       if defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR > 2 && Cloudinary.config.enhance_image_tag
-        alias_method_chain :image_tag, :cloudinary # defines image_tag_without_cloudinary
-        alias_method_chain :image_path, :cloudinary # defines image_path_without_cloudinary
+        alias_method :image_tag, :cloudinary # defines image_tag_without_cloudinary
+        alias_method :image_path, :cloudinary # defines image_path_without_cloudinary
       else
         alias_method :image_tag_without_cloudinary, :image_tag
         alias_method :image_path_without_cloudinary, :image_path
