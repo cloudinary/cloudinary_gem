@@ -212,12 +212,12 @@ class Cloudinary::Api
 
   def self.update_upload_preset(name, options={})
     params = Cloudinary::Uploader.build_upload_params(options)
-    call_api(:put, "upload_presets/#{name}", params.merge(only(options, :unsigned, :disallow_public_id)), options)
+    call_api(:put, "upload_presets/#{name}", params.merge(only(options, :unsigned, :disallow_public_id, :live)), options)
   end
 
   def self.create_upload_preset(options={})
     params = Cloudinary::Uploader.build_upload_params(options)
-    call_api(:post, "upload_presets", params.merge(only(options, :name, :unsigned, :disallow_public_id)), options)
+    call_api(:post, "upload_presets", params.merge(only(options, :name, :unsigned, :disallow_public_id, :live)), options)
   end
 
   def self.root_folders(options={})
