@@ -9,32 +9,18 @@ describe Cloudinary::Uploader do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
   include_context "cleanup", TIMESTAMP_TAG
 
+  METADATA_FIELD_EXTERNAL_ID = "metadata_field_external_id_#{UNIQUE_TEST_ID}"
+
+  include_context "metadata_field",
+                  external_id: METADATA_FIELD_EXTERNAL_ID,
+                  type: "string",
+                  label: METADATA_FIELD_EXTERNAL_ID
+
   before(:all) do
     Cloudinary.reset_config
 
-    @metadata_field_external_id = "metadata_field_external_id_#{UNIQUE_TEST_ID}"
     @metadata_field_value = "metadata_field_value_#{UNIQUE_TEST_ID}"
-    @metadata_fields = { @metadata_field_external_id => @metadata_field_value }
-
-    begin
-      Cloudinary::Api.add_metadata_field(
-        {
-          external_id: @metadata_field_external_id,
-          type: "string",
-          label: @metadata_field_external_id
-        }
-      )
-    rescue Cloudinary::Api::GeneralError => e
-      raise CloudinaryException, "Exception thrown while adding metadata field in Cloudinary::Uploader::before(:all) - #{e}"
-    end
-  end
-
-  after(:all) do
-    begin
-      Cloudinary::Api.delete_metadata_field(@metadata_field_external_id)
-    rescue Cloudinary::Api::NotFound => e
-      puts("The metadata field #{@metadata_field_external_id} could not be deleted.");
-    end
+    @metadata_fields = { METADATA_FIELD_EXTERNAL_ID => @metadata_field_value }
   end
 
   it "should successfully upload file" do
@@ -502,7 +488,7 @@ describe Cloudinary::Uploader do
       tags: [TEST_TAG, TIMESTAMP_TAG],
       metadata: @metadata_fields
     })
-    expect(result["metadata"][@metadata_field_external_id]).to eq(@metadata_field_value)
+    expect(result["metadata"][METADATA_FIELD_EXTERNAL_ID]).to eq(@metadata_field_value)
   end
 
   describe 'explicit' do
@@ -519,7 +505,7 @@ describe Cloudinary::Uploader do
         type: "upload",
         metadata: @metadata_fields
       })
-      expect(result["metadata"][@metadata_field_external_id]).to eq(@metadata_field_value)
+      expect(result["metadata"][METADATA_FIELD_EXTERNAL_ID]).to eq(@metadata_field_value)
     end
   end
 
