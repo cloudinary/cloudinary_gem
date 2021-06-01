@@ -3,7 +3,7 @@ name: Bug report
 about: Bug report for Cloudinary Ruby SDK
 title: ''
 labels: ''
-assignees: const-cloudinary
+assignees: ''
 
 ---
 
@@ -14,11 +14,11 @@ Before proceeding, please update to latest version and test if the issue persist
 …
 
 ## Issue Type (Can be multiple)
-[ ] Build - Can’t install or import the SDK
-[ ] Performance - Performance issues
-[ ] Behaviour - Functions aren’t working as expected (Such as generate URL)
-[ ] Documentation - Inconsistency between the docs and behaviour
-[ ] Other (Specify)
+- [ ] Build - Cannot install or import the SDK
+- [ ] Performance - Performance issues
+- [ ] Behaviour - Functions are not working as expected (such as generate URL)
+- [ ] Documentation - Inconsistency between the docs and behaviour
+- [ ] Other (Specify)
 
 ## Steps to reproduce
 … if applicable
@@ -27,16 +27,17 @@ Before proceeding, please update to latest version and test if the issue persist
 …
 
 ## Operating System
-[ ] Linux
-[ ] Windows
-[ ] OSX
-[ ] All
+- [ ] Linux
+- [ ] Windows
+- [ ] macOS
+- [ ] All
 
 ## Environment and Libraries (fill in the version numbers)
-Cloudinary Ruby SDK version - 0.0.0
-Ruby Version - 0.0.0
-Rails Version - 0.0.0 
-Other Libraries (Carrierwave, ActiveStorage, etc) - 0.0.0
+- Cloudinary Ruby SDK version - 0.0.0
+- Ruby Version - 0.0.0
+- Rails Version - 0.0.0 
+- Other Libraries (Carrierwave, ActiveStorage, etc) - 0.0.0
 
 ## Repository
+
 If possible, please provide a link to a reproducible repository that showcases the problem
