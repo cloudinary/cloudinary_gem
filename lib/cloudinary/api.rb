@@ -481,11 +481,16 @@ class Cloudinary::Api
   protected
 
   def self.call_api(method, uri, params, options)
-    cloud_name = options[:cloud_name] || Cloudinary.config.cloud_name || raise('Must supply cloud_name')
-    api_key    = options[:api_key] || Cloudinary.config.api_key || raise('Must supply api_key')
-    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise('Must supply api_secret')
+    cloud_name  = options[:cloud_name] || Cloudinary.config.cloud_name || raise('Must supply cloud_name')
+    api_key     = options[:api_key] || Cloudinary.config.api_key
+    api_secret  = options[:api_secret] || Cloudinary.config.api_secret
+    oauth_token = options[:oauth_token] || Cloudinary.config.oauth_token
 
-    call_cloudinary_api(method, uri, api_key, api_secret, params, options) do |cloudinary, inner_uri|
+    validate_authorization(api_key, api_secret, oauth_token)
+
+    auth = { :key => api_key, :secret => api_secret, :oauth_token => oauth_token }
+
+    call_cloudinary_api(method, uri, auth, params, options) do |cloudinary, inner_uri|
       [cloudinary, 'v1_1', cloud_name, inner_uri]
     end
   end
