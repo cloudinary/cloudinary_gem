@@ -159,7 +159,9 @@ class Cloudinary::Uploader
         :from_public_id => from_public_id,
         :to_public_id   => to_public_id,
         :to_type        => options[:to_type],
-        :invalidate     => Cloudinary::Utils.as_safe_bool(options[:invalidate])
+        :invalidate     => Cloudinary::Utils.as_safe_bool(options[:invalidate]),
+        :context        => options[:context],
+        :metadata       => options[:metadata]
       }
     end
   end
