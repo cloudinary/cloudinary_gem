@@ -79,6 +79,25 @@ RSpec.shared_context "cleanup" do |tag|
   end
 end
 
+RSpec.shared_context "metadata_field" do |metadata_attributes|
+  metadata_external_ids = []
+
+  before(:all) do
+    metadata_attributes = metadata_attributes.is_a?(Array) ? metadata_attributes : [metadata_attributes]
+
+    metadata_attributes.each do |attributes|
+      metadata_external_ids << attributes[:external_id]
+      Cloudinary::Api.add_metadata_field(attributes)
+    end
+  end
+
+  after(:all) do
+    metadata_external_ids.each do |metadata_external_id|
+      Cloudinary::Api.delete_metadata_field(metadata_external_id)
+    end
+  end
+end
+
 module Cloudinary
   def self.reset_config
     @@config = nil

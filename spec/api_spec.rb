@@ -23,15 +23,14 @@ describe Cloudinary::Api do
   test_id_3   = "#{prefix}_3"
   test_key = "test_key_#{SUFFIX}"
 
+  include_context "metadata_field",
+                  :external_id => METADATA_EXTERNAL_ID,
+                  :label => METADATA_EXTERNAL_ID,
+                  :type => "string",
+                  :default_value => METADATA_DEFAULT_VALUE
+
   before(:all) do
     @api = Cloudinary::Api
-
-    @api.add_metadata_field(
-      :external_id => METADATA_EXTERNAL_ID,
-      :label => METADATA_EXTERNAL_ID,
-      :type => "string",
-      :default_value => METADATA_DEFAULT_VALUE
-    )
 
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
@@ -42,7 +41,6 @@ describe Cloudinary::Api do
   end
 
   after(:all) do
-    @api.delete_metadata_field(METADATA_EXTERNAL_ID)
     # in addition to "cleanup" context
     unless Cloudinary.config.keep_test_products
       up = Cloudinary::Api.upload_presets max_results: 500
