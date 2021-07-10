@@ -11,12 +11,14 @@ describe Cloudinary::AccountApi do
   describe "Account Provisioning API" do
     let(:api) { described_class }
 
-    attr_accessor :cloud_id, :user_id, :group_id
+    attr_accessor :cloud_id, :user_id_1, :user_id_2, :group_id
 
     let(:sub_account_name) { "ruby-jutaname#{SUFFIX}" }
     let(:sub_account_cloud_name) { "ruby-jutaname#{SUFFIX}" }
-    let(:user_name) { "SDK RUBY TEST #{SUFFIX}" }
-    let(:user_email) { "sdk-test+#{SUFFIX}@cloudinary.com" }
+    let(:user_name_1) { "SDK RUBY TEST #{SUFFIX}" }
+    let(:user_name_2) { "SDK RUBY TEST 2 #{SUFFIX}" }
+    let(:user_email_1) { "sdk-test+#{SUFFIX}@cloudinary.com" }
+    let(:user_email_2) { "sdk-test2+#{SUFFIX}@cloudinary.com" }
     let(:user_role) { 'billing' }
     let(:user_group_name) { "test-ruby-group#{SUFFIX}" }
 
@@ -25,9 +27,12 @@ describe Cloudinary::AccountApi do
       sub_account = api.create_sub_account(sub_account_name, sub_account_cloud_name, {}, true)
       self.cloud_id = sub_account["id"]
 
-      # create a user
-      user = api.create_user(user_name, user_email, user_role, [])
-      self.user_id = user["id"]
+      # create users
+      user_1 = api.create_user(user_name_1, user_email_1, user_role, [])
+      self.user_id_1 = user_1["id"]
+
+      user_2 = api.create_user(user_name_2, user_email_2, user_role, [])
+      self.user_id_2 = user_2["id"]
 
       # create a user group
       user_group = api.create_user_group(user_group_name)
@@ -38,8 +43,11 @@ describe Cloudinary::AccountApi do
       del_sub_account_res = api.delete_sub_account(cloud_id)
       expect(del_sub_account_res["message"]).to eq("ok")
 
-      del_user_res = api.delete_user(user_id)
-      expect(del_user_res["message"]).to eq("ok")
+      del_user_1_res = api.delete_user(user_id_1)
+      expect(del_user_1_res["message"]).to eq("ok")
+
+      del_user_2_res = api.delete_user(user_id_2)
+      expect(del_user_2_res["message"]).to eq("ok")
 
       del_group_res = api.delete_user_group(group_id)
       expect(del_group_res["ok"]).to eq(true) # notice the different response structure
@@ -77,24 +85,57 @@ describe Cloudinary::AccountApi do
     it "should update a user" do
       new_email_address = "updated+#{Time.now.to_i}@cloudinary.com"
 
-      api.update_user(user_id, "updated", new_email_address).tap do |res|
+      api.update_user(user_id_1, "updated", new_email_address).tap do |res|
         expect(res["name"]).to eq("updated")
         expect(res["email"]).to eql(new_email_address)
       end
 
-      api.user(user_id).tap do |res|
-        expect(res["id"]).to eq(user_id)
+      api.user(user_id_1).tap do |res|
+        expect(res["id"]).to eq(user_id_1)
         expect(res["email"]).to eq(new_email_address)
       end
 
-      user = api.users["users"].find { |u| u["id"] == user_id }
+      user = api.users["users"].find { |u| u["id"] == user_id_1 }
 
-      expect(user["id"]).to eq(user_id)
+      expect(user["id"]).to eq(user_id_1)
       expect(user["email"]).to eq(new_email_address)
     end
 
     it "should get users in a list of userIDs" do
-      expect(api.users(nil, [user_id])["users"].count).to eq 1
+      expect(api.users(nil, [user_id_1])["users"].count).to eq 1
+    end
+
+    it "should get pending users" do
+      result = api.users(true, [user_id_1])
+      expect(result["users"].count).to eq(1)
+    end
+
+    it "should get non-pending users" do
+      result = api.users(false, [user_id_1])
+      expect(result["users"].count).to eq(0)
+    end
+
+    it "should get pending and non-pending users" do
+      result = api.users(nil, [user_id_1])
+      expect(result["users"].count).to eq(1)
+    end
+
+    it "should get users by prefix" do
+      result_1 = api.users(true, nil, user_name_2.slice(0..-2))
+      result_2 = api.users(true, nil, "#{user_name_2}zzz")
+
+      expect(result_1["users"].count).to eq(1)
+      expect(result_2["users"].count).to eq(0)
+    end
+
+    it "should get users by sub_account_id" do
+      result = api.users(true, nil, user_name_2, cloud_id)
+      expect(result["users"].count).to eq(1)
+    end
+
+    it "should throw an error when attempting to get users by a nonexistent sub_account_id" do
+      expect { api.users(true, nil, nil, UNIQUE_TEST_ID) }
+        .to raise_error("Cannot find sub account with id #{UNIQUE_TEST_ID}")
     end
 
     it "should update the user group" do
@@ -106,13 +147,13 @@ describe Cloudinary::AccountApi do
     end
 
     it "should add and remove a user from a group" do
-      res = api.add_user_to_group(group_id, user_id)
+      res = api.add_user_to_group(group_id, user_id_1)
       expect(res["users"].count).to eq(1)
 
       group_user_data = api.user_group_users(group_id)
       expect(group_user_data["users"].count).to eq(1)
 
-      rem_user_from_group_resp = api.remove_user_from_group(group_id, user_id)
+      rem_user_from_group_resp = api.remove_user_from_group(group_id, user_id_1)
       expect(rem_user_from_group_resp["users"].count).to eq(0)
     end
 

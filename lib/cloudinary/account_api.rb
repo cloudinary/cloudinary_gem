@@ -128,23 +128,18 @@ class Cloudinary::AccountApi
   end
 
   # Lists users in the account.
-  # @param [Boolean] pending Whether to only return pending users. Default: all users
+  # @param [Boolean] pending Limit results to pending users (true), users that are not pending (false), or all users (nil, the default)
   # @param [Array<String>] user_ids A list of up to 100 user IDs. When provided, other parameters are ignored.
   # @param [String] prefix Returns users where the name or email address begins with the specified case-insensitive string.
   # @param [String] sub_account_id Only returns users who have access to the specified account.
   # @param [Object] options additional options
   def self.users(pending = nil, user_ids = [], prefix = nil, sub_account_id = nil, options = {})
-    params = if user_ids && user_ids.count > 0
-               {
-                 ids: user_ids
-               }
-             else
-               {
-                 prefix: prefix,
-                 sub_account_id: sub_account_id,
-                 pending: pending
-               }
-             end
+    params = {
+      ids: user_ids,
+      prefix: prefix,
+      sub_account_id: sub_account_id,
+      pending: pending
+    }
 
     call_account_api(:get, 'users', params, options.merge(content_type: :json))
   end
