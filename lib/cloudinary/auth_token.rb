@@ -43,7 +43,7 @@ module Cloudinary
       token << "exp=#{expiration}"
       token << "acl=#{escape_to_lower(acl)}" if acl
       to_sign = token.clone
-      to_sign << "url=#{escape_to_lower(url)}" if url
+      to_sign << "url=#{escape_to_lower(url)}" if url && acl.blank?
       auth = digest(to_sign.join(SEPARATOR), key)
       token << "hmac=#{auth}"
       "#{name}=#{token.join(SEPARATOR)}"
