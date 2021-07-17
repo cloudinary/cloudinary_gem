@@ -180,6 +180,14 @@ describe Cloudinary::Utils do
         expect(Cloudinary::Utils.generate_transformation_string(:fps => value)).to eq(param)
       end
     end
+
+    describe "Video Preview" do
+      it "should support duration in video preview" do
+        expect(["video_id", { :resource_type => 'video', :effect => "preview:duration_2" }])
+          .to produce_url("#{upload_path}/e_preview:duration_2/video_id")
+                .and empty_options
+      end
+    end
   end
 
 end
