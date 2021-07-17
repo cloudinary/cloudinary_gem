@@ -430,6 +430,8 @@ class Cloudinary::Utils
   ]
 
   def self.text_style(layer)
+    return layer[:text_style] if layer[:text_style].present?
+
     font_family = layer[:font_family]
     font_size   = layer[:font_size]
     keywords    = []

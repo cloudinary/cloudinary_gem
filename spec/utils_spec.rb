@@ -689,6 +689,28 @@ describe Cloudinary::Utils do
     end
   end
 
+  it "should support text layer style identifier variables" do
+    options = [
+      "sample",
+      {
+        transformation: [
+          {
+            variables: [
+              ["$style", "!Arial_12!"],
+            ]
+          },
+          {
+            overlay: {
+              text: "hello-world",
+              text_style: "$style"
+            }
+          }
+        ]
+      }
+    ]
+
+    expect(options).to produce_url("#{upload_path}/$style_!Arial_12!/l_text:$style:hello-world/sample")
+  end
 
   it "should use ssl_detected if secure is not given as parameter and not set to true in configuration" do
     expect(["test", { :ssl_detected => true }])
