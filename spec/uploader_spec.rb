@@ -9,6 +9,11 @@ describe Cloudinary::Uploader do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
   include_context "cleanup", TIMESTAMP_TAG
 
+  LARGE_FILE_SIZE  = 5880138
+  LARGE_CHUNK_SIZE = 5243000
+  LARGE_FILE_WIDTH = 1400
+  LARGE_FILE_HEIGHT = 1400
+
   METADATA_FIELD_EXTERNAL_ID = "metadata_field_external_id_#{UNIQUE_TEST_ID}"
 
   include_context "metadata_field",
@@ -510,19 +515,55 @@ describe Cloudinary::Uploader do
   end
 
   it "should support upload_large", :large => true do
-    io = StringIO.new
-    header = "BMJ\xB9Y\x00\x00\x00\x00\x00\x8A\x00\x00\x00|\x00\x00\x00x\x05\x00\x00x\x05\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\xC0\xB8Y\x00a\x0F\x00\x00a\x0F\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\x00\x00\xFF\x00\x00\xFF\x00\x00\x00\x00\x00\x00\xFFBGRs\x00\x00\x00\x00\x00\x00\x00\x00T\xB8\x1E\xFC\x00\x00\x00\x00\x00\x00\x00\x00fff\xFC\x00\x00\x00\x00\x00\x00\x00\x00\xC4\xF5(\xFF\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-    io.puts(header)
-    5880000.times{ io.write("\xFF") }
-    io.rewind
-    result = Cloudinary::Uploader.upload_large(io, :chunk_size => 5243000, :tags => [TEST_TAG, TIMESTAMP_TAG])
-    expect(result["resource_type"]).to eq('raw')
-    io.rewind
-    result = Cloudinary::Uploader.upload_large(io, :resource_type => 'image', :chunk_size => 5243000, :tags => [TEST_TAG, TIMESTAMP_TAG])
-    expect(result["resource_type"]).to eq('image')
-    expect(result["width"]).to eq(1400)
-    expect(result["height"]).to eq(1400)
-    expect(result["format"]).to eq("bmp")
+    filename = "#{UNIQUE_TEST_ID}_cld_upload_large"
+
+    Tempfile.open([filename, ".bpm"]) do |temp_file|
+      Cloudinary.populate_large_file(temp_file, LARGE_FILE_SIZE)
+
+      temp_file_name = temp_file.path
+      temp_file_filename = File.basename(temp_file).split('.').first
+
+      expect(File.size(temp_file_name)).to eq(LARGE_FILE_SIZE)
+
+      resource = Cloudinary::Uploader.upload_large(temp_file_name,
+                                                   :chunk_size => LARGE_CHUNK_SIZE,
+                                                   :tags => ["upload_large_tag", TIMESTAMP_TAG],
+                                                   :resource_type => "image",
+                                                   :use_filename => true,
+                                                   :unique_filename => false,
+                                                   :filename => temp_file_filename)
+
+      expect(resource["tags"]).to eq(["upload_large_tag", TIMESTAMP_TAG])
+      expect(resource["resource_type"]).to eq("image")
+      expect(resource["original_filename"]).to eq(temp_file_filename)
+      expect(resource["original_filename"]).to eq(resource["public_id"])
+      expect(resource["width"]).to eq(LARGE_FILE_WIDTH)
+      expect(resource["height"]).to eq(LARGE_FILE_HEIGHT)
+
+      allow(Cloudinary::Uploader).to receive(:upload_large).and_return(
+        {
+          "tags" => ["upload_large_tag", TIMESTAMP_TAG],
+          "resource_type" => "raw"
+        }
+      )
+
+      resource3 = Cloudinary::Uploader.upload_large(temp_file_name,
+                                                    :chunk_size => LARGE_CHUNK_SIZE,
+                                                    :tags => ["upload_large_tag", TIMESTAMP_TAG])
+
+      expect(resource3["tags"]).to eq(["upload_large_tag", TIMESTAMP_TAG])
+      expect(resource3["resource_type"]).to eq("raw")
+    end
+  end
+
+  it "should upload custom filename for stream" do
+    custom_filename = "#{UNIQUE_TEST_ID}_#{File.basename(TEST_IMG)}"
+
+    temp_file = StringIO.new
+    Cloudinary.populate_large_file(temp_file, LARGE_FILE_SIZE)
+
+    result = Cloudinary::Uploader.upload_large(temp_file, { :tags => [TIMESTAMP_TAG], filename: custom_filename })
+    expect(result["original_filename"]).to eq(File.basename(custom_filename, File.extname(custom_filename)))
   end
 
   it "should allow fallback of upload large with remote url to regular upload" do

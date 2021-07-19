@@ -114,6 +114,9 @@ class Cloudinary::Uploader
     else
       filename = "cloudinaryfile"
     end
+
+    filename = options[:filename] if options[:filename]
+
     unique_upload_id = Cloudinary::Utils.random_public_id
     upload     = nil
     index      = 0
