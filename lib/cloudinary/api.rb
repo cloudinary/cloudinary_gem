@@ -477,19 +477,19 @@ class Cloudinary::Api
     call_metadata_api(:post, uri, params, options)
   end
 
-  # Sorts metadata field datasource. Currently supports only value.
+  # Reorders metadata field datasource. Currently supports only value.
   #
   # @param [String] field_external_id The ID of the metadata field
-  # @param [String] sort_by           Criteria for the sort. Currently supports only value
+  # @param [String] order_by          Criteria for the order. Currently supports only value
   # @param [String] direction         Optional (gets either asc or desc)
   # @param [Hash]   options           Configuration options
   #
   # @return [Cloudinary::Api::Response]
   #
   # @raise [Cloudinary::Api::Error]
-  def self.sort_metadata_field_datasource(field_external_id, sort_by, direction = nil, options = {})
-    uri = [field_external_id, "datasource", "sort"]
-    params = { :sort_by => sort_by, :direction => direction }
+  def self.reorder_metadata_field_datasource(field_external_id, order_by, direction = nil, options = {})
+    uri    = [field_external_id, "datasource", "order"]
+    params = { :order_by => order_by, :direction => direction }
 
     call_metadata_api(:post, uri, params, options)
   end
