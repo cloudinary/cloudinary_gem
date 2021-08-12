@@ -19,6 +19,8 @@ describe "Expression normalization" do
       '$initial_aspect_ratio',
       '$initial_ar',
     ],
+    'duration is recognized as a variable and replaced with du'=> ['duration', 'du'],
+    'duration after : is not a variable and is not affected'=> ['preview:duration_2', 'preview:duration_2'],
     '$mywidth recognized as user variable and not affected' => ['$mywidth', '$mywidth'],
     '$widthwidth recognized as user variable and not affected' => ['$widthwidth', '$widthwidth'],
     '$_width recognized as user variable and not affected' => ['$_width', '$_width'],
