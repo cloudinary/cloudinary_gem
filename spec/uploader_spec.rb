@@ -184,6 +184,35 @@ describe Cloudinary::Uploader do
       expect(Cloudinary::Api.resource(id, type: to_type)).to_not be_empty
       Cloudinary::Uploader.rename(id, id, :type => to_type, :to_type => from_type)
     end
+
+    it "should support context" do
+      expected = {
+        [:payload, :context] => true
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Uploader.rename(TEST_IMG, "#{TEST_IMG}2", :context => true)
+
+      expected = {
+        [:payload, :context] => nil
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Uploader.rename(TEST_IMG, "#{TEST_IMG}2")
+    end
+
+    it "should support metadata" do
+      expected = {
+        [:payload, :metadata] => true
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Uploader.rename(TEST_IMG, "#{TEST_IMG}2", :metadata => true)
+
+      expected = {
+        [:payload, :metadata] => nil
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Uploader.rename(TEST_IMG, "#{TEST_IMG}2")
+    end
+
     context ':overwrite => true' do
       it 'should rename to an existing ID' do
         new_id = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])["public_id"]
