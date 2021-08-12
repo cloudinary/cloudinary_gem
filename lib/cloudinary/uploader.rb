@@ -42,6 +42,7 @@ class Cloudinary::Uploader
       :faces                     => Cloudinary::Utils.as_safe_bool(options[:faces]),
       :folder                    => options[:folder],
       :format                    => options[:format],
+      :filename_override         => options[:filename_override],
       :headers                   => build_custom_headers(options[:headers]),
       :image_metadata            => Cloudinary::Utils.as_safe_bool(options[:image_metadata]),
       :invalidate                => Cloudinary::Utils.as_safe_bool(options[:invalidate]),
@@ -340,10 +341,11 @@ class Cloudinary::Uploader
     non_signable         ||= []
 
     unless options[:unsigned]
-      api_key            = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
-      api_secret         = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
-      params[:signature] = Cloudinary::Utils.api_sign_request(params.reject { |k, v| non_signable.include?(k) }, api_secret)
-      params[:api_key]   = api_key
+      api_key             = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
+      api_secret          = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
+      signature_algorithm = options[:signature_algorithm]
+      params[:signature]  = Cloudinary::Utils.api_sign_request(params.reject { |k, v| non_signable.include?(k) }, api_secret, signature_algorithm)
+      params[:api_key]    = api_key
     end
     proxy   = options[:api_proxy] || Cloudinary.config.api_proxy
     timeout = options.fetch(:timeout) { Cloudinary.config.to_h.fetch(:timeout, 60) }

@@ -3,7 +3,7 @@ name: Feature request
 about: Feature request for Cloudinary Ruby SDK
 title: ''
 labels: ''
-assignees: const-cloudinary
+assignees: ''
 
 ---
 

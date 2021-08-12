@@ -71,6 +71,11 @@ describe Cloudinary::Uploader do
     expect(result["signature"]).to eq(expected_signature)
   end
 
+  it "should successfully override original_filename" do
+    result = Cloudinary::Uploader.upload(TEST_IMAGE_URL, :filename_override => "overridden", :tags => [TEST_TAG, TIMESTAMP_TAG])
+    expect(result["original_filename"]).to eq("overridden")
+  end
+
   it "should successfully upload file asynchronously" do
     result = Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :async => true)
     expect(result["status"]).to eq("pending")

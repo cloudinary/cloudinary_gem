@@ -4,24 +4,45 @@ require 'cloudinary'
 describe Cloudinary::Api do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
   include_context "cleanup", TIMESTAMP_TAG
+
+  prefix = "api_test_#{SUFFIX}"
+
   TEST_WIDTH = rand(1000)
   TEST_TRANSFOMATION = "c_scale,w_#{TEST_WIDTH}"
-  prefix = "api_test_#{SUFFIX}"
+  PUBLIC_ID_BACKUP_1 = "#{prefix}backup_1#{Time.now.to_i}"
+  PUBLIC_ID_BACKUP_2 = "#{prefix}backup_2#{Time.now.to_i}"
+  METADATA_EXTERNAL_ID = "#{prefix}_metadata_external_id_#{UNIQUE_TEST_ID}"
+  METADATA_DEFAULT_VALUE = "#{prefix}_metadata_default_value_#{UNIQUE_TEST_ID}"
+  UNIQUE_CONTEXT_KEY = "#{prefix}_context_key_#{UNIQUE_TEST_ID}"
+  UNIQUE_CONTEXT_VALUE = "#{prefix}_context_value_#{UNIQUE_TEST_ID}"
+  UNIQUE_CONTEXT = "#{UNIQUE_CONTEXT_KEY}=#{UNIQUE_CONTEXT_VALUE}"
+  UNIQUE_TEST_TAG_TO_ONE_IMAGE_ASSET = "#{prefix}_unique_tag_to_one_image_asset_#{UNIQUE_TEST_ID}"
+
   test_id_1 = "#{prefix}_1"
   test_id_2   = "#{prefix}_2"
   test_id_3   = "#{prefix}_3"
   test_key = "test_key_#{SUFFIX}"
-  before(:all) do
 
+  before(:all) do
     @api = Cloudinary::Api
+
+    @api.add_metadata_field(
+      :external_id => METADATA_EXTERNAL_ID,
+      :label => METADATA_EXTERNAL_ID,
+      :type => "string",
+      :default_value => METADATA_DEFAULT_VALUE
+    )
+
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "#{test_key}=test", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_3, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "#{test_key}=tasty", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
+    Cloudinary::Uploader.upload(TEST_IMG, :tags => [UNIQUE_TEST_TAG_TO_ONE_IMAGE_ASSET, TEST_TAG, TIMESTAMP_TAG], :context => UNIQUE_CONTEXT, :moderation => :manual)
   end
 
   after(:all) do
+    @api.delete_metadata_field(METADATA_EXTERNAL_ID)
     # in addition to "cleanup" context
     unless Cloudinary.config.keep_test_products
       up = Cloudinary::Api.upload_presets max_results: 500
@@ -107,6 +128,58 @@ describe Cloudinary::Api do
     start_at = Time.now
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :start_at] => start_at, [:payload, :direction] => "asc"}))
     @api.resources(:type=>"upload", :start_at=>start_at, :direction => "asc")
+  end
+
+  describe "structured metadata" do
+    matcher :have_metadata do
+      match do |expected|
+        expect(expected["resources"]).to be_present
+
+        expected["resources"].each do |resource|
+          expect(resource).to have_key("metadata")
+        end
+      end
+
+      match_when_negated do |expected|
+        expect(expected["resources"]).to be_present
+
+        expected["resources"].each do |resource|
+          expect(resource).to_not have_key("metadata")
+        end
+      end
+    end
+
+    it "should return structured metadata in the response of the resources API response" do
+      result = @api.resources(:prefix => test_id_1, :type => "upload", :metadata => true)
+      expect(result).to have_metadata
+
+      result = @api.resources(:prefix => test_id_1, :type => "upload", :metadata => false)
+      expect(result).to_not have_metadata
+    end
+
+    it "should return structured metadata in the response of the resources by tag API" do
+      result = @api.resources_by_tag(UNIQUE_TEST_TAG_TO_ONE_IMAGE_ASSET, :metadata => true)
+      expect(result).to have_metadata
+
+      result = @api.resources_by_tag(UNIQUE_TEST_TAG_TO_ONE_IMAGE_ASSET, :metadata => false)
+      expect(result).to_not have_metadata
+    end
+
+    it "should return structured metadata in the response of the resources by context API" do
+      result = @api.resources_by_context(UNIQUE_CONTEXT_KEY, UNIQUE_CONTEXT_VALUE, :metadata => true)
+      expect(result).to have_metadata
+
+      result = @api.resources_by_context(UNIQUE_CONTEXT_KEY, UNIQUE_CONTEXT_VALUE, :metadata => false)
+      expect(result).to_not have_metadata
+    end
+
+    it "should return structured metadata in the response of the resources by moderation API" do
+      result = @api.resources_by_moderation(:manual, :pending, :metadata => true)
+      expect(result).to have_metadata
+
+      result = @api.resources_by_moderation(:manual, :pending, :metadata => false)
+      expect(result).to_not have_metadata
+    end
   end
 
   describe ":direction" do
@@ -230,6 +303,28 @@ describe Cloudinary::Api do
     expect(tags).to be_blank
   end
 
+  describe "backup resource" do
+    let(:public_id) { "api_test_backup_#{SUFFIX}" }
+
+    before(:each) do
+      Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG], :public_id => public_id, :backup => true)
+      response = @api.resource(public_id)
+      expect(response).not_to be_nil
+    end
+
+    it "should return the asset details together with all of its backed up versions when versions is true" do
+      resource = @api.resource(public_id, :versions => true)
+
+      expect(resource["versions"]).to be_an_instance_of(Array)
+    end
+
+    it "should return the asset details together without backed up versions when versions is false" do
+      resource = @api.resource(public_id, :versions => false)
+
+      expect(resource["versions"]).to be_nil
+    end
+  end
+
   describe 'transformations' do
     it "should allow listing transformations" do
       transformations = @api.transformations()["transformations"]
@@ -313,11 +408,15 @@ describe Cloudinary::Api do
     expected = {:url => /.*\/upload_presets$/,
                 [:payload, :name] => "new_preset",
                 [:payload, :folder] => "some_folder",
-                [:payload, :eval] => EVAL_STR}
+                [:payload, :eval] => EVAL_STR,
+                [:payload, :live] => true}
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
 
-    @api.create_upload_preset(:name => "new_preset", :folder => "some_folder", :eval => EVAL_STR,
-                              :tags => [TEST_TAG, TIMESTAMP_TAG])
+    @api.create_upload_preset(:name => "new_preset",
+                              :folder => "some_folder",
+                              :eval => EVAL_STR,
+                              :tags => [TEST_TAG, TIMESTAMP_TAG],
+                              :live => true)
   end
 
   describe "upload_presets" do
@@ -355,13 +454,20 @@ describe Cloudinary::Api do
   it "should allow updating upload_presets", :upload_preset => true do
     name = @api.create_upload_preset(:folder => "folder", :tags => [TEST_TAG, TIMESTAMP_TAG])["name"]
     preset = @api.upload_preset(name)
-    @api.update_upload_preset(name, preset["settings"].merge(:colors => true, :unsigned => true,
-                                                             :disallow_public_id => true, :eval => EVAL_STR))
+    @api.update_upload_preset(name, preset["settings"].merge(:colors => true,
+                                                             :unsigned => true,
+                                                             :disallow_public_id => true,
+                                                             :eval => EVAL_STR,
+                                                             :live => true))
     preset = @api.upload_preset(name)
     expect(preset["name"]).to eq(name)
     expect(preset["unsigned"]).to eq(true)
-    expect(preset["settings"]).to eq({"folder" => "folder", "colors" => true, "disallow_public_id" => true,
-                                      "eval" => EVAL_STR, "tags" => [TEST_TAG, TIMESTAMP_TAG]})
+    expect(preset["settings"]).to eq("folder" => "folder",
+                                     "colors" => true,
+                                     "disallow_public_id" => true,
+                                     "eval" => EVAL_STR,
+                                     "tags" => [TEST_TAG, TIMESTAMP_TAG],
+                                     "live" => true)
   end
 
   # this test must be last because it deletes (potentially) all dependent transformations which some tests rely on. Excluded by default.
@@ -507,9 +613,117 @@ describe Cloudinary::Api do
   end
 
   describe '.restore'  do
+    let(:public_id) { "api_test_restore#{SUFFIX}" }
+
+    before(:each) do
+      Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG], :public_id => public_id, :backup => true)
+      sleep(2)
+
+      resource = @api.resource(public_id)
+      expect(resource).not_to be_nil
+      expect(resource["bytes"]).to eq(3381)
+
+      @api.delete_resources(public_id)
+
+      resource = @api.resource(public_id)
+      expect(resource).not_to be_nil
+      expect(resource["bytes"]).to eq(0)
+      expect(resource["placeholder"]).to eq(true)
+    end
+
     it 'should restore a deleted resource' do
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :public_ids] => "api_test_restore", [:url] => /.*\/restore$/))
-      Cloudinary::Api.restore("api_test_restore")
+      response = @api.restore([public_id])
+
+      info = response[public_id]
+      expect(info).not_to be_nil
+      expect(info["bytes"]).to eq(3381)
+
+      resource = @api.resource(public_id)
+      expect(resource).not_to be_nil
+      expect(resource["bytes"]).to eq(3381)
+    end
+
+    it "should restore different versions of a deleted asset" do
+      # Upload the same file twice (upload->delete->upload->delete)
+
+      # Upload and delete a file
+      first_upload = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG], :public_id => PUBLIC_ID_BACKUP_1, :backup => true)
+      sleep(1)
+
+      first_delete = @api.delete_resources([PUBLIC_ID_BACKUP_1])
+
+      # Upload and delete it again, this time add angle to create a different 'version'
+      second_upload = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG], :public_id => PUBLIC_ID_BACKUP_1, :transformation => { :angle => 0 }, :backup => true)
+      sleep(1)
+
+      second_delete = @api.delete_resources([PUBLIC_ID_BACKUP_1])
+      sleep(1)
+
+      # Ensure all files were uploaded correctly
+      expect(first_upload).not_to be_nil
+      expect(second_upload).not_to be_nil
+
+      # Sanity, ensure these uploads are different before we continue
+      expect(first_upload["bytes"]).not_to equal(second_upload["bytes"])
+
+      # Ensure all files were deleted correctly
+      expect(first_delete).to have_key("deleted")
+      expect(second_delete).to have_key("deleted")
+
+      # Get the versions of the deleted asset
+      get_versions_resp = @api.resource(PUBLIC_ID_BACKUP_1, :versions => true)
+
+      first_asset_version = get_versions_resp["versions"][0]["version_id"]
+      second_asset_version = get_versions_resp["versions"][1]["version_id"]
+
+      # Restore first version, ensure it's equal to the upload size
+      sleep(1)
+      first_ver_restore = @api.restore([PUBLIC_ID_BACKUP_1], :versions => [first_asset_version])
+      expect(first_ver_restore[PUBLIC_ID_BACKUP_1]["bytes"]).to eq(first_upload["bytes"])
+
+      # Restore second version, ensure it's equal to the upload size
+      sleep(1)
+      second_ver_restore = @api.restore([PUBLIC_ID_BACKUP_1], { :versions => [second_asset_version] })
+      expect(second_ver_restore[PUBLIC_ID_BACKUP_1]["bytes"]).to eq(second_upload["bytes"])
+
+      # Cleanup
+      final_delete_resp = @api.delete_resources([PUBLIC_ID_BACKUP_1])
+      expect(final_delete_resp).to have_key("deleted")
+    end
+
+    it "should restore two different deleted assets" do
+      # Upload two different files
+      first_upload = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG], :public_id => PUBLIC_ID_BACKUP_1, :backup => true)
+      second_upload = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG], :public_id => PUBLIC_ID_BACKUP_2, :transformation => { :angle => 0 }, :backup => true)
+
+      # delete both resources
+      delete_all = @api.delete_resources([PUBLIC_ID_BACKUP_1, PUBLIC_ID_BACKUP_2])
+
+      # Expect correct deletion of the assets
+      expect(delete_all["deleted"][PUBLIC_ID_BACKUP_1]).to eq("deleted")
+      expect(delete_all["deleted"][PUBLIC_ID_BACKUP_2]).to eq("deleted")
+
+      get_first_asset_version = @api.resource(PUBLIC_ID_BACKUP_1, :versions => true)
+      get_second_asset_version = @api.resource(PUBLIC_ID_BACKUP_2, :versions => true)
+
+      first_asset_version = get_first_asset_version["versions"][0]["version_id"]
+      second_asset_version = get_second_asset_version["versions"][0]["version_id"]
+
+      ids_to_restore = [PUBLIC_ID_BACKUP_1, PUBLIC_ID_BACKUP_2]
+      versions_to_restore = [first_asset_version, second_asset_version]
+
+      restore = @api.restore(ids_to_restore, :versions => versions_to_restore)
+
+      # Expect correct restorations
+      expect(restore[PUBLIC_ID_BACKUP_1]["bytes"]).to eq(first_upload["bytes"])
+      expect(restore[PUBLIC_ID_BACKUP_2]["bytes"]).to eq(second_upload["bytes"])
+
+      # Cleanup
+      final_delete = @api.delete_resources([PUBLIC_ID_BACKUP_1, PUBLIC_ID_BACKUP_2])
+
+      # Expect correct deletion of the assets
+      expect(final_delete["deleted"][PUBLIC_ID_BACKUP_1]).to eq("deleted")
+      expect(final_delete["deleted"][PUBLIC_ID_BACKUP_2]).to eq("deleted")
     end
   end
 

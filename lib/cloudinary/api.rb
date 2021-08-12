@@ -34,25 +34,25 @@ class Cloudinary::Api
     type          = options[:type]
     uri           = "resources/#{resource_type}"
     uri           += "/#{type}" unless type.blank?
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context, :moderations, :direction, :start_at), options)
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context, :moderations, :direction, :start_at, :metadata), options)
   end
 
   def self.resources_by_tag(tag, options={})
     resource_type = options[:resource_type] || "image"
     uri           = "resources/#{resource_type}/tags/#{tag}"
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction), options)
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction, :metadata), options)
   end
 
   def self.resources_by_moderation(kind, status, options={})
     resource_type = options[:resource_type] || "image"
     uri           = "resources/#{resource_type}/moderations/#{kind}/#{status}"
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction), options)
+    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction, :metadata), options)
   end
 
   def self.resources_by_context(key, value=nil, options={})
     resource_type = options[:resource_type] || "image"
     uri           = "resources/#{resource_type}/context"
-    params = only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction,:key,:value)
+    params = only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction, :key, :value, :metadata)
     params[:key] = key
     params[:value] = value
     call_api(:get, uri, params, options)
@@ -82,7 +82,8 @@ class Cloudinary::Api
                   :phash,
                   :quality_analysis,
                   :derived_next_cursor,
-                  :accessibility_analysis
+                  :accessibility_analysis,
+                  :versions
              ), options)
   end
 
@@ -90,7 +91,7 @@ class Cloudinary::Api
     resource_type = options[:resource_type] || "image"
     type          = options[:type] || "upload"
     uri           = "resources/#{resource_type}/#{type}/restore"
-    call_api(:post, uri, { :public_ids => public_ids }, options)
+    call_api(:post, uri, { :public_ids => public_ids, :versions => options[:versions] }, options)
   end
 
   def self.update(public_id, options={})
@@ -211,12 +212,12 @@ class Cloudinary::Api
 
   def self.update_upload_preset(name, options={})
     params = Cloudinary::Uploader.build_upload_params(options)
-    call_api(:put, "upload_presets/#{name}", params.merge(only(options, :unsigned, :disallow_public_id)), options)
+    call_api(:put, "upload_presets/#{name}", params.merge(only(options, :unsigned, :disallow_public_id, :live)), options)
   end
 
   def self.create_upload_preset(options={})
     params = Cloudinary::Uploader.build_upload_params(options)
-    call_api(:post, "upload_presets", params.merge(only(options, :name, :unsigned, :disallow_public_id)), options)
+    call_api(:post, "upload_presets", params.merge(only(options, :name, :unsigned, :disallow_public_id, :live)), options)
   end
 
   def self.root_folders(options={})
