@@ -133,13 +133,22 @@ module Cloudinary
   #
   # @return [OpenStruct]
   def self.make_new_config(config_module)
-    OpenStruct.new((YAML.load(ERB.new(IO.read(config_dir.join("cloudinary.yml"))).result)[config_env] rescue {})).tap do |config|
+    import_settings_from_file.tap do |config|
       config.extend(config_module)
       config.load_config_from_env
     end
   end
 
   private_class_method :make_new_config
+
+  # Import settings from yaml file
+  #
+  # @return [OpenStruct]
+  def self.import_settings_from_file
+    OpenStruct.new((YAML.load(ERB.new(IO.read(config_dir.join("cloudinary.yml"))).result)[config_env] rescue {}))
+  end
+
+  private_class_method :import_settings_from_file
 end
   # Prevent require loop if included after Rails is already initialized.
   require "cloudinary/helper" if defined?(::ActionView::Base)

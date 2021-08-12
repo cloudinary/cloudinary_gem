@@ -73,6 +73,21 @@ RSpec.configure do |config|
   end
 end
 
+RSpec.shared_context "config" do
+  before do
+    Cloudinary.reset_config
+    @cloudinary_url_backup = ENV["CLOUDINARY_URL"]
+    @account_url_backup = ENV["CLOUDINARY_ACCOUNT_URL"]
+  end
+
+  after do
+    ENV.keys.select { |key| key.start_with? "CLOUDINARY_" }.each { |key| ENV.delete(key) }
+    ENV["CLOUDINARY_ACCOUNT_URL"] = @account_url_backup
+    ENV["CLOUDINARY_URL"] = @cloudinary_url_backup
+    Cloudinary.reset_config
+  end
+end
+
 RSpec.shared_context "cleanup" do |tag|
   tag ||= TEST_TAG
   after :all do
