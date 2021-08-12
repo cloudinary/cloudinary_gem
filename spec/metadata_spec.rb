@@ -370,6 +370,28 @@ describe 'Metadata' do
     end
   end
 
+  describe 'reorder_metadata_field_datasource' do
+    it 'should order by asc in a metadata field datasource' do
+      # datasource is set with values in the order v2, v3, v4
+      result = @api.reorder_metadata_field_datasource(@external_id_set_3, 'value', 'asc')
+
+      expect(result).to be_a_metadata_field_datasource
+
+      # ascending order means v2 is the first value
+      expect(result['values'][0]['value']).to eq('v2')
+    end
+
+    it 'should order by desc in a metadata field datasource' do
+      # datasource is set with values in the order v2, v3, v4
+      result = @api.reorder_metadata_field_datasource(@external_id_set_3, 'value', 'desc')
+
+      expect(result).to be_a_metadata_field_datasource
+
+      # descending order means v4 is the first value
+      expect(result['values'][0]['value']).to eq('v4')
+    end
+  end
+
   describe 'restore_metadata_field_datasource' do
     it 'should restore a deleted entry in a metadata field datasource' do
       # Begin by deleting a datasource entry
