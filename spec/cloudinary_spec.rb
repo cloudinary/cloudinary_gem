@@ -11,7 +11,6 @@ describe Cloudinary do
 
   CLOUDINARY_USER_AGENT_REGEXP    = %r"^CloudinaryRuby\/[\d.]+ \(Ruby [\d\.]+-p\d+\)$"
   CLOUDINARY_USER_PLATFORM_REGEXP = %r"^Rails\/[\d.]+ CloudinaryRuby\/[\d.]+ \(Ruby [\d\.]+-p\d+\)$"
-  OAUTH_TOKEN = "NTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZj17"
   URL_WITH_OAUTH_TOKEN = "cloudinary://#{DUMMY_CLOUD}?oauth_token=#{OAUTH_TOKEN}"
   URL_WITH_CREDENTIALS_AND_OAUTH_TOKEN = "cloudinary://#{API_KEY}:#{API_SECRET}@#{DUMMY_CLOUD}?oauth_token=#{OAUTH_TOKEN}"
 

@@ -337,11 +337,19 @@ class Cloudinary::Uploader
     options      = options.clone
     return_error = options.delete(:return_error)
     use_cache = options[:use_cache] || Cloudinary.config.use_cache
-
     params, non_signable = yield
     non_signable         ||= []
 
-    unless options[:unsigned]
+    headers                       = { "User-Agent" => Cloudinary::USER_AGENT }
+    headers['Content-Range']      = options[:content_range] if options[:content_range]
+    headers['X-Unique-Upload-Id'] = options[:unique_upload_id] if options[:unique_upload_id]
+    headers.merge!(options[:extra_headers]) if options[:extra_headers]
+
+    oauth_token = options[:oauth_token] || Cloudinary.config.oauth_token
+
+    if oauth_token
+      headers["Authorization"] = "Bearer #{oauth_token}"
+    elsif !options[:unsigned]
       api_key             = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
       api_secret          = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
       signature_algorithm = options[:signature_algorithm]
@@ -353,11 +361,7 @@ class Cloudinary::Uploader
 
     result = nil
 
-    api_url                  = Cloudinary::Utils.cloudinary_api_url(action, options)
-    headers                  = { "User-Agent" => Cloudinary::USER_AGENT }
-    headers['Content-Range'] = options[:content_range] if options[:content_range]
-    headers['X-Unique-Upload-Id'] = options[:unique_upload_id] if options[:unique_upload_id]
-    headers.merge!(options[:extra_headers]) if options[:extra_headers]
+    api_url = Cloudinary::Utils.cloudinary_api_url(action, options)
     RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject { |k, v| v.nil? || v=="" }, :timeout => timeout, :headers => headers, :proxy => proxy) do
     |response, request, tmpresult|
       raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" unless [200, 400, 401, 403, 404, 500].include?(response.code)
