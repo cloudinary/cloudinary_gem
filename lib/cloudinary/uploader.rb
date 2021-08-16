@@ -209,6 +209,31 @@ class Cloudinary::Uploader
     end
   end
 
+  SLIDESHOW_PARAMS = [:notification_url, :public_id, :upload_preset]
+
+  # Creates auto-generated video slideshow.
+  #
+  # @param [Hash] options Additional options.
+  #
+  # @return [Hash] Hash with meta information URLs of generated slideshow resources.
+  def self.create_slideshow(options = {})
+    options[:resource_type] ||= :video
+
+    call_api("create_slideshow", options) do
+      params = {
+        :timestamp               => Time.now.to_i,
+        :transformation          => Cloudinary::Utils.build_eager(options[:transformation]),
+        :manifest_transformation => Cloudinary::Utils.build_eager(options[:manifest_transformation]),
+        :manifest_json           => options[:manifest_json] && options[:manifest_json].to_json,
+        :tags                    => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
+        :overwrite               => Cloudinary::Utils.as_safe_bool(options[:overwrite])
+      }
+      SLIDESHOW_PARAMS.each { |k| params[k] = options[k] unless options[k].nil? }
+
+      params
+    end
+  end
+
   # Generates sprites by merging multiple images into a single large image.
   #
   # @param [String|Hash] tag Treated as additional options when hash is passed, otherwise as a tag
