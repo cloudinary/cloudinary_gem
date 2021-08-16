@@ -279,33 +279,33 @@ describe Cloudinary::Uploader do
 
       Cloudinary::Uploader.create_slideshow(
         :manifest_transformation => {
-          "custom_function": {
-            "function_type": "render",
-            "source":        slideshow_manifest,
+          :custom_function => {
+            :function_type => "render",
+            :source        => slideshow_manifest,
           }
         },
-        :transformation          => { "fetch_format": "auto", "quality": "auto" },
+        :transformation          => { :fetch_format => "auto", :quality => "auto" },
         :tags                    => %w[tag1 tag2 tag3],
       )
     end
 
     it "should correctly create slideshow from manifest json" do
       slideshow_manifest_json = {
-        "w":    848,
-        "h":    480,
-        "du":   6,
-        "fps":  30,
-        "vars": {
-          "sdur":   500,
-          "tdur":   500,
-          "slides": [
-                      { "media": "i:protests9" },
-                      { "media": "i:protests8" },
-                      { "media": "i:protests7" },
-                      { "media": "i:protests6" },
-                      { "media": "i:protests2" },
-                      { "media": "i:protests1" },
-                    ]
+        "w"    => 848,
+        "h"    => 480,
+        "du"   => 6,
+        "fps"  => 30,
+        "vars" => {
+          "sdur"   => 500,
+          "tdur"   => 500,
+          "slides" => [
+            { "media" => "i:protests9" },
+            { "media" => "i:protests8" },
+            { "media" => "i:protests7" },
+            { "media" => "i:protests6" },
+            { "media" => "i:protests2" },
+            { "media" => "i:protests1" },
+          ]
         }
       }
 
@@ -340,11 +340,11 @@ describe Cloudinary::Uploader do
   describe "tag" do
     describe "add_tag" do
       it "should correctly add tags" do
-        expected ={
-            :url => /.*\/tags/,
-            [:payload, :tag] => "new_tag",
-            [:payload, :public_ids] => ["some_public_id1", "some_public_id2"],
-            [:payload, :command] => "add"
+        expected = {
+          :url                    => /.*\/tags/,
+          [:payload, :tag]        => "new_tag",
+          [:payload, :public_ids] => ["some_public_id1", "some_public_id2"],
+          [:payload, :command]    => "add"
         }
         expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
 
