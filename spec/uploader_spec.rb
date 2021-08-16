@@ -261,6 +261,82 @@ describe Cloudinary::Uploader do
     expect(result["height"]).to be > 1
   end
 
+  describe "create slideshow" do
+    it "should correctly create slideshow from manifest transformation" do
+
+      slideshow_manifest = "w_352;h_240;du_5;fps_30;vars_(slides_((media_s64:aHR0cHM6Ly9y" +
+        "ZXMuY2xvdWRpbmFyeS5jb20vZGVtby9pbWFnZS91cGxvYWQvY291cGxl);(media_s64:aH" +
+        "R0cHM6Ly9yZXMuY2xvdWRpbmFyeS5jb20vZGVtby9pbWFnZS91cGxvYWQvc2FtcGxl)))"
+
+      expected = {
+        :url                                 => /.*\/video\/create_slideshow/,
+        [:payload, :tags]                    => "tag1,tag2,tag3",
+        [:payload, :transformation]          => "f_auto,q_auto",
+        [:payload, :manifest_transformation] => "fn_render:" + slideshow_manifest,
+      }
+
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+      Cloudinary::Uploader.create_slideshow(
+        :manifest_transformation => {
+          "custom_function": {
+            "function_type": "render",
+            "source":        slideshow_manifest,
+          }
+        },
+        :transformation          => { "fetch_format": "auto", "quality": "auto" },
+        :tags                    => %w[tag1 tag2 tag3],
+      )
+    end
+
+    it "should correctly create slideshow from manifest json" do
+      slideshow_manifest_json = {
+        "w":    848,
+        "h":    480,
+        "du":   6,
+        "fps":  30,
+        "vars": {
+          "sdur":   500,
+          "tdur":   500,
+          "slides": [
+                      { "media": "i:protests9" },
+                      { "media": "i:protests8" },
+                      { "media": "i:protests7" },
+                      { "media": "i:protests6" },
+                      { "media": "i:protests2" },
+                      { "media": "i:protests1" },
+                    ]
+        }
+      }
+
+      slideshow_manifest_json_str = '{"w":848,"h":480,"du":6,"fps":30,"vars":{"sdur":500,"tdur":500,' +
+        '"slides":[{"media":"i:protests9"},{"media":"i:protests8"},' +
+        '{"media":"i:protests7"},{"media":"i:protests6"},{"media":"i:protests2"},' +
+        '{"media":"i:protests1"}]}}'
+
+      notification_url = "https://example.com"
+      upload_preset    = 'test_preset'
+
+      expected = {
+        :url                          => /.*\/video\/create_slideshow/,
+        [:payload, :manifest_json]    => slideshow_manifest_json_str,
+        [:payload, :overwrite]        => 1,
+        [:payload, :public_id]        => UNIQUE_TEST_ID,
+        [:payload, :notification_url] => notification_url,
+        [:payload, :upload_preset]    => upload_preset,
+      }
+
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+      Cloudinary::Uploader.create_slideshow(
+        :manifest_json    => slideshow_manifest_json,
+        :overwrite        => true,
+        :public_id        => UNIQUE_TEST_ID,
+        :notification_url => notification_url,
+        :upload_preset    => upload_preset
+      )
+    end
+  end
   describe "tag" do
     describe "add_tag" do
       it "should correctly add tags" do
