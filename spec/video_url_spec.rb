@@ -181,5 +181,4 @@ describe Cloudinary::Utils do
       end
     end
   end
-
 end

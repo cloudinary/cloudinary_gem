@@ -177,24 +177,32 @@ class Cloudinary::Api
   end
 
   def self.transformation(transformation, options={})
-    call_api(:get, "transformations/#{transformation_string(transformation)}", only(options, :next_cursor, :max_results), options)
+    params                  = only(options, :next_cursor, :max_results)
+    params[:transformation] = Cloudinary::Utils.build_eager(transformation)
+    call_api(:get, "transformations", params, options)
   end
 
   def self.delete_transformation(transformation, options={})
-    call_api(:delete, "transformations/#{transformation_string(transformation)}", {}, options)
+    call_api(:delete, "transformations", {:transformation => Cloudinary::Utils.build_eager(transformation)}, options)
   end
 
   # updates - supports:
   #   "allowed_for_strict" boolean
   #   "unsafe_update" transformation params - updates a named transformation parameters without regenerating existing images
   def self.update_transformation(transformation, updates, options={})
-    params                 = only(updates, :allowed_for_strict)
-    params[:unsafe_update] = transformation_string(updates[:unsafe_update]) if updates[:unsafe_update]
-    call_api(:put, "transformations/#{transformation_string(transformation)}", params, options)
+    params                  = only(updates, :allowed_for_strict)
+    params[:unsafe_update]  = Cloudinary::Utils.build_eager(updates[:unsafe_update]) if updates[:unsafe_update]
+    params[:transformation] = Cloudinary::Utils.build_eager(transformation)
+    call_api(:put, "transformations", params, options)
   end
 
   def self.create_transformation(name, definition, options={})
-    call_api(:post, "transformations/#{name}", { :transformation => transformation_string(definition) }, options)
+    params = {
+      :name => name,
+      :transformation => Cloudinary::Utils.build_eager(definition)
+    }
+
+    call_api(:post, "transformations", params, options)
   end
 
   # upload presets
@@ -474,6 +482,23 @@ class Cloudinary::Api
   def self.restore_metadata_field_datasource(field_external_id, entries_external_ids, options = {})
     uri = [field_external_id, "datasource_restore"]
     params = {:external_ids => entries_external_ids }
+
+    call_metadata_api(:post, uri, params, options)
+  end
+
+  # Reorders metadata field datasource. Currently supports only value.
+  #
+  # @param [String] field_external_id The ID of the metadata field
+  # @param [String] order_by          Criteria for the order. Currently supports only value
+  # @param [String] direction         Optional (gets either asc or desc)
+  # @param [Hash]   options           Configuration options
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  def self.reorder_metadata_field_datasource(field_external_id, order_by, direction = nil, options = {})
+    uri    = [field_external_id, "datasource", "order"]
+    params = { :order_by => order_by, :direction => direction }
 
     call_metadata_api(:post, uri, params, options)
   end

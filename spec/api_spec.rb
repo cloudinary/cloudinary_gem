@@ -23,15 +23,14 @@ describe Cloudinary::Api do
   test_id_3   = "#{prefix}_3"
   test_key = "test_key_#{SUFFIX}"
 
+  include_context "metadata_field",
+                  :external_id => METADATA_EXTERNAL_ID,
+                  :label => METADATA_EXTERNAL_ID,
+                  :type => "string",
+                  :default_value => METADATA_DEFAULT_VALUE
+
   before(:all) do
     @api = Cloudinary::Api
-
-    @api.add_metadata_field(
-      :external_id => METADATA_EXTERNAL_ID,
-      :label => METADATA_EXTERNAL_ID,
-      :type => "string",
-      :default_value => METADATA_DEFAULT_VALUE
-    )
 
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
@@ -42,7 +41,6 @@ describe Cloudinary::Api do
   end
 
   after(:all) do
-    @api.delete_metadata_field(METADATA_EXTERNAL_ID)
     # in addition to "cleanup" context
     unless Cloudinary.config.keep_test_products
       up = Cloudinary::Api.upload_presets max_results: 500
@@ -377,16 +375,22 @@ describe Cloudinary::Api do
 
       it "should allow deleting named transformation" do
         public_id = "api_test_transformation_#{Time.now.to_i}"
-        expect(RestClient::Request).to receive(:execute).with(deep_hash_value( :url => /.*\/transformations\/#{public_id}/, :method => :delete))
+        expected = {
+          :url => /.*\/transformations$/,
+          :method => :delete,
+          [:payload, :transformation] => public_id
+        }
+        expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
         @api.delete_transformation(public_id)
       end
 
       it "should allow unsafe update of named transformation" do
         public_id = "api_test_transformation_#{Time.now.to_i}"
         expected = {
-            :url => /.*\/transformations\/#{public_id}$/,
+            :url => /.*\/transformations$/,
             :method => :put,
-            [:payload, :unsafe_update] => "c_scale,w_103"}
+            [:payload, :unsafe_update] => "c_scale,w_103",
+            [:payload, :transformation] => public_id}
         expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
         @api.update_transformation(public_id, :unsafe_update => { "crop" => "scale", "width" => 103 })
       end

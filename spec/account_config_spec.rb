@@ -3,18 +3,7 @@ require "cloudinary"
 
 describe Cloudinary do
   describe ".account_config" do
-    before do
-      Cloudinary.reset_config
-      @cloudinary_url_backup = ENV["CLOUDINARY_URL"]
-      @account_url_backup = ENV["CLOUDINARY_ACCOUNT_URL"]
-    end
-
-    after do
-      ENV.keys.select { |key| key.start_with? "CLOUDINARY_" }.each { |key| ENV.delete(key) }
-      ENV["CLOUDINARY_ACCOUNT_URL"] = @url_backup
-      ENV['CLOUDINARY_URL'] = @cloudinary_url_backup
-      Cloudinary.reset_config
-    end
+    include_context "config"
 
     it "should allow nested values in CLOUDINARY_ACCOUNT_URL" do
       ENV["CLOUDINARY_ACCOUNT_URL"]  = "account://key:secret@test123?foo[bar]=value"
@@ -27,12 +16,18 @@ describe Cloudinary do
       expect { Cloudinary.config_from_account_url valid_account_url }.not_to raise_error
     end
 
+    it "should not be sensitive to case in CLOUDINARY_ACCOUNT_URL's protocol" do
+      valid_account_url = "aCCouNT://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test"
+      expect { Cloudinary.config_from_account_url valid_account_url }.not_to raise_error
+    end
+
     it "should raise an exception if the CLOUDINARY_ACCOUNT_URL doesn't start with 'account://'" do
       invalid_account_urls = [
         "cloudinary://api-key:api-secret@account-id",
         "CLOUDINARY_ACCOUNT_URL=cloudinary://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test",
         "https://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test",
         "://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test",
+        "https://123456789012345:ALKJdjklLJAjhkKJ45hBK92baj3@test?cloudinary=foo",
         " "
       ]
 
@@ -86,6 +81,14 @@ describe Cloudinary do
       ENV["CLOUDINARY_ACCOUNT_URL"] = "cloudinary://key:secret@test123"
 
       expect { Cloudinary.account_config }.to raise_error(/bad URI|Invalid CLOUDINARY_ACCOUNT_URL/)
+    end
+
+    it "should work even if Cloudinary url is not set" do
+      ENV.delete("CLOUDINARY_URL")
+      ENV["CLOUDINARY_ACCOUNT_URL"] = "account://api-key:api-secret@account-id"
+
+      expect(Cloudinary.account_config.account_id).to eq("account-id")
+      expect(Cloudinary.config.cloud_name).to be_nil
     end
   end
 end

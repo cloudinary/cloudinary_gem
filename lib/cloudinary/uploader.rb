@@ -159,7 +159,9 @@ class Cloudinary::Uploader
         :from_public_id => from_public_id,
         :to_public_id   => to_public_id,
         :to_type        => options[:to_type],
-        :invalidate     => Cloudinary::Utils.as_safe_bool(options[:invalidate])
+        :invalidate     => Cloudinary::Utils.as_safe_bool(options[:invalidate]),
+        :context        => options[:context],
+        :metadata       => options[:metadata]
       }
     end
   end
@@ -207,17 +209,42 @@ class Cloudinary::Uploader
     end
   end
 
-  def self.generate_sprite(tag, options={})
+  SLIDESHOW_PARAMS = [:notification_url, :public_id, :upload_preset]
+
+  # Creates auto-generated video slideshow.
+  #
+  # @param [Hash] options Additional options.
+  #
+  # @return [Hash] Hash with meta information URLs of generated slideshow resources.
+  def self.create_slideshow(options = {})
+    options[:resource_type] ||= :video
+
+    call_api("create_slideshow", options) do
+      params = {
+        :timestamp               => Time.now.to_i,
+        :transformation          => Cloudinary::Utils.build_eager(options[:transformation]),
+        :manifest_transformation => Cloudinary::Utils.build_eager(options[:manifest_transformation]),
+        :manifest_json           => options[:manifest_json] && options[:manifest_json].to_json,
+        :tags                    => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
+        :overwrite               => Cloudinary::Utils.as_safe_bool(options[:overwrite])
+      }
+      SLIDESHOW_PARAMS.each { |k| params[k] = options[k] unless options[k].nil? }
+
+      params
+    end
+  end
+
+  # Generates sprites by merging multiple images into a single large image.
+  #
+  # @param [String|Hash] tag Treated as additional options when hash is passed, otherwise as a tag
+  # @param [Hash] options Additional options. Should be omitted when +tag_or_options+ is a Hash
+  #
+  # @return [Hash] Hash with meta information URLs of generated sprite resources
+  def self.generate_sprite(tag, options = {})
     version_store = options.delete(:version_store)
 
     result = call_api("sprite", options) do
-      {
-        :timestamp        => (options[:timestamp] || Time.now.to_i),
-        :tag              => tag,
-        :async            => options[:async],
-        :notification_url => options[:notification_url],
-        :transformation   => Cloudinary::Utils.generate_transformation_string(options.merge(:fetch_format => options[:format]))
-      }
+      Cloudinary::Utils.build_multi_and_sprite_params(tag, options)
     end
 
     if version_store == :file && result && result["version"]
@@ -229,16 +256,15 @@ class Cloudinary::Uploader
     return result
   end
 
-  def self.multi(tag, options={})
+  # Creates either a single animated image, video or a PDF.
+  #
+  # @param [String|Hash] tag Treated as additional options when hash is passed, otherwise as a tag
+  # @param [Hash] options Additional options. Should be omitted when +tag_or_options+ is a Hash
+  #
+  # @return [Hash] Hash with meta information URLs of the generated file
+  def self.multi(tag, options = {})
     call_api("multi", options) do
-      {
-        :timestamp        => (options[:timestamp] || Time.now.to_i),
-        :tag              => tag,
-        :format           => options[:format],
-        :async            => options[:async],
-        :notification_url => options[:notification_url],
-        :transformation   => Cloudinary::Utils.generate_transformation_string(options.clone)
-      }
+      Cloudinary::Utils.build_multi_and_sprite_params(tag, options)
     end
   end
 

@@ -45,6 +45,33 @@ describe Cloudinary::Search do
       query = Cloudinary::Search.with_field('context').with_field('tags').to_h
       expect(query).to eq(with_field: %w(context tags))
     end
+
+    it "should not duplicate values" do
+      expected = {
+        [:payload] => {
+          "sort_by" => [
+            { "created_at" => "desc" },
+            { "public_id" => "asc" }
+          ],
+          "aggregate" => ["format", "resource_type"],
+          "with_field" => ["context", "tags"]
+        }.to_json
+      }
+
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+      Cloudinary::Search
+        .sort_by("created_at", "asc")
+        .sort_by("created_at")
+        .sort_by("public_id", "asc")
+        .aggregate("format")
+        .aggregate("format")
+        .aggregate("resource_type")
+        .with_field("context")
+        .with_field("context")
+        .with_field("tags")
+        .execute
+    end
   end
 
   context 'integration', :with_retries do

@@ -9,32 +9,18 @@ describe Cloudinary::Uploader do
   break puts("Please setup environment for api test to run") if Cloudinary.config.api_secret.blank?
   include_context "cleanup", TIMESTAMP_TAG
 
+  METADATA_FIELD_EXTERNAL_ID = "metadata_field_external_id_#{UNIQUE_TEST_ID}"
+
+  include_context "metadata_field",
+                  external_id: METADATA_FIELD_EXTERNAL_ID,
+                  type: "string",
+                  label: METADATA_FIELD_EXTERNAL_ID
+
   before(:all) do
     Cloudinary.reset_config
 
-    @metadata_field_external_id = "metadata_field_external_id_#{UNIQUE_TEST_ID}"
     @metadata_field_value = "metadata_field_value_#{UNIQUE_TEST_ID}"
-    @metadata_fields = { @metadata_field_external_id => @metadata_field_value }
-
-    begin
-      Cloudinary::Api.add_metadata_field(
-        {
-          external_id: @metadata_field_external_id,
-          type: "string",
-          label: @metadata_field_external_id
-        }
-      )
-    rescue Cloudinary::Api::GeneralError => e
-      raise CloudinaryException, "Exception thrown while adding metadata field in Cloudinary::Uploader::before(:all) - #{e}"
-    end
-  end
-
-  after(:all) do
-    begin
-      Cloudinary::Api.delete_metadata_field(@metadata_field_external_id)
-    rescue Cloudinary::Api::NotFound => e
-      puts("The metadata field #{@metadata_field_external_id} could not be deleted.");
-    end
+    @metadata_fields = { METADATA_FIELD_EXTERNAL_ID => @metadata_field_value }
   end
 
   it "should successfully upload file" do
@@ -184,6 +170,35 @@ describe Cloudinary::Uploader do
       expect(Cloudinary::Api.resource(id, type: to_type)).to_not be_empty
       Cloudinary::Uploader.rename(id, id, :type => to_type, :to_type => from_type)
     end
+
+    it "should support context" do
+      expected = {
+        [:payload, :context] => true
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Uploader.rename(TEST_IMG, "#{TEST_IMG}2", :context => true)
+
+      expected = {
+        [:payload, :context] => nil
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Uploader.rename(TEST_IMG, "#{TEST_IMG}2")
+    end
+
+    it "should support metadata" do
+      expected = {
+        [:payload, :metadata] => true
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Uploader.rename(TEST_IMG, "#{TEST_IMG}2", :metadata => true)
+
+      expected = {
+        [:payload, :metadata] => nil
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Uploader.rename(TEST_IMG, "#{TEST_IMG}2")
+    end
+
     context ':overwrite => true' do
       it 'should rename to an existing ID' do
         new_id = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])["public_id"]
@@ -246,14 +261,90 @@ describe Cloudinary::Uploader do
     expect(result["height"]).to be > 1
   end
 
+  describe "create slideshow" do
+    it "should correctly create slideshow from manifest transformation" do
+
+      slideshow_manifest = "w_352;h_240;du_5;fps_30;vars_(slides_((media_s64:aHR0cHM6Ly9y" +
+        "ZXMuY2xvdWRpbmFyeS5jb20vZGVtby9pbWFnZS91cGxvYWQvY291cGxl);(media_s64:aH" +
+        "R0cHM6Ly9yZXMuY2xvdWRpbmFyeS5jb20vZGVtby9pbWFnZS91cGxvYWQvc2FtcGxl)))"
+
+      expected = {
+        :url                                 => /.*\/video\/create_slideshow/,
+        [:payload, :tags]                    => "tag1,tag2,tag3",
+        [:payload, :transformation]          => "f_auto,q_auto",
+        [:payload, :manifest_transformation] => "fn_render:" + slideshow_manifest,
+      }
+
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+      Cloudinary::Uploader.create_slideshow(
+        :manifest_transformation => {
+          :custom_function => {
+            :function_type => "render",
+            :source        => slideshow_manifest,
+          }
+        },
+        :transformation          => { :fetch_format => "auto", :quality => "auto" },
+        :tags                    => %w[tag1 tag2 tag3],
+      )
+    end
+
+    it "should correctly create slideshow from manifest json" do
+      slideshow_manifest_json = {
+        "w"    => 848,
+        "h"    => 480,
+        "du"   => 6,
+        "fps"  => 30,
+        "vars" => {
+          "sdur"   => 500,
+          "tdur"   => 500,
+          "slides" => [
+            { "media" => "i:protests9" },
+            { "media" => "i:protests8" },
+            { "media" => "i:protests7" },
+            { "media" => "i:protests6" },
+            { "media" => "i:protests2" },
+            { "media" => "i:protests1" },
+          ]
+        }
+      }
+
+      slideshow_manifest_json_str = '{"w":848,"h":480,"du":6,"fps":30,"vars":{"sdur":500,"tdur":500,' +
+        '"slides":[{"media":"i:protests9"},{"media":"i:protests8"},' +
+        '{"media":"i:protests7"},{"media":"i:protests6"},{"media":"i:protests2"},' +
+        '{"media":"i:protests1"}]}}'
+
+      notification_url = "https://example.com"
+      upload_preset    = 'test_preset'
+
+      expected = {
+        :url                          => /.*\/video\/create_slideshow/,
+        [:payload, :manifest_json]    => slideshow_manifest_json_str,
+        [:payload, :overwrite]        => 1,
+        [:payload, :public_id]        => UNIQUE_TEST_ID,
+        [:payload, :notification_url] => notification_url,
+        [:payload, :upload_preset]    => upload_preset,
+      }
+
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+      Cloudinary::Uploader.create_slideshow(
+        :manifest_json    => slideshow_manifest_json,
+        :overwrite        => true,
+        :public_id        => UNIQUE_TEST_ID,
+        :notification_url => notification_url,
+        :upload_preset    => upload_preset
+      )
+    end
+  end
   describe "tag" do
     describe "add_tag" do
       it "should correctly add tags" do
-        expected ={
-            :url => /.*\/tags/,
-            [:payload, :tag] => "new_tag",
-            [:payload, :public_ids] => ["some_public_id1", "some_public_id2"],
-            [:payload, :command] => "add"
+        expected = {
+          :url                    => /.*\/tags/,
+          [:payload, :tag]        => "new_tag",
+          [:payload, :public_ids] => ["some_public_id1", "some_public_id2"],
+          [:payload, :command]    => "add"
         }
         expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
 
@@ -502,7 +593,7 @@ describe Cloudinary::Uploader do
       tags: [TEST_TAG, TIMESTAMP_TAG],
       metadata: @metadata_fields
     })
-    expect(result["metadata"][@metadata_field_external_id]).to eq(@metadata_field_value)
+    expect(result["metadata"][METADATA_FIELD_EXTERNAL_ID]).to eq(@metadata_field_value)
   end
 
   describe 'explicit' do
@@ -519,7 +610,7 @@ describe Cloudinary::Uploader do
         type: "upload",
         metadata: @metadata_fields
       })
-      expect(result["metadata"][@metadata_field_external_id]).to eq(@metadata_field_value)
+      expect(result["metadata"][METADATA_FIELD_EXTERNAL_ID]).to eq(@metadata_field_value)
     end
   end
 
@@ -539,5 +630,54 @@ describe Cloudinary::Uploader do
       expect(result["public_ids"]).to include(resource_1["public_id"])
       expect(result["public_ids"]).to include(resource_2["public_id"])
     end
+  end
+
+  it "should generate a sprite" do
+    sprite_test_tag = "sprite_test_tag_#{UNIQUE_TEST_ID}"
+    upload_result1 = Cloudinary::Uploader.upload(TEST_IMAGE_URL, :tags => [sprite_test_tag, TEST_TAG, UPLOADER_TAG, TIMESTAMP_TAG], :public_id => "sprite_test_tag_1#{SUFFIX}")
+    upload_result2 = Cloudinary::Uploader.upload(TEST_IMAGE_URL, :tags => [sprite_test_tag, TEST_TAG, UPLOADER_TAG, TIMESTAMP_TAG], :public_id => "sprite_test_tag_2#{SUFFIX}")
+
+    urls = [upload_result1["url"], upload_result2["url"]]
+    result = Cloudinary::Uploader.generate_sprite(:urls => urls, :tags => [TEST_TAG, UPLOADER_TAG])
+    Cloudinary::Api.delete_resources(result["public_id"], :type => "sprite")
+    expect(result["image_infos"].count).to eq(2)
+
+    result = Cloudinary::Uploader.generate_sprite(sprite_test_tag, :tags => [TEST_TAG, UPLOADER_TAG])
+    Cloudinary::Api.delete_resources(result["public_id"], :type => "sprite")
+    expect(result["image_infos"].count).to eq(2)
+
+    result = Cloudinary::Uploader.generate_sprite(sprite_test_tag, :transformation => { :crop => "scale", :width => 100 })
+    Cloudinary::Api.delete_resources(result["public_id"], :type => "sprite")
+    expect(result["css_url"]).to include("c_scale,w_100")
+
+    result = Cloudinary::Uploader.generate_sprite(sprite_test_tag, { :format => "jpg", :transformation => { :crop => "scale", :width => 100 } })
+    Cloudinary::Api.delete_resources(result["public_id"], :type => "sprite")
+    expect(result["css_url"]).to include("c_scale,w_100/f_jpg")
+  end
+
+  it "should create a file with multi" do
+    multi_test_tag = "multi_test_tag_#{UNIQUE_TEST_ID}"
+    options = { :tags => [multi_test_tag, TEST_TAG, UPLOADER_TAG, TIMESTAMP_TAG] }
+
+    upload_result1 = Cloudinary::Uploader.upload(TEST_IMAGE_URL, options)
+    upload_result2 = Cloudinary::Uploader.upload(TEST_IMAGE_URL, options)
+
+    urls = [upload_result1["url"], upload_result2["url"]]
+
+    result = Cloudinary::Uploader.multi(:urls => urls, :transformation => { :crop => "scale", :width => 0.5 }, tags: [TIMESTAMP_TAG])
+    Cloudinary::Api.delete_resources(result["public_id"], :type => "multi")
+    expect(result["url"]).to end_with(".gif")
+    expect(result["url"]).to include("w_0.5")
+
+    result = Cloudinary::Uploader.multi(multi_test_tag, :transformation => { :crop => "scale", :width => 0.5 })
+    Cloudinary::Api.delete_resources(result["public_id"], :type => "multi")
+
+    pdf_result = Cloudinary::Uploader.multi(multi_test_tag, :format => "pdf", :transformation => { :crop => "scale", :width => 111 })
+    Cloudinary::Api.delete_resources(pdf_result["public_id"], :type => "multi")
+
+    expect(result["url"]).to end_with(".gif")
+    expect(result["url"]).to include("w_0.5")
+    expect(pdf_result["url"]).to include("w_111")
+    expect(pdf_result["url"]).to end_with(".pdf")
   end
 end
