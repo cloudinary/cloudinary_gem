@@ -1,3 +1,30 @@
+1.21.0 / 2021-08-23
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for `create_slideshow` Upload API
+  * Add support for variables in text style
+  * Add support for `context` and `metadata` in `rename` Upload API
+  * Add support for `reorder_metadata_field_datasource` Admin API
+  * Add `verify_api_response_signature` and `verify_notification_signature` helpers
+  * Add `download_generated_sprite` and `download_multi` methods
+  * Add support for `urls` in multi and sprite APIs
+  * Add support for `live` parameter in upload presets
+  * Add support for `metadata` parameter in `resources` Admin APIs
+
+Other Changes
+-------------
+
+  * Fix `transformations` API call
+  * Fix named parameters normalization issue
+  * Remove duplicates in Search Api fields
+  * Improve configuration tests
+  * Add tests for Provisioning API
+  * Refactor metadata usage in tests
+  * Update GitHub templates
+
 1.20.0 / 2021-03-26
 ==================
 
