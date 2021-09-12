@@ -27,6 +27,10 @@ Gem::Specification.new do |s|
     s.add_dependency "rest-client"
   end
 
+  if RUBY_VERSION >= "3.0.0"
+    s.add_dependency "rexml"
+  end
+
   s.add_development_dependency "actionpack"
   s.add_development_dependency "nokogiri"
 
@@ -39,7 +43,12 @@ Gem::Specification.new do |s|
   s.add_development_dependency "sqlite3"
   s.add_development_dependency "rspec", '>=3.5'
   s.add_development_dependency "rspec-retry"
-  s.add_development_dependency "rails", "~>5.2" if RUBY_VERSION >= "2.2.2"
+
+  if RUBY_VERSION >= "3.0.0"
+    s.add_development_dependency "rails", "~> 6.0.3"
+  elsif RUBY_VERSION >= "2.2.2"
+    s.add_development_dependency "rails", "~> 5.2"
+  end
 
   s.add_development_dependency "railties", "<= 4.2.7" if RUBY_VERSION <= "1.9.3"
   s.add_development_dependency "rspec-rails"
