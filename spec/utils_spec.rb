@@ -1325,7 +1325,7 @@ describe Cloudinary::Utils do
     url2 = "https://res.cloudinary.com/demo/image/upload/car"
 
     url_from_tag = Cloudinary::Utils.download_generated_sprite(sprite_test_tag)
-    url_from_urls = URI.decode(Cloudinary::Utils.download_generated_sprite(:urls => [url1, url2]))
+    url_from_urls = URI.decode_www_form_component(Cloudinary::Utils.download_generated_sprite(:urls => [url1, url2]))
 
     expect(url_from_tag).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/sprite")
     expect(url_from_urls).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/sprite")
@@ -1350,7 +1350,7 @@ describe Cloudinary::Utils do
     url2 = "https://res.cloudinary.com/demo/image/upload/car"
 
     url_from_tag = Cloudinary::Utils.download_multi(multi_test_tag)
-    url_from_urls = URI.decode(Cloudinary::Utils.download_multi(:urls => [url1, url2]))
+    url_from_urls = URI.decode_www_form_component(Cloudinary::Utils.download_multi(:urls => [url1, url2]))
 
     expect(url_from_tag).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/multi")
     expect(url_from_urls).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/multi")
