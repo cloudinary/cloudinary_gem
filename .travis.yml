@@ -17,8 +17,6 @@ matrix:
       rvm: ruby-2.5.9
       before_install:
         - gem install bundler
-  allow_failures:
-    - rvm: 3.0.2
 
 before_script: >
   export CLOUDINARY_URL=$(bash tools/get_test_cloud.sh);
