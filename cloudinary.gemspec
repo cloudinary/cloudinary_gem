@@ -28,7 +28,7 @@ Gem::Specification.new do |s|
   end
 
   if RUBY_VERSION >= "3.0.0"
-    s.add_dependency "rexml"
+    s.add_development_dependency "rexml"
   end
 
   s.add_development_dependency "actionpack"
