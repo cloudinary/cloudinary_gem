@@ -68,6 +68,20 @@ describe 'auth_token' do
       expect{Cloudinary::Utils.generate_auth_token(:start_time => 1111111111, :duration => 300, :acl => "/*/t_foobar")}.not_to raise_error
       expect{Cloudinary::Utils.generate_auth_token(:start_time => 1111111111, :duration => 300, :url => "http://res.cloudinary.com/test123/image/upload/v1486020273/sample.jpg")}.not_to raise_error
     end
+
+    it "should ignore URL in AuthToken generation if ACL is provided" do
+      token_options = {
+        :start_time => 222222222,
+        :key => "00112233FF99",
+        :duration => 300,
+        :acl => "/*/t_foobar"
+      }
+      token = Cloudinary::Utils.generate_auth_token(token_options)
+
+      token_options[:url] = "http://res.cloudinary.com/test123/image/upload/v1486020273/sample.jpg"
+      token_with_url = Cloudinary::Utils.generate_auth_token(token_options)
+      expect(token).to eq(token_with_url)
+    end
   end
   describe "authentication token" do
     it "should generate token string" do
