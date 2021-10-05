@@ -4,6 +4,9 @@ describe Cloudinary do
   describe ".config" do
     include_context "config"
 
+    URL_WITH_OAUTH_TOKEN = "cloudinary://#{DUMMY_CLOUD}?oauth_token=#{OAUTH_TOKEN}"
+    URL_WITH_CREDENTIALS_AND_OAUTH_TOKEN = "cloudinary://#{API_KEY}:#{API_SECRET}@#{DUMMY_CLOUD}?oauth_token=#{OAUTH_TOKEN}"
+
     it "should allow nested values in CLOUDINARY_URL" do
       ENV["CLOUDINARY_URL"] = "cloudinary://key:secret@test123?foo[bar]=value"
       Cloudinary.config_from_url ENV["CLOUDINARY_URL"]
@@ -84,6 +87,24 @@ describe Cloudinary do
       expect(Cloudinary.config.cloud_name).to eq "c"
       expect(Cloudinary.config.api_key).to eq "key_from_env"
       expect(Cloudinary.config.api_secret).to eq "secret_from_settings"
+    end
+
+    it "supports config from urls without key and secret but with oauth token" do
+      ENV["CLOUDINARY_URL"] = URL_WITH_OAUTH_TOKEN
+
+      expect(Cloudinary::config.cloud_name).to eq(DUMMY_CLOUD)
+      expect(Cloudinary::config.oauth_token).to eq(OAUTH_TOKEN)
+      expect(Cloudinary::config.api_key).to be_nil
+      expect(Cloudinary::config.api_secret).to be_nil
+    end
+
+    it "supports config from urls with key and secret and oauth token" do
+      ENV["CLOUDINARY_URL"] = URL_WITH_CREDENTIALS_AND_OAUTH_TOKEN
+
+      expect(Cloudinary::config.cloud_name).to eq(DUMMY_CLOUD)
+      expect(Cloudinary::config.api_key).to eq(API_KEY)
+      expect(Cloudinary::config.api_secret).to eq(API_SECRET)
+      expect(Cloudinary::config.oauth_token).to eq(OAUTH_TOKEN)
     end
   end
 end
