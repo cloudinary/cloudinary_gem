@@ -352,18 +352,30 @@ class Cloudinary::Utils
   # @return [string] layer transformation string
   # @private
   def self.process_layer(layer)
+     if layer.is_a? String and layer.start_with?("fetch:")
+      layer = {:url => layer[6..-1]} # omit "fetch:" prefix
+     end
      if layer.is_a? Hash
        layer = symbolize_keys layer
        public_id     = layer[:public_id]
        format        = layer[:format]
+       fetch         = layer[:url]
        resource_type = layer[:resource_type] || "image"
-       type          = layer[:type] || "upload"
+       type          = layer[:type]
        text          = layer[:text]
        text_style    = nil
        components    = []
 
+       if type.nil?
+         if fetch.nil?
+           type = "upload"
+         else
+           type = "fetch"
+         end
+       end
+
        if public_id.present?
-          if type == "fetch" && public_id.match(%r(^https?:/)i)
+          if type == "fetch" and public_id.match(%r(^https?:/)i)
             public_id = Base64.urlsafe_encode64(public_id)
           else
             public_id = public_id.gsub("/", ":")
@@ -371,14 +383,15 @@ class Cloudinary::Utils
           end
        end
 
-       if text.blank? && resource_type != "text"
-         if public_id.blank?
+       if fetch.present? && fetch.match(%r(^https?:/)i)
+         fetch = Base64.urlsafe_encode64(fetch)
+       elsif text.blank? && resource_type != "text"
+         if public_id.blank? && type != "fetch"
            raise(CloudinaryException, "Must supply public_id for resource_type layer_parameter")
          end
          if resource_type == "subtitles"
            text_style = text_style(layer)
          end
-
        else
          resource_type = "text"
          type          = nil
@@ -404,6 +417,7 @@ class Cloudinary::Utils
        components.push(type) if type != "upload"
        components.push(text_style)
        components.push(public_id)
+       components.push(fetch)
        components.push(text)
        layer = components.reject(&:blank?).join(":")
      end
@@ -1089,7 +1103,7 @@ class Cloudinary::Utils
     Cloudinary::AuthToken.generate options
 
   end
-  
+
   private
 
 
@@ -1106,24 +1120,24 @@ class Cloudinary::Utils
     source
   end
   private_class_method :fully_unescape
-  
+
   def self.hash_query_params(hash)
     if hash.respond_to?("to_query")
       hash.to_query
     else
-      flat_hash_to_query_params(hash)      
+      flat_hash_to_query_params(hash)
     end
   end
 
   def self.flat_hash_to_query_params(hash)
-    hash.collect do |key, value|      
+    hash.collect do |key, value|
       if value.is_a?(Array)
         value.map{|v| "#{CGI.escape(key.to_s)}[]=#{CGI.escape(v.to_s)}"}.join("&")
-      else  
+      else
         "#{CGI.escape(key.to_s)}=#{CGI.escape(value.to_s)}"
-      end        
+      end
     end.compact.sort!.join('&')
-  end  
+  end
 
   def self.number_pattern
     "([0-9]*)\\.([0-9]+)|([0-9]+)"

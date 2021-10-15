@@ -609,6 +609,8 @@ describe Cloudinary::Utils do
         ["private", { "public_id" => "logo", "type" => "private" }, "private:logo"],
         ["format", { "public_id" => "logo", "format" => "png" }, "logo.png"],
         ["video", { "resource_type" => "video", "public_id" => "cat" }, "video:cat"],
+        ["fetch", { "url" => "https://res.cloudinary.com/demologos/cloudinary_full_logo_white_small.png" },
+         "fetch:aHR0cHM6Ly9yZXMuY2xvdWRpbmFyeS5jb20vZGVtb2xvZ29zL2Nsb3VkaW5hcnlfZnVsbF9sb2dvX3doaXRlX3NtYWxsLnBuZw=="],
       ] }
       it "should support #{param}" do
         layers_options.each do |name, options, result|
