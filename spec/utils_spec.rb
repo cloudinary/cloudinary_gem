@@ -609,6 +609,8 @@ describe Cloudinary::Utils do
         ["private", { "public_id" => "logo", "type" => "private" }, "private:logo"],
         ["format", { "public_id" => "logo", "format" => "png" }, "logo.png"],
         ["video", { "resource_type" => "video", "public_id" => "cat" }, "video:cat"],
+        ["fetch", { "url" => "https://upload.wikimedia.org/wikipedia/commons/2/2b/고창갯벌.jpg" },
+         "fetch:aHR0cHM6Ly91cGxvYWQud2lraW1lZGlhLm9yZy93aWtpcGVkaWEvY29tbW9ucy8yLzJiL-qzoOywveqwr-uyjC5qcGc="],
       ] }
       it "should support #{param}" do
         layers_options.each do |name, options, result|
