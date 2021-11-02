@@ -123,32 +123,32 @@ describe Cloudinary::Utils do
   end
 
   it "should sign a url" do
-    expected = Cloudinary::Utils.cloudinary_url "some_public_id.jpg", 
-                                     :cloud_name => "test", 
-                                     :api_key => "123456789012345", 
-                                     :api_secret => "AbcdEfghIjklmnopq1234567890", 
-                                     :type => "authenticated", 
-                                     :sign_url => true, 
-                                     :overlay => "text:Helvetica_50:test+text"
+    expected = Cloudinary::Utils.cloudinary_url "some_public_id.jpg",
+                                                :cloud_name => "test",
+                                                :api_key    => "123456789012345",
+                                                :api_secret => "AbcdEfghIjklmnopq1234567890",
+                                                :type       => "authenticated",
+                                                :sign_url   => true,
+                                                :overlay    => "text:Helvetica_50:test+text"
     expect(expected).to eq("http://res.cloudinary.com/test/image/authenticated/s--j5Z1ILxd--/l_text:Helvetica_50:test+text/some_public_id.jpg")
   end
 
   it "should sign an URL using SHA1 and generate a short signature by default" do
     expected = Cloudinary::Utils.cloudinary_url "sample.jpg",
                                                 :cloud_name => "test123",
-                                                :api_key => "a",
+                                                :api_key    => "a",
                                                 :api_secret => "b",
-                                                :sign_url => true
+                                                :sign_url   => true
 
     expect(expected).to eq("http://res.cloudinary.com/test123/image/upload/s--v2fTPYTu--/sample.jpg")
   end
 
   it "should sign an URL using SHA256 and generate a long signature when long_url_signature is true" do
     expected = Cloudinary::Utils.cloudinary_url "sample.jpg",
-                                                :cloud_name => "test123",
-                                                :api_key => "a",
-                                                :api_secret => "b",
-                                                :sign_url => true,
+                                                :cloud_name         => "test123",
+                                                :api_key            => "a",
+                                                :api_secret         => "b",
+                                                :sign_url           => true,
                                                 :long_url_signature => true
 
     expect(expected).to eq("http://res.cloudinary.com/test123/image/upload/s--2hbrSMPOjj5BJ4xV7SgFbRDevFaQNUFf--/sample.jpg")
@@ -159,9 +159,9 @@ describe Cloudinary::Utils do
 
     expected = Cloudinary::Utils.cloudinary_url "sample.jpg",
                                                 :cloud_name => "test123",
-                                                :api_key => "a",
+                                                :api_key    => "a",
                                                 :api_secret => "b",
-                                                :sign_url => true
+                                                :sign_url   => true
 
     expect(expected).to eq("http://res.cloudinary.com/test123/image/upload/s--2hbrSMPO--/sample.jpg")
   end
@@ -204,7 +204,6 @@ describe Cloudinary::Utils do
       .to produce_url("http://res.cloudinary.com/#{cloud_name}/authenticated_images/test/hello.jpg")
             .and empty_options
   end
-
 
   describe 'root_path support' do
 
@@ -273,19 +272,19 @@ describe Cloudinary::Utils do
     end
     it "should support auto width" do
       expect(["test", { :width => "auto:20", :crop => :fill }])
-          .to produce_url("#{upload_path}/c_fill,w_auto:20/test")
+        .to produce_url("#{upload_path}/c_fill,w_auto:20/test")
       expect(["test", { :width => "auto:20:350", :crop => :fill }])
-          .to produce_url("#{upload_path}/c_fill,w_auto:20:350/test")
+        .to produce_url("#{upload_path}/c_fill,w_auto:20:350/test")
       expect(["test", { :width => "auto:breakpoints", :crop => :fill }])
-          .to produce_url("#{upload_path}/c_fill,w_auto:breakpoints/test")
+        .to produce_url("#{upload_path}/c_fill,w_auto:breakpoints/test")
       expect(["test", { :width => "auto:breakpoints_100_1900_20_15", :crop => :fill }])
-          .to produce_url("#{upload_path}/c_fill,w_auto:breakpoints_100_1900_20_15/test")
+        .to produce_url("#{upload_path}/c_fill,w_auto:breakpoints_100_1900_20_15/test")
       expect(["test", { :width => "auto:breakpoints:json", :crop => :fill }])
-          .to produce_url("#{upload_path}/c_fill,w_auto:breakpoints:json/test")
+        .to produce_url("#{upload_path}/c_fill,w_auto:breakpoints:json/test")
     end
     it 'should support ih,iw' do
-      expect(["test", {:width => "iw", :height => "ih", :crop => :crop}])
-          .to produce_url("#{upload_path}/c_crop,h_ih,w_iw/test")
+      expect(["test", { :width => "iw", :height => "ih", :crop => :crop }])
+        .to produce_url("#{upload_path}/c_crop,h_ih,w_iw/test")
     end
   end
 
@@ -301,52 +300,52 @@ describe Cloudinary::Utils do
 
   describe "gravity" do
     it "should support auto" do
-      expect(["test", {width: 100, height: 100, crop: 'crop', gravity: 'auto'}])
-          .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto,h_100,w_100/test")
-                  .and mutate_options_to({width: 100, height: 100})
-      expect(["test", {width: 100, height: 100, crop: 'crop', gravity: 'auto'}])
-          .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto,h_100,w_100/test")
-                  .and mutate_options_to({width: 100, height: 100})
+      expect(["test", { width: 100, height: 100, crop: 'crop', gravity: 'auto' }])
+        .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto,h_100,w_100/test")
+              .and mutate_options_to({ width: 100, height: 100 })
+      expect(["test", { width: 100, height: 100, crop: 'crop', gravity: 'auto' }])
+        .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto,h_100,w_100/test")
+              .and mutate_options_to({ width: 100, height: 100 })
     end
     it "should support focal gravity" do
       ["adv_face", "adv_faces", "adv_eyes", "face", "faces", "body", "no_faces"].each do |focal|
-        expect(["test", {width: 100, height: 100, crop: 'crop', gravity: "auto:#{focal}"}])
-            .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto:#{focal},h_100,w_100/test")
-                    .and mutate_options_to({width: 100, height: 100})
+        expect(["test", { width: 100, height: 100, crop: 'crop', gravity: "auto:#{focal}" }])
+          .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto:#{focal},h_100,w_100/test")
+                .and mutate_options_to({ width: 100, height: 100 })
       end
     end
     it "should support auto level with thumb cropping" do
       [0, 10, 100].each do |level|
-        expect(["test", {width: 100, height: 100, crop: 'thumb', gravity: "auto:#{level}"}])
-            .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_thumb,g_auto:#{level},h_100,w_100/test")
-                    .and mutate_options_to({width: 100, height: 100})
-        expect(["test", {width: 100, height: 100, crop: 'thumb', gravity: "auto:adv_faces:#{level}"}])
-            .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_thumb,g_auto:adv_faces:#{level},h_100,w_100/test")
-                    .and mutate_options_to({width: 100, height: 100})
+        expect(["test", { width: 100, height: 100, crop: 'thumb', gravity: "auto:#{level}" }])
+          .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_thumb,g_auto:#{level},h_100,w_100/test")
+                .and mutate_options_to({ width: 100, height: 100 })
+        expect(["test", { width: 100, height: 100, crop: 'thumb', gravity: "auto:adv_faces:#{level}" }])
+          .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_thumb,g_auto:adv_faces:#{level},h_100,w_100/test")
+                .and mutate_options_to({ width: 100, height: 100 })
       end
     end
     it "should support custom_no_override" do
-      expect(["test", {width: 100, height: 100, crop: 'crop', gravity: "auto:custom_no_override"}])
-          .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto:custom_no_override,h_100,w_100/test")
-                  .and mutate_options_to({width: 100, height: 100})
+      expect(["test", { width: 100, height: 100, crop: 'crop', gravity: "auto:custom_no_override" }])
+        .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto:custom_no_override,h_100,w_100/test")
+              .and mutate_options_to({ width: 100, height: 100 })
     end
   end
 
   describe ":quality" do
     it "support a percent value" do
       expect(["test", { :x => 1, :y => 2, :radius => 3, :gravity => :center, :quality => 80, :prefix => "a" }])
-          .to produce_url("#{upload_path}/g_center,p_a,q_80,r_3,x_1,y_2/test")
+        .to produce_url("#{upload_path}/g_center,p_a,q_80,r_3,x_1,y_2/test")
 
       expect(["test", { :x => 1, :y => 2, :radius => 3, :gravity => :center, :quality => "80:444", :prefix => "a" }])
-          .to produce_url("#{upload_path}/g_center,p_a,q_80:444,r_3,x_1,y_2/test")
+        .to produce_url("#{upload_path}/g_center,p_a,q_80:444,r_3,x_1,y_2/test")
     end
     it "should support auto value" do
 
       expect(["test", { :x => 1, :y => 2, :radius => 3, :gravity => :center, :quality => "auto", :prefix => "a" }])
-          .to produce_url("#{upload_path}/g_center,p_a,q_auto,r_3,x_1,y_2/test")
+        .to produce_url("#{upload_path}/g_center,p_a,q_auto,r_3,x_1,y_2/test")
 
       expect(["test", { :x => 1, :y => 2, :radius => 3, :gravity => :center, :quality => "auto:good", :prefix => "a" }])
-          .to produce_url("#{upload_path}/g_center,p_a,q_auto:good,r_3,x_1,y_2/test")
+        .to produce_url("#{upload_path}/g_center,p_a,q_auto:good,r_3,x_1,y_2/test")
 
     end
   end
@@ -389,7 +388,7 @@ describe Cloudinary::Utils do
 
     describe "should support and translate arithmetic operators" do
       it "should support * / + - ^" do
-        t = [{:width => 'initial_width * 2 / 3 ^ 2', :height => 'initial_height + 2 - 3', :crop => 'scale'}]
+        t              = [{ :width => 'initial_width * 2 / 3 ^ 2', :height => 'initial_height + 2 - 3', :crop => 'scale' }]
         expected_trans = "c_scale,h_ih_add_2_sub_3,w_iw_mul_2_div_3_pow_2"
         expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{expected_trans}/sample")
       end
@@ -397,19 +396,18 @@ describe Cloudinary::Utils do
 
     describe "duration conditions" do
       it "should support duration" do
-        t = [{:if => "duration > 30", :crop => "scale", :width => "100"}]
+        t              = [{ :if => "duration > 30", :crop => "scale", :width => "100" }]
         expected_trans = "if_du_gt_30,c_scale,w_100"
         expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{expected_trans}/sample")
       end
 
       it "should support initial_duration" do
-        t = [{:if => "initial_duration > 30", :crop => "scale", :width => "100"}]
+        t              = [{ :if => "initial_duration > 30", :crop => "scale", :width => "100" }]
         expected_trans = "if_idu_gt_30,c_scale,w_100"
         expect(Cloudinary::Utils.cloudinary_url('sample', :transformation => t)).to eq("#{upload_path}/#{expected_trans}/sample")
       end
     end
   end
-
 
   it "should use type from options" do
     expect(["test", { :type => :facebook }])
@@ -496,17 +494,17 @@ describe Cloudinary::Utils do
     ]
     valid_radius_test_values.each do |options, expected|
       expect(["test", { :transformation => { :radius => options } }])
-        .to produce_url("#{root_path}/image/upload/#{expected}/test") .and empty_options
+        .to produce_url("#{root_path}/image/upload/#{expected}/test").and empty_options
     end
   end
 
   it "should throw an error when the radius is given invalid values" do
     invalid_radius_test_values = [
       [],
-      [10,20,30,40,50]
+      [10, 20, 30, 40, 50]
     ]
     invalid_radius_test_values.each do |options|
-      expect{Cloudinary::Utils.cloudinary_url("test", {:transformation => {:radius => options}})}
+      expect { Cloudinary::Utils.cloudinary_url("test", { :transformation => { :radius => options } }) }
         .to raise_error(CloudinaryException)
     end
   end
@@ -542,7 +540,7 @@ describe Cloudinary::Utils do
   end
 
   it "should support artistic effect" do
-    expect(["test", { :effect => "art:incognito"}])
+    expect(["test", { :effect => "art:incognito" }])
       .to produce_url("#{upload_path}/e_art:incognito/test")
             .and empty_options
   end
@@ -596,7 +594,6 @@ describe Cloudinary::Utils do
               .and empty_options
     end
   end
-
 
   { 'overlay' => :l, :underlay => :u }.each do |param, letter|
     describe param do
@@ -653,17 +650,18 @@ describe Cloudinary::Utils do
 
     include_context "cleanup"
 
-    { 'overlay' => 'l' }.each do |param, short| # 'underlay' => 'u' behaves the same as overlay
+    { 'overlay' => 'l' }.each do |param, short|
+      # 'underlay' => 'u' behaves the same as overlay
       describe param do
         let(:root_path) { "http://res.cloudinary.com/#{cloud_name}" }
         # [name, options, result]
-        layers_options= [
+        layers_options = [
           ["string", "text:test_text:hello", "text:test_text:hello"],
           ["explicit layer parameter", "text:test_text:#{text_encoded}", "text:test_text:#{text_encoded}"],
           ["text parameter", { :public_id => "test_text", :text => text_layer }, "text:test_text:#{text_encoded}"],
           ["text with font family and size parameters", { :text => text_layer, :font_family => "Arial", :font_size => "18" }, "text:Arial_18:#{text_encoded}"],
           ["text with text style parameter", { :text => text_layer, :font_family => "Arial", :font_size => "18", :font_weight => "bold", :font_style => "italic", :letter_spacing => 4, :line_spacing => 2 }, "text:Arial_18_bold_italic_letter_spacing_4_line_spacing_2:#{text_encoded}"],
-          ["text with antialiasing and font hinting", { :text => "Hello World, Nice to meet you?", :font_family => "Arial", :font_size => "18", :font_antialiasing => "best", :font_hinting => "medium"}, "text:Arial_18_antialias_best_hinting_medium:Hello%20World%252C%20Nice%20to%20meet%20you%3F"],
+          ["text with antialiasing and font hinting", { :text => "Hello World, Nice to meet you?", :font_family => "Arial", :font_size => "18", :font_antialiasing => "best", :font_hinting => "medium" }, "text:Arial_18_antialias_best_hinting_medium:Hello%20World%252C%20Nice%20to%20meet%20you%3F"],
           ["text with text style parameter (explicit)", "text:Arial_18_antialias_best_hinting_medium:Hello%20World%252C%20Nice%20to%20meet%20you%3F", "text:Arial_18_antialias_best_hinting_medium:Hello%20World%252C%20Nice%20to%20meet%20you%3F"],
           ["subtitles", { :resource_type => "subtitles", :public_id => "subtitles.srt" }, "subtitles:subtitles.srt"],
           ["subtitles with font family and size", { :resource_type => "subtitles", :public_id => "subtitles.srt", :font_family => "Arial", :font_size => "40" }, "subtitles:Arial_40:subtitles.srt"],
@@ -696,18 +694,18 @@ describe Cloudinary::Utils do
       "sample",
       {
         transformation: [
-          {
-            variables: [
-              ["$style", "!Arial_12!"],
-            ]
-          },
-          {
-            overlay: {
-              text: "hello-world",
-              text_style: "$style"
-            }
-          }
-        ]
+                          {
+                            variables: [
+                                         ["$style", "!Arial_12!"],
+                                       ]
+                          },
+                          {
+                            overlay: {
+                              text:       "hello-world",
+                              text_style: "$style"
+                            }
+                          }
+                        ]
       }
     ]
 
@@ -741,7 +739,7 @@ describe Cloudinary::Utils do
   end
 
   it "should support extenal cname with cdn_subdomain on" do
-    expect(["test", { :cname => "hello.com", :private_cdn => true, :cdn_subdomain => true}])
+    expect(["test", { :cname => "hello.com", :private_cdn => true, :cdn_subdomain => true }])
       .to produce_url("http://a2.hello.com/image/upload/test")
             .and empty_options
   end
@@ -844,46 +842,46 @@ describe Cloudinary::Utils do
   it "should default force_version to True if no value is given" do
     expect(["folder/test", {}])
       .to produce_url("#{upload_path}/v1/folder/test")
-        .and empty_options
+            .and empty_options
   end
 
   it "should exclude the version if resource is stored in a folder and force_version is False" do
-    expect(["folder/test", {:force_version => false}])
+    expect(["folder/test", { :force_version => false }])
       .to produce_url("#{upload_path}/folder/test")
-        .and empty_options
+            .and empty_options
   end
 
   it "should include the version if given explicitly regardless of force_verison (without folder)" do
-    expect(["test", {:force_version => false, :version => 12345}])
+    expect(["test", { :force_version => false, :version => 12345 }])
       .to produce_url("#{upload_path}/v12345/test")
-        .and empty_options
+            .and empty_options
   end
 
   it "should include the version if given explicitly regardless of force_verison (with folder)" do
-    expect(["folder/test", {:force_version => false, :version => 12345}])
+    expect(["folder/test", { :force_version => false, :version => 12345 }])
       .to produce_url("#{upload_path}/v12345/folder/test")
-        .and empty_options
+            .and empty_options
   end
 
   it "should use the force_version option if set in the global config" do
     Cloudinary.config(:force_version => false)
     expect(["folder/test", {}])
       .to produce_url("#{upload_path}/folder/test")
-        .and empty_options
+            .and empty_options
   end
 
   it "should ignore the global force_version config if version is set explicitly in the options" do
     Cloudinary.config(:force_version => false)
-    expect(["folder/test", {:version => 12345}])
+    expect(["folder/test", { :version => 12345 }])
       .to produce_url("#{upload_path}/v12345/folder/test")
-        .and empty_options
+            .and empty_options
   end
 
   it "should override global config option if force_version is given within options" do
     Cloudinary.config(:force_version => false)
-    expect(["folder/test", {:force_version => true}])
+    expect(["folder/test", { :force_version => true }])
       .to produce_url("#{upload_path}/v1/folder/test")
-        .and empty_options
+            .and empty_options
   end
 
   it "should allow to shorted image/upload urls" do
@@ -904,7 +902,7 @@ describe Cloudinary::Utils do
       [:resource_type, 'image'],
       [:type, 'upload'],
       [:format, 'jpg']
-    ].each do |attr,value|
+    ].each do |attr, value|
       expect(preloaded.send(attr)).to eq(value)
     end
   end
@@ -922,7 +920,6 @@ describe Cloudinary::Utils do
       expect(Cloudinary::Utils.cloudinary_url(source)).to eq("#{upload_path}/#{target}")
     end
   end
-
 
   describe ":sign_url" do
     it_behaves_like "a signed url"
@@ -962,25 +959,25 @@ describe Cloudinary::Utils do
   end
 
   it "should sign an API request using SHA1 by default" do
-    signature = Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged",  :timestamp => 1568810420,  :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac")
+    signature = Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged", :timestamp => 1568810420, :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac")
     expect(signature).to eq("14c00ba6d0dfdedbc86b316847d95b9e6cd46d94")
   end
 
   it "should sign an API request using SHA256" do
     Cloudinary.config.signature_algorithm = Cloudinary::Utils::ALGO_SHA256
-    signature = Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged",  :timestamp => 1568810420,  :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac")
+    signature                             = Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged", :timestamp => 1568810420, :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac")
     expect(signature).to eq("45ddaa4fa01f0c2826f32f669d2e4514faf275fe6df053f1a150e7beae58a3bd")
   end
 
   it "should sign an API request using SHA256 via parameter" do
-    signature = Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged",  :timestamp => 1568810420,  :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac", :sha256)
+    signature = Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged", :timestamp => 1568810420, :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac", :sha256)
     expect(signature).to eq("45ddaa4fa01f0c2826f32f669d2e4514faf275fe6df053f1a150e7beae58a3bd")
   end
 
   it "should raise when unsupported algorithm is passed" do
     signature_algorithm = "unsupported_algorithm"
 
-    expect{Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged",  :timestamp => 1568810420,  :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac", signature_algorithm)}
+    expect { Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged", :timestamp => 1568810420, :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac", signature_algorithm) }
       .to raise_error("Unsupported algorithm 'unsupported_algorithm'")
   end
 
@@ -1015,9 +1012,9 @@ describe Cloudinary::Utils do
 
       describe "empty expression" do
         it "should not include dangling if parameter when empty value specified" do
-          expect(["sample", {width: "100", crop: "crop", height: "", if: ""}])
+          expect(["sample", { width: "100", crop: "crop", height: "", if: "" }])
             .to produce_url("#{upload_path}/c_crop,w_100/sample")
-          expect(["sample", {width: "100", crop: "crop", height: "", if: nil}])
+          expect(["sample", { width: "100", crop: "crop", height: "", if: nil }])
             .to produce_url("#{upload_path}/c_crop,w_100/sample")
         end
       end
@@ -1056,135 +1053,135 @@ describe Cloudinary::Utils do
             '_fc_gte_0' +
             ',e_grayscale'
 
-        expect( ["sample",
-                 :if =>"width = 0 && w != 0 || height < 0 and aspect_ratio > 0 and page_count <= 0 and face_count >= 0",
-                 :effect =>"grayscale"])
+        expect(["sample",
+                :if     => "width = 0 && w != 0 || height < 0 and aspect_ratio > 0 and page_count <= 0 and face_count >= 0",
+                :effect => "grayscale"])
           .to produce_url("#{upload_path}/#{all_operators}/sample")
-    end
+      end
     end
 
     describe "variables" do
-    it "array should define a set of variables" do
-      options = {
-          :if => "face_count > 2",
-          :variables => [ ["$z", 5], ["$foo", "$z * 2"] ],
-          :crop => "scale", :width => "$foo * 200"
+      it "array should define a set of variables" do
+        options = {
+          :if        => "face_count > 2",
+          :variables => [["$z", 5], ["$foo", "$z * 2"]],
+          :crop      => "scale", :width => "$foo * 200"
         }
-      t = Cloudinary::Utils.generate_transformation_string options
-      expect(t).to eq("if_fc_gt_2,$z_5,$foo_$z_mul_2,c_scale,w_$foo_mul_200")
+        t       = Cloudinary::Utils.generate_transformation_string options
+        expect(t).to eq("if_fc_gt_2,$z_5,$foo_$z_mul_2,c_scale,w_$foo_mul_200")
+      end
+      it "'$key' should define a variable" do
+        options = { :transformation => [
+          { "$foo" => 10 },
+          { :if => "face_count > 2" },
+          { :crop => "scale", :width => "$foo * 200 / face_count" },
+          { :if => "end" }
+        ] }
+        t       = Cloudinary::Utils.generate_transformation_string options
+        expect(t).to eq("$foo_10/if_fc_gt_2/c_scale,w_$foo_mul_200_div_fc/if_end")
+      end
+      it "should support text values" do
+        expect(["sample", :effect => "$efname:100", "$efname" => "!blur!"]).to produce_url "#{upload_path}/$efname_!blur!,e_$efname:100/sample"
+
+      end
+      it "should support string interpolation" do
+        expect(["sample", :crop => "scale", :overlay => { :text => "$(start)Hello $(name)$(ext), $(no ) $( no)$(end)", :font_family => "Arial", :font_size => "18" }]).to produce_url "#{upload_path}/c_scale,l_text:Arial_18:$(start)Hello%20$(name)$(ext)%252C%20%24%28no%20%29%20%24%28%20no%29$(end)/sample"
+
+      end
+
+      it "should not change variable names even if they are keywords" do
+        options = { :transformation => [
+          { "$width" => 10 },
+          { :width => "$width + 10 + width" }
+        ] }
+
+        t = Cloudinary::Utils.generate_transformation_string options, true
+        expect(t).to eq("$width_10/w_$width_add_10_add_w")
+      end
+
+      it "should not affect user variable names containing predefined names" do
+        options = {
+          :transformation => [
+            { :variables => [["$aheight", 300], ["$mywidth", "100"]] },
+            { :width => "3 + $mywidth * 3 + 4 / 2 * initialWidth * $mywidth", :height => "3 * initialHeight + $aheight" },
+          ]
+        }
+
+        t = Cloudinary::Utils.generate_transformation_string options, true
+        expect(t).to eq("$aheight_300,$mywidth_100/h_3_mul_ih_add_$aheight,w_3_add_$mywidth_mul_3_add_4_div_2_mul_iw_mul_$mywidth")
+      end
+
+      it "should use context value as user variables" do
+        options = {
+          :variables => [["$xpos", "ctx:!x_pos!_to_f"], ["$ypos", "ctx:!y_pos!_to_f"]],
+          :crop      => "crop",
+          :x         => "$xpos * w",
+          :y         => "$ypos * h"
+        }
+
+        t = Cloudinary::Utils.generate_transformation_string options
+        expect(t).to eq("$xpos_ctx:!x_pos!_to_f,$ypos_ctx:!y_pos!_to_f,c_crop,x_$xpos_mul_w,y_$ypos_mul_h")
+      end
     end
-    it "'$key' should define a variable" do
-      options = { :transformation => [
-        {"$foo" => 10 },
-        {:if => "face_count > 2"},
-        {:crop => "scale", :width => "$foo * 200 / face_count"},
-        {:if => "end"}
-      ] }
-      t = Cloudinary::Utils.generate_transformation_string options
-      expect(t).to eq("$foo_10/if_fc_gt_2/c_scale,w_$foo_mul_200_div_fc/if_end")
-    end
-    it "should support text values" do
-      expect( ["sample", :effect => "$efname:100", "$efname" => "!blur!"]).to produce_url "#{upload_path}/$efname_!blur!,e_$efname:100/sample"
-
-    end
-    it "should support string interpolation" do
-      expect( ["sample", :crop => "scale", :overlay => {:text => "$(start)Hello $(name)$(ext), $(no ) $( no)$(end)", :font_family => "Arial", :font_size => "18"} ]).to produce_url "#{upload_path}/c_scale,l_text:Arial_18:$(start)Hello%20$(name)$(ext)%252C%20%24%28no%20%29%20%24%28%20no%29$(end)/sample"
-
-    end
-
-    it "should not change variable names even if they are keywords" do
-      options = { :transformation => [
-        {"$width" => 10},
-        {:width => "$width + 10 + width"}
-      ] }
-
-      t = Cloudinary::Utils.generate_transformation_string options, true
-      expect(t).to eq("$width_10/w_$width_add_10_add_w")
-    end
-
-    it "should not affect user variable names containing predefined names" do
-      options = {
-        :transformation => [
-          { :variables => [ ["$aheight", 300], ["$mywidth", "100"] ] },
-          { :width => "3 + $mywidth * 3 + 4 / 2 * initialWidth * $mywidth", :height => "3 * initialHeight + $aheight" },
-        ]
-      }
-
-      t = Cloudinary::Utils.generate_transformation_string options, true
-      expect(t).to eq("$aheight_300,$mywidth_100/h_3_mul_ih_add_$aheight,w_3_add_$mywidth_mul_3_add_4_div_2_mul_iw_mul_$mywidth")
-    end
-
-    it "should use context value as user variables" do
-      options = {
-        :variables => [["$xpos", "ctx:!x_pos!_to_f"], ["$ypos", "ctx:!y_pos!_to_f"]],
-        :crop => "crop",
-        :x => "$xpos * w",
-        :y => "$ypos * h"
-      }
-
-      t = Cloudinary::Utils.generate_transformation_string options
-      expect(t).to eq("$xpos_ctx:!x_pos!_to_f,$ypos_ctx:!y_pos!_to_f,c_crop,x_$xpos_mul_w,y_$ypos_mul_h")
-    end
-  end
 
     describe "context" do
-    it 'should escape pipe and backslash characters' do
-      context = {"caption" => "different = caption", "alt2" => "alt|alternative"}
-      result = Cloudinary::Utils.encode_context(context)
-      expect(result).to eq("caption=different \\= caption|alt2=alt\\|alternative")
+      it 'should escape pipe and backslash characters' do
+        context = { "caption" => "different = caption", "alt2" => "alt|alternative" }
+        result  = Cloudinary::Utils.encode_context(context)
+        expect(result).to eq("caption=different \\= caption|alt2=alt\\|alternative")
                             .or eq("alt2=alt\\|alternative|caption=different \\= caption")
 
+      end
+      it 'should support symbols' do
+        context = { :symbol_key => "string_value", "string_key" => :symbol_value }
+        result  = Cloudinary::Utils.encode_context(context)
+        expect(result).to eq("string_key=symbol_value|symbol_key=string_value")
+                            .or eq("symbol_key=string_value|string_key=symbol_value")
+      end
     end
-    it 'should support symbols' do
-      context = {:symbol_key => "string_value", "string_key" => :symbol_value}
-      result = Cloudinary::Utils.encode_context(context)
-      expect(result).to eq("string_key=symbol_value|symbol_key=string_value")
-                  .or eq("symbol_key=string_value|string_key=symbol_value")
-    end
-  end
 
     describe "customFunction" do
-    custom_function_wasm = {
-      :function_type => 'wasm',
-      :source => 'blur.wasm'
-    }
-    custom_function_wasm_str = 'wasm:blur.wasm'
+      custom_function_wasm     = {
+        :function_type => 'wasm',
+        :source        => 'blur.wasm'
+      }
+      custom_function_wasm_str = 'wasm:blur.wasm'
 
-    custom_function_remote = {
-      :function_type => 'remote',
-      :source => 'https://df34ra4a.execute-api.us-west-2.amazonaws.com/default/cloudinaryFunction'
-    }
-    custom_function_remote_str = 'remote:aHR0cHM6Ly9kZjM0cmE0YS5leGVjdXRlLWFwaS51cy13ZXN0LTIuYW1hem9uYXdzLmNvbS9kZWZhdWx0L2Nsb3VkaW5hcnlGdW5jdGlvbg=='
+      custom_function_remote     = {
+        :function_type => 'remote',
+        :source        => 'https://df34ra4a.execute-api.us-west-2.amazonaws.com/default/cloudinaryFunction'
+      }
+      custom_function_remote_str = 'remote:aHR0cHM6Ly9kZjM0cmE0YS5leGVjdXRlLWFwaS51cy13ZXN0LTIuYW1hem9uYXdzLmNvbS9kZWZhdWx0L2Nsb3VkaW5hcnlGdW5jdGlvbg=='
 
-    it 'should accept a string value' do
-      actual = Cloudinary::Utils.generate_transformation_string :custom_function => custom_function_wasm_str
-      expect( actual).to eq("fn_#{custom_function_wasm_str}")
-    end
-    it 'should accept a hash of options' do
-      actual = Cloudinary::Utils.generate_transformation_string :custom_function => custom_function_wasm
-      expect( actual).to eq("fn_#{custom_function_wasm_str}")
-    end
-    it 'should base64 encoded URL for a remote function' do
-      actual = Cloudinary::Utils.generate_transformation_string :custom_function => custom_function_remote
-      expect( actual).to eq("fn_#{custom_function_remote_str}")
+      it 'should accept a string value' do
+        actual = Cloudinary::Utils.generate_transformation_string :custom_function => custom_function_wasm_str
+        expect(actual).to eq("fn_#{custom_function_wasm_str}")
+      end
+      it 'should accept a hash of options' do
+        actual = Cloudinary::Utils.generate_transformation_string :custom_function => custom_function_wasm
+        expect(actual).to eq("fn_#{custom_function_wasm_str}")
+      end
+      it 'should base64 encoded URL for a remote function' do
+        actual = Cloudinary::Utils.generate_transformation_string :custom_function => custom_function_remote
+        expect(actual).to eq("fn_#{custom_function_remote_str}")
+
+      end
+
+      it 'should accept a string value' do
+        actual = Cloudinary::Utils.generate_transformation_string :custom_pre_function => custom_function_wasm_str
+        expect(actual).to eq("fn_pre:#{custom_function_wasm_str}")
+      end
+      it 'should accept a hash of options' do
+        actual = Cloudinary::Utils.generate_transformation_string :custom_pre_function => custom_function_wasm
+        expect(actual).to eq("fn_pre:#{custom_function_wasm_str}")
+      end
+      it 'should base64 encoded URL for a remote function' do
+        actual = Cloudinary::Utils.generate_transformation_string :custom_pre_function => custom_function_remote
+        expect(actual).to eq("fn_pre:#{custom_function_remote_str}")
+
+      end
 
     end
-
-    it 'should accept a string value' do
-      actual = Cloudinary::Utils.generate_transformation_string :custom_pre_function => custom_function_wasm_str
-      expect( actual).to eq("fn_pre:#{custom_function_wasm_str}")
-    end
-    it 'should accept a hash of options' do
-      actual = Cloudinary::Utils.generate_transformation_string :custom_pre_function => custom_function_wasm
-      expect( actual).to eq("fn_pre:#{custom_function_wasm_str}")
-    end
-    it 'should base64 encoded URL for a remote function' do
-      actual = Cloudinary::Utils.generate_transformation_string :custom_pre_function => custom_function_remote
-      expect( actual).to eq("fn_pre:#{custom_function_remote_str}")
-
-    end
-
-  end
   end
 
   describe ".verify_api_response_signature" do
@@ -1323,10 +1320,10 @@ describe Cloudinary::Utils do
 
   it "should download a sprite" do
     sprite_test_tag = "sprite_tag#{SUFFIX}"
-    url1 = "https://res.cloudinary.com/demo/image/upload/sample"
-    url2 = "https://res.cloudinary.com/demo/image/upload/car"
+    url1            = "https://res.cloudinary.com/demo/image/upload/sample"
+    url2            = "https://res.cloudinary.com/demo/image/upload/car"
 
-    url_from_tag = Cloudinary::Utils.download_generated_sprite(sprite_test_tag)
+    url_from_tag  = Cloudinary::Utils.download_generated_sprite(sprite_test_tag)
     url_from_urls = URI.decode_www_form_component(Cloudinary::Utils.download_generated_sprite(:urls => [url1, url2]))
 
     expect(url_from_tag).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/sprite")
@@ -1348,10 +1345,10 @@ describe Cloudinary::Utils do
 
   it "should download multi" do
     multi_test_tag = "multi_test_tag_#{UNIQUE_TEST_ID}"
-    url1 = "https://res.cloudinary.com/demo/image/upload/sample"
-    url2 = "https://res.cloudinary.com/demo/image/upload/car"
+    url1           = "https://res.cloudinary.com/demo/image/upload/sample"
+    url2           = "https://res.cloudinary.com/demo/image/upload/car"
 
-    url_from_tag = Cloudinary::Utils.download_multi(multi_test_tag)
+    url_from_tag  = Cloudinary::Utils.download_multi(multi_test_tag)
     url_from_urls = URI.decode_www_form_component(Cloudinary::Utils.download_multi(:urls => [url1, url2]))
 
     expect(url_from_tag).to start_with("https://api.cloudinary.com/v1_1/#{Cloudinary.config.cloud_name}/image/multi")
