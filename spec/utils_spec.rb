@@ -1124,6 +1124,30 @@ describe Cloudinary::Utils do
       end
     end
 
+    describe "expression normalization" do
+      value            = "width * 2"
+      normalized_value = "w_mul_2"
+
+      normalized_params =  %w[angle aspect_ratio dpr effect height opacity quality radius width x y zoom]
+      normalized_params.each do |param|
+        it "should normalize value in #{param}" do
+          # c_scale needed to test h_ and w_ parameters that are ignored without crop mode
+          result = Cloudinary::Utils.generate_transformation_string({ param => value , :crop => "scale"})
+          expect(result).to include(normalized_value) and not include(value)
+
+        end
+      end
+
+      non_normalized_params =  Cloudinary::Utils::SIMPLE_TRANSFORMATION_PARAMS.values.concat %w[overlay underlay]
+      non_normalized_params.each do |param|
+        it "should not normalize value in #{param}" do
+          result = Cloudinary::Utils.generate_transformation_string({ param => value})
+          expect(result).to include(value) and not include(normalized_value)
+
+        end
+      end
+    end
+
     describe "context" do
       it 'should escape pipe and backslash characters' do
         context = { "caption" => "different = caption", "alt2" => "alt|alternative" }
