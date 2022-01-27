@@ -1017,6 +1017,22 @@ class Cloudinary::Api
     call_metadata_api(:post, uri, params, options)
   end
 
+  # Reorders metadata fields.
+  #
+  # @param [String] order_by  Criteria for the order (one of the fields 'label', 'external_id', 'created_at').
+  # @param [String] direction Optional (gets either asc or desc).
+  # @param [Hash]   options   Configuration options.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  def self.reorder_metadata_fields(order_by, direction = nil, options = {})
+    uri    = ["order"]
+    params = { :order_by => order_by, :direction => direction }
+
+    call_metadata_api(:put, uri, params, options)
+  end
+
   protected
 
   # Execute a call api for input params.

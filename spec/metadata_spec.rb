@@ -393,6 +393,47 @@ describe 'Metadata' do
     end
   end
 
+  describe 'reorder_metadata_fields' do
+    it 'should reorder the metadata fields for label order by asc' do
+      allow(RestClient::Request).to receive(:execute) do |req|
+        expect(req[:method]).to eq(:put)
+        expect(req[:url]).to end_with('/metadata_fields/order')
+        expect(JSON.parse(req[:payload])).to match(
+          'order_by' => 'label',
+          'direction' => 'asc'
+        )
+      end
+
+      @api.reorder_metadata_fields('label', 'asc')
+    end
+
+    it 'should reorder the metadata fields for external_id order by desc' do
+      allow(RestClient::Request).to receive(:execute) do |req|
+        expect(req[:method]).to eq(:put)
+        expect(req[:url]).to end_with('/metadata_fields/order')
+        expect(JSON.parse(req[:payload])).to match(
+          'order_by' => 'external_id',
+          'direction' => 'desc'
+        )
+      end
+
+      @api.reorder_metadata_fields('external_id', 'desc')
+    end
+
+    it 'should reorder the metadata fields for created_at order by asc' do
+      allow(RestClient::Request).to receive(:execute) do |req|
+        expect(req[:method]).to eq(:put)
+        expect(req[:url]).to end_with('/metadata_fields/order')
+        expect(JSON.parse(req[:payload])).to match(
+          'order_by' => 'created_at',
+          'direction' => 'asc'
+        )
+      end
+
+      @api.reorder_metadata_fields('created_at', 'asc')
+    end
+  end
+
   describe 'restore_metadata_field_datasource' do
     it 'should restore a deleted entry in a metadata field datasource' do
       # Begin by deleting a datasource entry
