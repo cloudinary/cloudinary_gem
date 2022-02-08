@@ -697,4 +697,27 @@ describe Cloudinary::Uploader do
     expect(pdf_result["url"]).to include("w_111")
     expect(pdf_result["url"]).to end_with(".pdf")
   end
+
+  it "should upload folder decoupling" do
+    # should pass folder decoupling params
+
+    fd_params = {
+      :public_id_prefix => FD_PID_PREFIX,
+      :asset_folder => ASSET_FOLDER,
+      :display_name => DISPLAY_NAME,
+      :use_filename_as_display_name => true,
+      :folder => TEST_FOLDER
+    }.merge(:tags => [TEST_TAG, TIMESTAMP_TAG])
+
+    expected = {
+      [:payload, :public_id_prefix] => FD_PID_PREFIX,
+      [:payload, :asset_folder] => ASSET_FOLDER,
+      [:payload, :display_name] => DISPLAY_NAME,
+      [:payload, :use_filename_as_display_name] => 1,
+      [:payload, :folder] => TEST_FOLDER
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+    Cloudinary::Uploader.upload(TEST_IMAGE_URL, fd_params)
+  end
 end
