@@ -153,6 +153,24 @@ class Cloudinary::Api
     call_api(:get, uri, only(options, :tags, :context, :moderations).merge(:public_ids => public_ids), options)
   end
 
+  # Lists assets with the specified asset IDs.
+  #
+  # @param [Object] asset_ids The requested asset IDs.
+  # @param [Hash]   options   The optional parameters. See the
+  # <a href=https://cloudinary.com/documentation/admin_api#get_resources target="_blank"> Admin API</a> documentation.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  #
+  # @see https://cloudinary.com/documentation/admin_api#get_resources
+  def self.resources_by_asset_ids(asset_ids, options={})
+    uri = "resources/by_asset_ids"
+    params = only(options, :public_ids, :tags, :moderations, :context)
+    params[:asset_ids] = asset_ids
+    call_api(:get, uri, params, options)
+  end
+
   # Returns the details of the specified asset and all its derived assets.
   #
   # Note that if you only need details about the original asset,
