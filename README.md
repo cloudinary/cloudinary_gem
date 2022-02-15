@@ -38,10 +38,13 @@ the [Ruby on Rails SDK Guide](https://cloudinary.com/documentation/rails_integra
 
 ## Version Support
 
-| SDK Version | Ruby 1.9.3 | Ruby 2.x | Ruby 3.x | Rails 5.x | Rails 6.x |
-|-------------|------------|----------|----------|-----------|-----------|
-| 1.x         | v          | v        | v        | v         | v         |
+| SDK Version | Ruby 1.9.3 | Ruby 2.x | Ruby 3.x |
+|-------------|------------|----------|----------|
+| 1.x         | v          | v        | v        |
 
+| SDK Version | Rails 5.x | Rails 6.x |
+|-------------|-----------|-----------|
+| 1.x         | v         | v         |
 
 ## Installation
 
