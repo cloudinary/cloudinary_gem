@@ -21,6 +21,7 @@ class Cloudinary::Uploader
       :access_control            => Cloudinary::Utils.json_array_param(options[:access_control]),
       :access_mode               => options[:access_mode],
       :allowed_formats           => Cloudinary::Utils.build_array(options[:allowed_formats]).join(","),
+      :asset_folder              => options[:asset_folder],
       :async                     => Cloudinary::Utils.as_safe_bool(options[:async]),
       :auto_tagging              => options[:auto_tagging] && options[:auto_tagging].to_f,
       :background_removal        => options[:background_removal],
@@ -33,6 +34,7 @@ class Cloudinary::Uploader
       :custom_coordinates        => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
       :detection                 => options[:detection],
       :discard_original_filename => Cloudinary::Utils.as_safe_bool(options[:discard_original_filename]),
+      :display_name              => options[:display_name],
       :eager                     => Cloudinary::Utils.build_eager(options[:eager]),
       :eager_async               => Cloudinary::Utils.as_safe_bool(options[:eager_async]),
       :eager_notification_url    => options[:eager_notification_url],
@@ -53,6 +55,7 @@ class Cloudinary::Uploader
       :phash                     => Cloudinary::Utils.as_safe_bool(options[:phash]),
       :proxy                     => options[:proxy],
       :public_id                 => options[:public_id],
+      :public_id_prefix          => options[:public_id_prefix],
       :quality_analysis          => Cloudinary::Utils.as_safe_bool(options[:quality_analysis]),
       :quality_override          => options[:quality_override],
       :raw_convert               => options[:raw_convert],
@@ -66,6 +69,7 @@ class Cloudinary::Uploader
       :unique_filename           => Cloudinary::Utils.as_safe_bool(options[:unique_filename]),
       :upload_preset             => options[:upload_preset],
       :use_filename              => Cloudinary::Utils.as_safe_bool(options[:use_filename]),
+      :use_filename_as_display_name => Cloudinary::Utils.as_safe_bool(options[:use_filename_as_display_name]),
       :accessibility_analysis    => Cloudinary::Utils.as_safe_bool(options[:accessibility_analysis]),
       :metadata                  => Cloudinary::Utils.encode_context(options[:metadata])
     }
