@@ -301,6 +301,27 @@ describe Cloudinary::Api do
     expect(tags).to be_blank
   end
 
+  it "should get uploaded image details by asset_id" do
+    result = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    resource = @api.resource_by_asset_id(result["asset_id"])
+    expect(resource).not_to be_empty
+    expect(resource["asset_id"]).to eq(result["asset_id"])
+    expect(resource).not_to have_key("accessibility_analysis")
+    expect(resource).not_to have_key("colors")
+    expect(resource).not_to have_key("exif")
+    expect(resource).not_to have_key("faces")
+  end
+
+  it "should get uploaded image details by asset_id with extra info" do
+    result = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    resource = @api.resource_by_asset_id(result["asset_id"], { colors: true, faces: true, exif: true })
+    expect(resource).not_to be_empty
+    expect(resource["asset_id"]).to eq(result["asset_id"])
+    expect(resource).to have_key("colors")
+    expect(resource).to have_key("exif")
+    expect(resource).to have_key("faces")
+  end
+
   describe "backup resource" do
     let(:public_id) { "api_test_backup_#{SUFFIX}" }
 

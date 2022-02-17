@@ -135,6 +135,24 @@ class Cloudinary::Api
     call_api(:get, uri, params, options)
   end
 
+  # Returns the details of the specified asset and all its derived assets by asset id.
+  # 
+  # Note that if you only need details about the original asset,
+  # you can also use the Uploader::upload or Uploader::explicit methods, which return the same information and
+  # are not rate limited.
+  # 
+  # @param [String] asset_id The Asset ID of the asset.
+  # @param [Hash]   options  The optional parameters. See the <a href=https://cloudinary.com/documentation/admin_api#get_the_details_of_a_single_resource target="_blank"> Admin API</a> documentation.
+  # 
+  # @return [Cloudinary::Api::Response]
+  # 
+  # @see https://cloudinary.com/documentation/admin_api#get_the_details_of_a_single_resource
+  def self.resource_by_asset_id(asset_id, options={})
+    uri    = "resources/#{asset_id}"
+    params = prepare_resource_details_params(options)
+    call_api(:get, uri, params, options)
+  end
+  
   # Lists assets with the specified public IDs.
   #
   # @param [String|Array] public_ids The requested public_ids (up to 100).
@@ -172,22 +190,7 @@ class Cloudinary::Api
     resource_type = options[:resource_type] || "image"
     type          = options[:type] || "upload"
     uri           = "resources/#{resource_type}/#{type}/#{public_id}"
-    call_api(:get, uri,
-             only(options,
-                  :cinemagraph_analysis,
-                  :colors,
-                  :coordinates,
-                  :exif,
-                  :faces,
-                  :image_metadata,
-                  :max_results,
-                  :pages,
-                  :phash,
-                  :quality_analysis,
-                  :derived_next_cursor,
-                  :accessibility_analysis,
-                  :versions
-             ), options)
+    call_api(:get, uri, prepare_resource_details_params(options), options)
   end
 
   # Reverts to the latest backed up version of the specified deleted assets.
@@ -1066,6 +1069,27 @@ class Cloudinary::Api
     uri = ["metadata_fields", uri].reject(&:empty?).join("/")
 
     call_api(method, uri, params, options)
+  end
+
+  # Prepares optional parameters for asset/assetByAssetId API calls.
+  # @param  [Hash]   options Additional options
+  # @return [Object]         Optional parameters
+  def self.prepare_resource_details_params(options)
+    only(options,
+         :exif,
+         :colors,
+         :faces,
+         :quality_analysis,
+         :image_metadata,
+         :phash,
+         :pages,
+         :cinemagraph_analysis,
+         :coordinates,
+         :max_results,
+         :derived_next_cursor,
+         :accessibility_analysis,
+         :versions
+    )
   end
 
   # Filter hash with specific keys.
