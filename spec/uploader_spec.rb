@@ -16,6 +16,10 @@ describe Cloudinary::Uploader do
                   type: "string",
                   label: METADATA_FIELD_EXTERNAL_ID
 
+  FD_PID_PREFIX = "fd_public_id_prefix"
+  ASSET_FOLDER  = "asset_folder"
+  DISPLAY_NAME  = "test"
+
   before(:all) do
     Cloudinary.reset_config
 
@@ -140,6 +144,19 @@ describe Cloudinary::Uploader do
     }
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
     Cloudinary::Uploader.explicit('sample', :type => "upload", :cinemagraph_analysis => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
+  end
+
+  it "should support the dynamic folder parameters for upload" do
+    expected ={
+      [:payload, :public_id_prefix] => FD_PID_PREFIX,
+      [:payload, :asset_folder] => UNIQUE_TEST_FOLDER,
+      [:payload, :display_name] => DISPLAY_NAME,
+      [:payload, :use_filename_as_display_name] => 1
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :public_id_prefix => FD_PID_PREFIX,
+                                :asset_folder => UNIQUE_TEST_FOLDER, :display_name => DISPLAY_NAME,
+                                :use_filename_as_display_name => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
   end
 
   describe '.rename' do
