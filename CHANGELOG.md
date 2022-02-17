@@ -1,3 +1,26 @@
+1.22.0 / 2022-02-17
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for OAuth authentication
+  * Add support for Dynamic Folder upload parameters
+  * Add support for `reorder_metadata_fields` Admin API
+  * Add support for `resources_by_asset_ids` Admin API
+  * Add support for `resource_by_asset_id` Admin API
+  * Add support for fetch url in overlay
+  * Add support for Ruby 3.0
+  * Add missing docstrings for Admin API methods
+
+Other Changes
+-------------
+
+  * Ignore `URL` in `AuthToken` generation when `ACL` is provided
+  * Update `README`
+  * Add tests for expression normalization
+  * Update Travis with current Ruby versions
+
 1.21.0 / 2021-08-23
 ==================
 
