@@ -1,0 +1,8 @@
+default: &default
+  api_key: '<%= ENV['CLOUDINARY_API_KEY'] %>'
+test:
+  <<: *default
+  cloud_name: test_cloud
+production:
+  <<: *default
+  cloud_name: production_cloud
