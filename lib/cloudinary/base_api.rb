@@ -19,9 +19,12 @@ module Cloudinary::BaseApi
         # This sets the instantiated self as the response Hash
         update Cloudinary::Api.parse_json_response response
 
-        @rate_limit_allowed   = response.headers[:x_featureratelimit_limit].to_i if response.headers[:x_featureratelimit_limit]
-        @rate_limit_reset_at  = Time.parse(response.headers[:x_featureratelimit_reset]) if response.headers[:x_featureratelimit_reset]
-        @rate_limit_remaining = response.headers[:x_featureratelimit_remaining].to_i if response.headers[:x_featureratelimit_remaining]
+        # According to RFC 2616, header names are case-insensitive.
+        lc_headers = response.headers.transform_keys(&:downcase)
+
+        @rate_limit_allowed   = lc_headers[:x_featureratelimit_limit].to_i if lc_headers[:x_featureratelimit_limit]
+        @rate_limit_reset_at  = Time.parse(lc_headers[:x_featureratelimit_reset]) if lc_headers[:x_featureratelimit_reset]
+        @rate_limit_remaining = lc_headers[:x_featureratelimit_remaining].to_i if lc_headers[:x_featureratelimit_remaining]
       end
     end
   end

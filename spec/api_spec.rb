@@ -921,4 +921,21 @@ describe Cloudinary::Api::Response do
 
     it_behaves_like 'a Hash'
   end
+
+  it 'tests rate limits' do
+    results = []
+    results << Cloudinary::Api.ping
+    results << Cloudinary::Api.root_folders
+    results << Cloudinary::Api.resource_types
+
+    results.each do |result|
+      expect(result.rate_limit_reset_at).to be_kind_of(Time)
+      expect(result.rate_limit_allowed).to be_kind_of(Integer)
+      expect(result.rate_limit_remaining).to be_kind_of(Integer)
+
+      expect(result.rate_limit_allowed).to be > 0
+      expect(result.rate_limit_remaining).to be > 0
+      expect(result.rate_limit_reset_at).not_to be_nil
+    end
+  end
 end
