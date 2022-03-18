@@ -81,10 +81,18 @@ describe Cloudinary::Search do
     test_id_1 = "#{prefix}_1"
     test_id_2   = "#{prefix}_2"
     test_id_3   = "#{prefix}_3"
+    m_asset_ids = {}
+
     before(:all) do
-      Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_1, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=in_review')
-      Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_2, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=new')
-      Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_3, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=validated')
+      result = Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_1, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=in_review')
+      m_asset_ids[test_id_1] = result["asset_id"]
+
+      result = Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_2, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=new')
+      m_asset_ids[test_id_2] = result["asset_id"]
+
+      result = Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_3, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=validated')
+      m_asset_ids[test_id_3] = result["asset_id"]
+
       sleep(1)
     end
 
@@ -131,6 +139,16 @@ describe Cloudinary::Search do
         expect(res.key?('image_metadata')).to eq true
         expect(res['tags'].count).to eq 3
       end
+    end
+
+    it 'returns resource by asset_id using colon' do
+      results = Cloudinary::Search.expression("asset_id:#{m_asset_ids[test_id_1]}").execute
+      expect(results['resources'].count).to eq 1
+    end
+
+    it 'returns resource by asset_id using equal sign' do
+      results = Cloudinary::Search.expression("asset_id=#{m_asset_ids[test_id_1]}").execute
+      expect(results['resources'].count).to eq 1
     end
   end
 end
