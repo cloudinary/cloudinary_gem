@@ -127,18 +127,30 @@ class Cloudinary::AccountApi
     call_account_api(:get, ['users', user_id], {}, options.merge(content_type: :json))
   end
 
-  # Lists users in the account.
-  # @param [Boolean] pending Limit results to pending users (true), users that are not pending (false), or all users (nil, the default)
-  # @param [Array<String>] user_ids A list of up to 100 user IDs. When provided, other parameters are ignored.
-  # @param [String] prefix Returns users where the name or email address begins with the specified case-insensitive string.
-  # @param [String] sub_account_id Only returns users who have access to the specified account.
-  # @param [Object] options additional options
+  # Get a list of the users according to filters.
+  #
+  # @param [Boolean]        pending        Optional. Limit results to pending users (true), users that are not pending (false), or all users (null)
+  # @param [Array<String>]  user_ids       Optional. List of user IDs. Up to 100
+  # @param [String]         prefix         Optional. Search by prefix of the user's name or email. Case-insensitive
+  # @param [String]         sub_account_id Optional. Return only users who have access to the given sub-account
+  # @param [Object]         options        Generic advanced options map, see online documentation.
+  # @option options [Boolean] :last_login  Optional. Return only users that last logged in in the specified range of dates (true),
+  #                                                users that didn't last logged in in that range (false), or all users (null).
+  # @option options [Date]    :from        Optional. Last login start date.
+  # @option options [Date]    :to          Optional. Last login end date.
+  #
+  # @return [Cloudinary::Api::Response] the users' details.
+  #
+  # @raise [Cloudinary::Api::Error] If the request fails.
   def self.users(pending = nil, user_ids = [], prefix = nil, sub_account_id = nil, options = {})
     params = {
       ids:            user_ids,
       prefix:         prefix,
       sub_account_id: sub_account_id,
-      pending:        pending
+      pending:        pending,
+      last_login:     options[:last_login].to_s,
+      from:           Cloudinary::Utils.to_usage_api_date_format(options[:from]),
+      to:             Cloudinary::Utils.to_usage_api_date_format(options[:to])
     }
 
     call_account_api(:get, 'users', params, options.merge(content_type: :json))
