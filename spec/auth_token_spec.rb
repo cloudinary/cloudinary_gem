@@ -82,6 +82,32 @@ describe 'auth_token' do
       token_with_url = Cloudinary::Utils.generate_auth_token(token_options)
       expect(token).to eq(token_with_url)
     end
+
+    it "should allow multiple patterns in acl" do
+      token_options = {
+        :start_time => 22222222,
+        :key => KEY,
+        :duration => 3600,
+        :acl => ["/image/authenticated/*", "/image2/authenticated/*", "/image3/authenticated/*"]
+      }
+      cookie_token = Cloudinary::Utils.generate_auth_token(token_options)
+
+      expect(cookie_token).to include('~acl=%2fimage%2fauthenticated%2f*!%2fimage2%2fauthenticated%2f*!%2fimage3%2fauthenticated%2f*~')
+    end
+
+    it "should allow public acl initialization from map" do
+      Cloudinary.config.auth_token = {}
+
+      options = {
+        :acl => ["foo"],
+        :expiration => 100,
+        :key => KEY,
+        :token_name => "token"
+      }
+      token = Cloudinary::Utils.generate_auth_token(options)
+
+      expect(token).to eq('token=exp=100~acl=foo~hmac=88be250f3a912add862959076ee74f392fa0959a953fddd9128787d5c849efd9')
+    end
   end
   describe "authentication token" do
     it "should generate token string" do

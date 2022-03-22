@@ -21,7 +21,12 @@ module Cloudinary
       start = options[:start_time]
       expiration = options[:expiration]
       ip = options[:ip]
+
       acl = options[:acl]
+      if acl.present?
+        acl = acl.is_a?(String) ? [acl] : acl
+      end
+
       duration = options[:duration]
       url = options[:url]
       start = Time.new.getgm.to_i if start == 'now'
@@ -41,9 +46,9 @@ module Cloudinary
       token << "ip=#{ip}" if ip
       token << "st=#{start}" if start
       token << "exp=#{expiration}"
-      token << "acl=#{escape_to_lower(acl)}" if acl
+      token << "acl=#{escape_to_lower(acl.join('!'))}" if acl && acl.size > 0
       to_sign = token.clone
-      to_sign << "url=#{escape_to_lower(url)}" if url && acl.blank?
+      to_sign << "url=#{escape_to_lower(url)}" if url && (acl.blank? || acl.size == 0)
       auth = digest(to_sign.join(SEPARATOR), key)
       token << "hmac=#{auth}"
       "#{name}=#{token.join(SEPARATOR)}"
