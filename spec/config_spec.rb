@@ -106,5 +106,12 @@ describe Cloudinary do
       expect(Cloudinary::config.api_secret).to eq(API_SECRET)
       expect(Cloudinary::config.oauth_token).to eq(OAUTH_TOKEN)
     end
+
+    it "supports config from Yaml, with aliases and ERB interpolation" do
+      ENV["CLOUDINARY_CONFIG_DIR"] = File.join(File.dirname(__FILE__), 'data')
+      ENV["CLOUDINARY_API_KEY"] = 'api_key'
+      expect(Cloudinary::config.cloud_name).to eq('test_cloud')
+      expect(Cloudinary::config.api_key).to eq('api_key')
+    end
   end
 end

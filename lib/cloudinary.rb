@@ -145,7 +145,18 @@ module Cloudinary
   #
   # @return [OpenStruct]
   def self.import_settings_from_file
-    OpenStruct.new((YAML.load(ERB.new(IO.read(config_dir.join("cloudinary.yml"))).result)[config_env] rescue {}))
+    yaml_env_config = begin
+      yaml_source = ERB.new(IO.read(config_dir.join("cloudinary.yml"))).result
+      yaml_config = if YAML.respond_to?(:safe_load)
+                      YAML.safe_load(yaml_source, aliases: true)
+                    else
+                      YAML.load(yaml_source)
+                    end
+      yaml_config[config_env]
+    rescue StandardError
+      {}
+    end
+    OpenStruct.new(yaml_env_config)
   end
 
   private_class_method :import_settings_from_file
