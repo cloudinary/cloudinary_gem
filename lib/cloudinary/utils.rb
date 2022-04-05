@@ -885,7 +885,7 @@ class Cloudinary::Utils
 
   # Based on CGI::unescape. In addition keeps '+' character as is
   def self.smart_unescape(string)
-    CGI.unescape(string.sub('+', '%2B'))
+    CGI.unescape(string.gsub('+', '%2B'))
   end
 
   def self.random_public_id

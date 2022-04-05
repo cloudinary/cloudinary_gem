@@ -911,6 +911,7 @@ describe Cloudinary::Utils do
     [
       ["a b", "a%20b"],
       ["a+b", "a%2Bb"],
+      ["a+b+c", "a%2Bb%2Bc"],
       ["a%20b", "a%20b"],
       ["a-b", "a-b"],
       ["a??b", "a%3F%3Fb"],
