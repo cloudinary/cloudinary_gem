@@ -1186,7 +1186,8 @@ class Cloudinary::Utils
   # A video codec parameter can be either a String or a Hash.
   #
   # @param [Object] param <code>vc_<codec>[ : <profile> : [<level> : [<b_frames>]]]</code>
-  #                       or <code>{ codec: 'h264', profile: 'basic', level: '3.1', b_frames: false }</code>
+  #                       or <code>{ codec: 'h264', profile: 'basic', level: '3.1' }</code>
+  #                       or <code>{ codec: 'h265', profile: 'auto', level: 'auto', b_frames: false }</code>
   # @return [String] <code><codec> : <profile> : [<level> : [<b_frames>]]]</code> if a Hash was provided
   #                   or the param if a String was provided.
   #                   Returns NIL if param is not a Hash or String

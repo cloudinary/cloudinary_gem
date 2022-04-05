@@ -47,13 +47,13 @@ describe Cloudinary::Utils do
         expect(["video_id", {
           :resource_type => 'video',
           :video_codec   => {
-            :codec    => 'h264',
+            :codec    => 'h265',
             :profile  => 'auto',
             :level    => 'auto',
             :b_frames => true
           }
         }])
-          .to produce_url("#{upload_path}/vc_h264:auto:auto/video_id")
+          .to produce_url("#{upload_path}/vc_h265:auto:auto/video_id")
                 .and empty_options
       end
 
@@ -61,13 +61,13 @@ describe Cloudinary::Utils do
         expect(["video_id", {
           :resource_type => 'video',
           :video_codec   => {
-            :codec    => 'h264',
+            :codec    => 'h265',
             :profile  => 'auto',
             :level    => 'auto',
             :b_frames => false
           }
         }])
-          .to produce_url("#{upload_path}/vc_h264:auto:auto:bframes_no/video_id")
+          .to produce_url("#{upload_path}/vc_h265:auto:auto:bframes_no/video_id")
                 .and empty_options
       end
     end
