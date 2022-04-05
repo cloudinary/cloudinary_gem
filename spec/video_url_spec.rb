@@ -42,6 +42,34 @@ describe Cloudinary::Utils do
           .to produce_url("#{upload_path}/vc_h264:basic:3.1/video_id")
                 .and empty_options
       end
+
+      it "should support a value equal auto" do
+        expect(["video_id", {
+          :resource_type => 'video',
+          :video_codec   => {
+            :codec    => 'h265',
+            :profile  => 'auto',
+            :level    => 'auto',
+            :b_frames => true
+          }
+        }])
+          .to produce_url("#{upload_path}/vc_h265:auto:auto/video_id")
+                .and empty_options
+      end
+
+      it "should support a b_frames parameter" do
+        expect(["video_id", {
+          :resource_type => 'video',
+          :video_codec   => {
+            :codec    => 'h265',
+            :profile  => 'auto',
+            :level    => 'auto',
+            :b_frames => false
+          }
+        }])
+          .to produce_url("#{upload_path}/vc_h265:auto:auto:bframes_no/video_id")
+                .and empty_options
+      end
     end
     context ":audio_codec" do
       it 'should support a string value' do
