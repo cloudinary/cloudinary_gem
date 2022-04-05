@@ -154,8 +154,16 @@ module Cloudinary::CarrierWave
     format = Cloudinary::PreloadedFile.split_format(original_filename || "").last
     return format || "" if resource_type == "raw"
     format = requested_format || format || default_format
- 
+
     format = format.to_s.downcase
     Cloudinary::FORMAT_ALIASES[format] || format
+  end
+
+  def store!(new_file=nil)
+    super
+
+    column = model.send(:_mounter, mounted_as).send(:serialization_column)
+    identifier = model.send(:attribute, column)
+    retrieve_from_store!(identifier) unless identifier.nil?
   end
 end
