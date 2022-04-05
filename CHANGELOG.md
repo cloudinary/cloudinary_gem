@@ -1,3 +1,21 @@
+1.23.0 / 2022-04-05
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for multiple ACLs in `AuthToken`
+  * Add support for disable b-frames for video codec
+  * Add support for aliases in Configuration
+  * Add support for `filename` upload parameter
+
+Other Changes
+-------------
+
+  * Fix escaping of special characters in `public_id`
+  * Fix support of the lowercase response headers
+  * Fix CarrierWave file retrieval after store
+
 1.22.0 / 2022-02-17
 ==================
 
