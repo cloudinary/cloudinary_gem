@@ -77,13 +77,13 @@ describe Cloudinary do
       expect(Cloudinary.account_config.cloud_name).to be_nil
       expect(Cloudinary.config.cloud_name).to eq "test123"
     end
-    
+
     it "overwrites only existing keys from environment" do
       ENV["CLOUDINARY_CLOUD_NAME"] = "c"
       ENV["CLOUDINARY_API_KEY"] = "key_from_env"
 
       allow(Cloudinary).to receive(:import_settings_from_file) { OpenStruct.new(api_secret: "secret_from_settings") }
-      
+
       expect(Cloudinary.config.cloud_name).to eq "c"
       expect(Cloudinary.config.api_key).to eq "key_from_env"
       expect(Cloudinary.config.api_secret).to eq "secret_from_settings"
@@ -108,6 +108,8 @@ describe Cloudinary do
     end
 
     it "supports config from Yaml, with aliases and ERB interpolation" do
+      skip if RUBY_VERSION < '2.6'
+
       ENV.delete("CLOUDINARY_URL")
       ENV["CLOUDINARY_CONFIG_DIR"] = File.join(File.dirname(__FILE__), 'data')
       ENV["CLOUDINARY_API_KEY"] = 'api_key'
