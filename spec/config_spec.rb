@@ -108,6 +108,7 @@ describe Cloudinary do
     end
 
     it "supports config from Yaml, with aliases and ERB interpolation" do
+      ENV.delete("CLOUDINARY_URL")
       ENV["CLOUDINARY_CONFIG_DIR"] = File.join(File.dirname(__FILE__), 'data')
       ENV["CLOUDINARY_API_KEY"] = 'api_key'
       expect(Cloudinary::config.cloud_name).to eq('test_cloud')
