@@ -25,7 +25,7 @@ RSpec.describe Cloudinary::CarrierWave do
     subject { uploader.store! }
 
     it 'triggers `#retrieve_from_store!` after `#store!` executed to populate @file and @identifier' do
-      expect(model).to receive(:attribute).with(column).and_return(identifier)
+      expect(model).to receive(:read_attribute).with(column).and_return(identifier)
       expect(uploader).to receive(:retrieve_from_store!).with(identifier)
 
       subject
