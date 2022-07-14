@@ -559,6 +559,11 @@ describe Cloudinary::Api do
     Cloudinary::Api.update("public_id", {:auto_tagging => 0.5})
   end
 
+  it "should support updating metadata" do
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value([:payload, :metadata] => "key=value"))
+    Cloudinary::Api.update("public_id", { :metadata => { :key => :value } })
+  end
+
   it "should support quality_override" do
     ['auto:advanced', 'auto:best', '80:420', 'none'].each do |q|
       expected = {[:payload, :quality_override] => q}
