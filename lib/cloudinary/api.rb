@@ -257,6 +257,7 @@ class Cloudinary::Api
       :custom_coordinates => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
       :detection          => options[:detection],
       :face_coordinates   => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
+      :metadata           => Cloudinary::Utils.encode_context(options[:metadata]),
       :moderation_status  => options[:moderation_status],
       :notification_url   => options[:notification_url],
       :quality_override   => options[:quality_override],
