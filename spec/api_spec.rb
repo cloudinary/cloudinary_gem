@@ -141,16 +141,6 @@ describe Cloudinary::Api do
     expect(public_ids).to include(resources[0]["public_id"], resources[1]["public_id"])
   end
 
-  it "should list uploaded assets by asset_folder" do
-    upload_1 = Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :asset_folder => "test_folder", :tags => [TEST_TAG, TIMESTAMP_TAG])
-    upload_2 = Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_2, :asset_folder => "test_folder", :tags => [TEST_TAG, TIMESTAMP_TAG])
-    public_ids = [upload_1["public_id"], upload_2["public_id"]]
-    resources = @api.resources_by_asset_folder("test_folder")["resources"]
-    expect(resources).not_to be_empty
-    expect(resources.length).to eq(2)
-    expect(public_ids).to include(resources[0]["public_id"], resources[1]["public_id"])
-  end
-
   it "should allow listing resources by start date", :start_at => true do
     start_at = Time.now
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :start_at] => start_at, [:payload, :direction] => "asc"}))
