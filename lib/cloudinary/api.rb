@@ -191,7 +191,7 @@ class Cloudinary::Api
 
   # Returns all assets stored directly in a specified asset folder, regardless of the public ID paths of those assets.
   #
-  # @param [Object] asset_ids The requested asset IDs.
+  # @param [String] asset_ids The requested asset IDs.
   # @param [Hash]   options   The optional parameters. See the
   # <a href=https://cloudinary.com/documentation/dynamic_folders#new_admin_api_endpoints target="_blank"> Admin API</a> documentation.
   #
