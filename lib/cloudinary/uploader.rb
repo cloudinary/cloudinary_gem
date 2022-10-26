@@ -326,7 +326,8 @@ class Cloudinary::Uploader
         timestamp: (options[:timestamp] || Time.now.to_i),
         type: options[:type],
         public_ids: Cloudinary::Utils.build_array(public_ids),
-        metadata: Cloudinary::Utils.encode_context(metadata)
+        metadata: Cloudinary::Utils.encode_context(metadata),
+        clear_invalid: Cloudinary::Utils.as_safe_bool(options[:clear_invalid])
       }
     end
   end
