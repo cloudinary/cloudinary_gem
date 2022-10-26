@@ -71,6 +71,7 @@ class Cloudinary::Uploader
       :use_filename                         => Cloudinary::Utils.as_safe_bool(options[:use_filename]),
       :use_filename_as_display_name         => Cloudinary::Utils.as_safe_bool(options[:use_filename_as_display_name]),
       :use_asset_folder_as_public_id_prefix => Cloudinary::Utils.as_safe_bool(options[:use_asset_folder_as_public_id_prefix]),
+      :unique_display_name                  => Cloudinary::Utils.as_safe_bool(options[:unique_display_name]),
       :accessibility_analysis               => Cloudinary::Utils.as_safe_bool(options[:accessibility_analysis]),
       :metadata                             => Cloudinary::Utils.encode_context(options[:metadata])
     }

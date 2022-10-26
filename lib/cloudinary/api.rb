@@ -268,12 +268,14 @@ class Cloudinary::Api
     uri            = "resources/#{resource_type}/#{type}/#{public_id}"
     update_options = {
       :access_control     => Cloudinary::Utils.json_array_param(options[:access_control]),
+      :asset_folder       => options[:asset_folder],
       :auto_tagging       => options[:auto_tagging] && options[:auto_tagging].to_f,
       :background_removal => options[:background_removal],
       :categorization     => options[:categorization],
       :context            => Cloudinary::Utils.encode_context(options[:context]),
       :custom_coordinates => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
       :detection          => options[:detection],
+      :display_name       => options[:display_name],
       :face_coordinates   => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
       :metadata           => Cloudinary::Utils.encode_context(options[:metadata]),
       :moderation_status  => options[:moderation_status],
@@ -283,7 +285,8 @@ class Cloudinary::Api
       :raw_convert        => options[:raw_convert],
       :similarity_search  => options[:similarity_search],
       :tags               => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
-      :clear_invalid      => Cloudinary::Utils.as_safe_bool(options[:clear_invalid])
+      :clear_invalid      => Cloudinary::Utils.as_safe_bool(options[:clear_invalid]),
+      :unique_display_name=> options[:unique_display_name]
     }
     call_api(:post, uri, update_options, options)
   end
