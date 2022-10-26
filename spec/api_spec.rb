@@ -564,6 +564,11 @@ describe Cloudinary::Api do
     Cloudinary::Api.update("public_id", { :metadata => { :key => :value } })
   end
 
+  it "should support updating metadata with clear_invalid" do
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value([:payload, :clear_invalid] => 1))
+    Cloudinary::Api.update("public_id", { :clear_invalid => true })
+  end
+
   it "should support quality_override" do
     ['auto:advanced', 'auto:best', '80:420', 'none'].each do |q|
       expected = {[:payload, :quality_override] => q}

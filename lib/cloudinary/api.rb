@@ -282,7 +282,8 @@ class Cloudinary::Api
       :ocr                => options[:ocr],
       :raw_convert        => options[:raw_convert],
       :similarity_search  => options[:similarity_search],
-      :tags               => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")
+      :tags               => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
+      :clear_invalid      => Cloudinary::Utils.as_safe_bool(options[:clear_invalid])
     }
     call_api(:post, uri, update_options, options)
   end

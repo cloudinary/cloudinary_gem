@@ -690,6 +690,18 @@ describe Cloudinary::Uploader do
       expect(result["public_ids"]).to include(resource_1["public_id"])
       expect(result["public_ids"]).to include(resource_2["public_id"])
     end
+
+    it 'should update metadata on a resource with partial metadata' do
+      expected = {
+        [:url] => /.*\/metadata$/,
+        [:method] => :post,
+        [:payload, :metadata] => Cloudinary::Utils.encode_context(@metadata_fields),
+        [:payload, :public_ids] => [UNIQUE_TEST_ID],
+        [:payload, :clear_invalid] => 1
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Uploader.update_metadata(@metadata_fields, [UNIQUE_TEST_ID], :clear_invalid => true)
+    end
   end
 
   it "should generate a sprite" do
