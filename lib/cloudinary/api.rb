@@ -189,6 +189,24 @@ class Cloudinary::Api
     call_api(:get, uri, params, options)
   end
 
+  # Returns all assets stored directly in a specified asset folder, regardless of the public ID paths of those assets.
+  #
+  # @param [String] asset_folder The requested asset folder.
+  # @param [Hash]   options      The optional parameters. See the
+  # <a href=https://cloudinary.com/documentation/dynamic_folders#new_admin_api_endpoints target="_blank"> Admin API</a> documentation.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  #
+  # @see https://cloudinary.com/documentation/dynamic_folders#new_admin_api_endpoints
+  def self.resources_by_asset_folder(asset_folder, options={})
+    uri = "resources/by_asset_folder"
+    params = only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction, :key, :value, :metadata)
+    params[:asset_folder] = asset_folder
+    call_api(:get, uri, params, options)
+  end
+
   # Returns the details of the specified asset and all its derived assets.
   #
   # Note that if you only need details about the original asset,

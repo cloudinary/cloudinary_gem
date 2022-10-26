@@ -610,6 +610,16 @@ describe Cloudinary::Api do
     end
   end
 
+  it 'should list assets from an asset folder' do
+    expected = { #resources/by_asset_folder
+        [:url] => /.*\/resources\/by_asset_folder$/,
+        [:method] => :get,
+        [:payload, :asset_folder] => UNIQUE_TEST_FOLDER,
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    @api.resources_by_asset_folder(UNIQUE_TEST_FOLDER)
+  end
+
   describe 'folders' do
     it 'should create folder' do
       expected = {
