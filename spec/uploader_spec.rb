@@ -157,13 +157,15 @@ describe Cloudinary::Uploader do
       [:payload, :asset_folder] => UNIQUE_TEST_FOLDER,
       [:payload, :display_name] => DISPLAY_NAME,
       [:payload, :use_filename_as_display_name] => 1,
-      [:payload, :use_asset_folder_as_public_id_prefix] => 1
+      [:payload, :use_asset_folder_as_public_id_prefix] => 1,
+      [:payload, :unique_display_name] => 1
     }
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
     Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :public_id_prefix => FD_PID_PREFIX,
                                 :asset_folder => UNIQUE_TEST_FOLDER, :display_name => DISPLAY_NAME,
                                 :use_filename_as_display_name => true,
-                                :use_asset_folder_as_public_id_prefix => true)
+                                :use_asset_folder_as_public_id_prefix => true,
+                                :unique_display_name => true)
   end
 
   describe '.rename' do

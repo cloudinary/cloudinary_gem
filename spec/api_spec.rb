@@ -554,6 +554,18 @@ describe Cloudinary::Api do
     Cloudinary::Api.update("public_id", {:detection => "adv_face", :notification_url => "http://example.com"})
   end
 
+  it "should support display name and unique display name", :focus => true do
+    expected = {
+      [:payload, :asset_folder] => "dummy_folder",
+      [:payload, :display_name] => "dummy_display_name",
+      [:payload, :unique_display_name] => true
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    Cloudinary::Api.update("public_id", { :asset_folder        => "dummy_folder",
+                                          :display_name        => "dummy_display_name",
+                                          :unique_display_name => true })
+  end
+
   it "should support requesting auto_tagging" do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :auto_tagging] => 0.5))
     Cloudinary::Api.update("public_id", {:auto_tagging => 0.5})
