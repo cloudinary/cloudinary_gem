@@ -48,9 +48,8 @@ if RUBY_VERSION > '2.2.2'
         types = %w[video/mp4 audio/mp3 application/vnd.apple.mpegurl application/x-mpegurl application/mpegurl]
 
         types.each do |content_type|
-          options = { content_type: content_type }
 
-          url = @service.url_for_direct_upload(key, **options)
+          url = @service.url_for_direct_upload(key, content_type: content_type)
 
           expect(url).to include("/video/")
         end
@@ -61,9 +60,7 @@ if RUBY_VERSION > '2.2.2'
         types = %w[application/pdf application/postscript image/*]
 
         types.each do |content_type|
-          options = { content_type: content_type }
-
-          url = @service.url_for_direct_upload(key, **options)
+          url = @service.url_for_direct_upload(key, content_type: content_type)
 
           expect(url).to include("/image/")
         end
@@ -74,9 +71,7 @@ if RUBY_VERSION > '2.2.2'
         types = %w[text/* application/*]
 
         types.each do |content_type|
-          options = { content_type: content_type }
-
-          url = @service.url_for_direct_upload(key, **options)
+          url = @service.url_for_direct_upload(key, content_type: content_type)
 
           expect(url).to include("/raw/")
         end
@@ -87,9 +82,7 @@ if RUBY_VERSION > '2.2.2'
         types = %w[wordprocessingml.document spreadsheetml.sheet]
 
         types.each do |content_type|
-          options = { content_type: content_type }
-
-          url = @service.url_for_direct_upload(key, **options)
+          url = @service.url_for_direct_upload(key, content_type: content_type)
 
           expect(url).to include("/image/")
         end
