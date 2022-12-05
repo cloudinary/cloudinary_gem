@@ -42,6 +42,58 @@ if RUBY_VERSION > '2.2.2'
         url = @service.url_for_direct_upload(key, resource_type: "raw")
         expect(url).to include("format=" + File.extname(TEST_RAW).delete('.'))
       end
+
+      it "should set video resource_type for video formats" do
+        key = SecureRandom.base58(24)
+        types = %w[video/mp4 audio/mp3 application/vnd.apple.mpegurl application/x-mpegurl application/mpegurl]
+
+        types.each do |content_type|
+          options = { content_type: content_type }
+
+          url = @service.url_for_direct_upload(key, **options)
+
+          expect(url).to include("/video/")
+        end
+      end
+
+      it "should set image resource_type for image formats" do
+        key = SecureRandom.base58(24)
+        types = %w[application/pdf application/postscript image/*]
+
+        types.each do |content_type|
+          options = { content_type: content_type }
+
+          url = @service.url_for_direct_upload(key, **options)
+
+          expect(url).to include("/image/")
+        end
+      end
+
+      it "should set raw resource_type for raw formats" do
+        key = SecureRandom.base58(24)
+        types = %w[text/* application/*]
+
+        types.each do |content_type|
+          options = { content_type: content_type }
+
+          url = @service.url_for_direct_upload(key, **options)
+
+          expect(url).to include("/raw/")
+        end
+      end
+
+      it "should set image resource_type for other formats" do
+        key = SecureRandom.base58(24)
+        types = %w[wordprocessingml.document spreadsheetml.sheet]
+
+        types.each do |content_type|
+          options = { content_type: content_type }
+
+          url = @service.url_for_direct_upload(key, **options)
+
+          expect(url).to include("/image/")
+        end
+      end
     end
 
     it "should support uploading to Cloudinary" do

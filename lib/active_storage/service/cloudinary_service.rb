@@ -57,7 +57,7 @@ module ActiveStorage
       instrument :url, key: key do |payload|
         url = Cloudinary::Utils.cloudinary_url(
           public_id(key),
-          resource_type: resource_type(nil, key),
+          resource_type: resource_type(nil, key, content_type),
           format: ext_for_file(key, filename, content_type),
           **@options.merge(options.symbolize_keys)
         )
@@ -70,7 +70,8 @@ module ActiveStorage
 
     def url_for_direct_upload(key, **options)
       instrument :url, key: key do |payload|
-        options = {:resource_type => resource_type(nil, key)}.merge(@options.merge(options.symbolize_keys))
+        options = @options.merge(options.symbolize_keys)
+        options[:resource_type] ||= resource_type(nil, key, options[:content_type])
         options[:public_id] = public_id_internal(key)
         # Provide file format for raw files, since js client does not include original file name.
         #
@@ -240,9 +241,11 @@ module ActiveStorage
       end
     end
 
-    def resource_type(io, key = "")
-      options = key.respond_to?(:attributes) ? key.attributes : {}
-      content_type = options[:content_type] || (io.nil? ? '' : Marcel::MimeType.for(io))
+    def resource_type(io, key = "", content_type = "")
+      if content_type.blank?
+        options = key.respond_to?(:attributes) ? key.attributes : {}
+        content_type = options[:content_type] || (io.nil? ? '' : Marcel::MimeType.for(io))
+      end
       content_type_to_resource_type(content_type)
     end
   end
