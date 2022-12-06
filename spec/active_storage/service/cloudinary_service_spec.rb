@@ -16,8 +16,11 @@ if RUBY_VERSION > '2.2.2'
 
     before :all do
       @key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), filename: BASENAME
+      @file_key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), filename: File.basename(TEST_RAW),
+                                            content_type: "application/zip"
       @service = self.class.const_get(:SERVICE)
       @service.upload @key, TEST_IMG_PATH, tags: [TEST_TAG, TIMESTAMP_TAG, AS_TAG]
+      @service.upload @file_key, TEST_RAW_PATH, tags: [TEST_TAG, TIMESTAMP_TAG, AS_TAG]
     end
 
     after :all do
@@ -114,9 +117,18 @@ if RUBY_VERSION > '2.2.2'
       expect(@service.exist?(@key + "nonsense")).to be_falsey
     end
 
+    it "should correctly check if a raw file with extension exists" do
+      expect(@service.exist?(@file_key)).to be_truthy
+    end
+
     it "should delete a resource" do
+      expect(@service.exist?(@key)).to be_truthy
       @service.delete @key
       expect(@service.exist?(@key)).to be_falsey
+
+      expect(@service.exist?(@file_key)).to be_truthy
+      @service.delete @file_key
+      expect(@service.exist?(@file_key)).to be_falsey
     end
 
     it "should fail to delete nonexistent key" do
