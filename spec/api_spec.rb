@@ -554,6 +554,18 @@ describe Cloudinary::Api do
     Cloudinary::Api.update("public_id", {:detection => "adv_face", :notification_url => "http://example.com"})
   end
 
+  it "should support display name and unique display name", :focus => true do
+    expected = {
+      [:payload, :asset_folder] => "dummy_folder",
+      [:payload, :display_name] => "dummy_display_name",
+      [:payload, :unique_display_name] => true
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    Cloudinary::Api.update("public_id", { :asset_folder        => "dummy_folder",
+                                          :display_name        => "dummy_display_name",
+                                          :unique_display_name => true })
+  end
+
   it "should support requesting auto_tagging" do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :auto_tagging] => 0.5))
     Cloudinary::Api.update("public_id", {:auto_tagging => 0.5})
@@ -562,6 +574,11 @@ describe Cloudinary::Api do
   it "should support updating metadata" do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value([:payload, :metadata] => "key=value"))
     Cloudinary::Api.update("public_id", { :metadata => { :key => :value } })
+  end
+
+  it "should support updating metadata with clear_invalid" do
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value([:payload, :clear_invalid] => 1))
+    Cloudinary::Api.update("public_id", { :clear_invalid => true })
   end
 
   it "should support quality_override" do
@@ -608,6 +625,16 @@ describe Cloudinary::Api do
       result = @api.usage
       expect(result).to be_a_usage_result
     end
+  end
+
+  it 'should list assets from an asset folder' do
+    expected = { #resources/by_asset_folder
+        [:url] => /.*\/resources\/by_asset_folder$/,
+        [:method] => :get,
+        [:payload, :asset_folder] => UNIQUE_TEST_FOLDER,
+    }
+    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+    @api.resources_by_asset_folder(UNIQUE_TEST_FOLDER)
   end
 
   describe 'folders' do

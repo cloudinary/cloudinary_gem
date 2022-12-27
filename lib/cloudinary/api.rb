@@ -189,6 +189,24 @@ class Cloudinary::Api
     call_api(:get, uri, params, options)
   end
 
+  # Returns all assets stored directly in a specified asset folder, regardless of the public ID paths of those assets.
+  #
+  # @param [String] asset_folder The requested asset folder.
+  # @param [Hash]   options      The optional parameters. See the
+  # <a href=https://cloudinary.com/documentation/dynamic_folders#new_admin_api_endpoints target="_blank"> Admin API</a> documentation.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  #
+  # @see https://cloudinary.com/documentation/dynamic_folders#new_admin_api_endpoints
+  def self.resources_by_asset_folder(asset_folder, options={})
+    uri = "resources/by_asset_folder"
+    params = only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction, :key, :value, :metadata)
+    params[:asset_folder] = asset_folder
+    call_api(:get, uri, params, options)
+  end
+
   # Returns the details of the specified asset and all its derived assets.
   #
   # Note that if you only need details about the original asset,
@@ -250,12 +268,14 @@ class Cloudinary::Api
     uri            = "resources/#{resource_type}/#{type}/#{public_id}"
     update_options = {
       :access_control     => Cloudinary::Utils.json_array_param(options[:access_control]),
+      :asset_folder       => options[:asset_folder],
       :auto_tagging       => options[:auto_tagging] && options[:auto_tagging].to_f,
       :background_removal => options[:background_removal],
       :categorization     => options[:categorization],
       :context            => Cloudinary::Utils.encode_context(options[:context]),
       :custom_coordinates => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
       :detection          => options[:detection],
+      :display_name       => options[:display_name],
       :face_coordinates   => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
       :metadata           => Cloudinary::Utils.encode_context(options[:metadata]),
       :moderation_status  => options[:moderation_status],
@@ -264,7 +284,9 @@ class Cloudinary::Api
       :ocr                => options[:ocr],
       :raw_convert        => options[:raw_convert],
       :similarity_search  => options[:similarity_search],
-      :tags               => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(",")
+      :tags               => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
+      :clear_invalid      => Cloudinary::Utils.as_safe_bool(options[:clear_invalid]),
+      :unique_display_name=> options[:unique_display_name]
     }
     call_api(:post, uri, update_options, options)
   end

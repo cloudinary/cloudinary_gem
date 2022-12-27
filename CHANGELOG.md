@@ -1,3 +1,22 @@
+1.24.0 / 2022-12-06
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for `resources_by_asset_folder` Admin API
+  * Add support for `asset_folder`, `display_name` and `unique_display_name` parameters
+  * Add support for `use_asset_folder_as_public_id_prefix` parameter
+  * Add support for `metadata` in `update` Admin API
+  * Add support for `clear_invalid` metadata parameter
+
+Other Changes
+-------------
+
+  * Fix Active Storage public id of the raw asset handling
+  * Fix Active Storage resource type for direct upload
+  * Fix CarrierWave identifier obtainment
+
 1.23.0 / 2022-04-05
 ==================
 

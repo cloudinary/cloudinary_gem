@@ -16,8 +16,11 @@ if RUBY_VERSION > '2.2.2'
 
     before :all do
       @key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), filename: BASENAME
+      @file_key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), filename: File.basename(TEST_RAW),
+                                            content_type: "application/zip"
       @service = self.class.const_get(:SERVICE)
       @service.upload @key, TEST_IMG_PATH, tags: [TEST_TAG, TIMESTAMP_TAG, AS_TAG]
+      @service.upload @file_key, TEST_RAW_PATH, tags: [TEST_TAG, TIMESTAMP_TAG, AS_TAG]
     end
 
     after :all do
@@ -41,6 +44,51 @@ if RUBY_VERSION > '2.2.2'
         key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), filename: TEST_RAW
         url = @service.url_for_direct_upload(key, resource_type: "raw")
         expect(url).to include("format=" + File.extname(TEST_RAW).delete('.'))
+      end
+
+      it "should set video resource_type for video formats" do
+        key = SecureRandom.base58(24)
+        types = %w[video/mp4 audio/mp3 application/vnd.apple.mpegurl application/x-mpegurl application/mpegurl]
+
+        types.each do |content_type|
+
+          url = @service.url_for_direct_upload(key, content_type: content_type)
+
+          expect(url).to include("/video/")
+        end
+      end
+
+      it "should set image resource_type for image formats" do
+        key = SecureRandom.base58(24)
+        types = %w[application/pdf application/postscript image/*]
+
+        types.each do |content_type|
+          url = @service.url_for_direct_upload(key, content_type: content_type)
+
+          expect(url).to include("/image/")
+        end
+      end
+
+      it "should set raw resource_type for raw formats" do
+        key = SecureRandom.base58(24)
+        types = %w[text/* application/*]
+
+        types.each do |content_type|
+          url = @service.url_for_direct_upload(key, content_type: content_type)
+
+          expect(url).to include("/raw/")
+        end
+      end
+
+      it "should set image resource_type for other formats" do
+        key = SecureRandom.base58(24)
+        types = %w[wordprocessingml.document spreadsheetml.sheet]
+
+        types.each do |content_type|
+          url = @service.url_for_direct_upload(key, content_type: content_type)
+
+          expect(url).to include("/image/")
+        end
       end
     end
 
@@ -69,9 +117,18 @@ if RUBY_VERSION > '2.2.2'
       expect(@service.exist?(@key + "nonsense")).to be_falsey
     end
 
+    it "should correctly check if a raw file with extension exists" do
+      expect(@service.exist?(@file_key)).to be_truthy
+    end
+
     it "should delete a resource" do
+      expect(@service.exist?(@key)).to be_truthy
       @service.delete @key
       expect(@service.exist?(@key)).to be_falsey
+
+      expect(@service.exist?(@file_key)).to be_truthy
+      @service.delete @file_key
+      expect(@service.exist?(@file_key)).to be_falsey
     end
 
     it "should fail to delete nonexistent key" do

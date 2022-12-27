@@ -56,8 +56,8 @@ module ActiveStorage
     def url(key, filename: nil, content_type: '', **options)
       instrument :url, key: key do |payload|
         url = Cloudinary::Utils.cloudinary_url(
-          public_id(key),
-          resource_type: resource_type(nil, key),
+          full_public_id_internal(key),
+          resource_type: resource_type(nil, key, content_type),
           format: ext_for_file(key, filename, content_type),
           **@options.merge(options.symbolize_keys)
         )
@@ -70,7 +70,8 @@ module ActiveStorage
 
     def url_for_direct_upload(key, **options)
       instrument :url, key: key do |payload|
-        options = {:resource_type => resource_type(nil, key)}.merge(@options.merge(options.symbolize_keys))
+        options = @options.merge(options.symbolize_keys)
+        options[:resource_type] ||= resource_type(nil, key, options[:content_type])
         options[:public_id] = public_id_internal(key)
         # Provide file format for raw files, since js client does not include original file name.
         #
@@ -164,10 +165,23 @@ module ActiveStorage
 
     end
 
-    def public_id(key)
-      return key unless @options[:folder]
+    # Returns the public id of the asset.
+    #
+    # Public id includes both folder(defined globally in the configuration) and the active storage key.
+    # For raw files it also includes the file extension, since that's how Cloudinary stores raw files.
+    #
+    # @param [ActiveStorage::BlobKey]   key          The blob key with attributes.
+    # @param [ActiveStorage::Filename]  filename     The original filename.
+    # @param [string]                   content_type The content type of the file.
+    #
+    # @return [string] The public id of the asset.
+    def public_id(key, filename = nil, content_type = '')
+      public_id = key
+      if resource_type(nil, key) == 'raw'
+        public_id = [key, ext_for_file(key, filename, content_type)].reject(&:blank?).join('.')
+      end
 
-      File.join(@options.fetch(:folder), public_id_internal(key))
+      full_public_id_internal(public_id)
     end
 
     private
@@ -212,6 +226,15 @@ module ActiveStorage
       @formats[content_type]
     end
 
+    # Returns the full public id including folder.
+    def full_public_id_internal(key)
+      public_id = public_id_internal(key)
+
+      return public_id unless @options[:folder]
+
+      File.join(@options.fetch(:folder), public_id)
+    end
+
     def public_id_internal(key)
       # TODO: Allow custom manipulation of key to obscure how we store in Cloudinary
       key
@@ -240,9 +263,11 @@ module ActiveStorage
       end
     end
 
-    def resource_type(io, key = "")
-      options = key.respond_to?(:attributes) ? key.attributes : {}
-      content_type = options[:content_type] || (io.nil? ? '' : Marcel::MimeType.for(io))
+    def resource_type(io, key = "", content_type = "")
+      if content_type.blank?
+        options = key.respond_to?(:attributes) ? key.attributes : {}
+        content_type = options[:content_type] || (io.nil? ? '' : Marcel::MimeType.for(io))
+      end
       content_type_to_resource_type(content_type)
     end
   end

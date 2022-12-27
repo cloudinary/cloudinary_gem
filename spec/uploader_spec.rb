@@ -156,12 +156,16 @@ describe Cloudinary::Uploader do
       [:payload, :public_id_prefix] => FD_PID_PREFIX,
       [:payload, :asset_folder] => UNIQUE_TEST_FOLDER,
       [:payload, :display_name] => DISPLAY_NAME,
-      [:payload, :use_filename_as_display_name] => 1
+      [:payload, :use_filename_as_display_name] => 1,
+      [:payload, :use_asset_folder_as_public_id_prefix] => 1,
+      [:payload, :unique_display_name] => 1
     }
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
     Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :public_id_prefix => FD_PID_PREFIX,
                                 :asset_folder => UNIQUE_TEST_FOLDER, :display_name => DISPLAY_NAME,
-                                :use_filename_as_display_name => true, :tags => [TEST_TAG, TIMESTAMP_TAG])
+                                :use_filename_as_display_name => true,
+                                :use_asset_folder_as_public_id_prefix => true,
+                                :unique_display_name => true)
   end
 
   describe '.rename' do
@@ -687,6 +691,18 @@ describe Cloudinary::Uploader do
       expect(result["public_ids"].count).to eq(2)
       expect(result["public_ids"]).to include(resource_1["public_id"])
       expect(result["public_ids"]).to include(resource_2["public_id"])
+    end
+
+    it 'should update metadata on a resource with partial metadata' do
+      expected = {
+        [:url] => /.*\/metadata$/,
+        [:method] => :post,
+        [:payload, :metadata] => Cloudinary::Utils.encode_context(@metadata_fields),
+        [:payload, :public_ids] => [UNIQUE_TEST_ID],
+        [:payload, :clear_invalid] => 1
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      Cloudinary::Uploader.update_metadata(@metadata_fields, [UNIQUE_TEST_ID], :clear_invalid => true)
     end
   end
 
