@@ -71,6 +71,16 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     end
     model_class = uploader.model.class
     column = uploader.model.send(:_mounter, uploader.mounted_as).send(:serialization_column)
+    original_value = uploader.model.read_attribute(column)
+    return if original_value == name
+
+    if original_value.is_a?(Array)
+      if index = original_value.index(identifier)
+        original_value[index] = name
+      end
+      name = original_value
+    end
+
     if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)
       primary_key = model_class.primary_key.to_sym
       if defined?(::ActiveRecord::VERSION::MAJOR) && ::ActiveRecord::VERSION::MAJOR > 2
