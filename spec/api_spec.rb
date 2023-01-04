@@ -67,8 +67,7 @@ describe Cloudinary::Api do
   end
 
   it "should allow listing resources" do
-    resource = @api.resources()["resources"].find{|resource| resource["public_id"] == test_id_1
-    }
+    resource = @api.resources(:max_results=>100)["resources"].find{|resource| resource["public_id"] == test_id_1}
     expect(resource).not_to be_blank
     expect(resource["type"]).to eq("upload")
   end
@@ -85,8 +84,8 @@ describe Cloudinary::Api do
   end
 
   it "should allow listing resources by type" do
-    resource = @api.resources(:type=>"upload", :tags=>true)["resources"].find{|resource| resource["public_id"] == test_id_1
-    }
+    resource = @api.resources(:type=>"upload", :tags=>true, :max_results=>100)["resources"]
+                 .find{|resource| resource["public_id"] == test_id_1}
     expect(resource).not_to be_blank
     expect(resource["tags"]).to match_array([TEST_TAG, TIMESTAMP_TAG])
   end
