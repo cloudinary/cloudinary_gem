@@ -17,7 +17,7 @@ end
 RSpec.describe Cloudinary::CarrierWave::Storage do
   describe '#store_cloudinary_identifier' do
     let(:column) { 'example_field' }
-    let(:model) { double :model, _mounter: mount, write_attribute: true }
+    let(:model) { double :model, _mounter: mount, write_attribute: true, read_attribute: true }
     let(:mount) { double :mount, serialization_column: column }
     let(:storage) { Cloudinary::CarrierWave::Storage.new(uploader) }
     let(:store_identifier) { storage.store_cloudinary_identifier('1', 'test.png') }
