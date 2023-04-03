@@ -39,7 +39,7 @@ module ActiveStorage
         begin
           extra_headers = checksum.nil? ? {} : {Headers::CONTENT_MD5 => checksum}
           options = @options.merge(options)
-          Cloudinary::Uploader.upload(
+          Cloudinary::Uploader.upload_large(
             io,
             public_id: public_id_internal(key),
             resource_type: resource_type(io, key),

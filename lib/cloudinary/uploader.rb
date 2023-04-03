@@ -108,13 +108,24 @@ class Cloudinary::Uploader
       public_id = public_id_or_options
       options   = old_options
     end
+
+    options.merge(:public_id => public_id)
+
     if Cloudinary::Utils.is_remote?(file)
-      return upload(file, options.merge(:public_id => public_id))
-    elsif file.is_a?(Pathname) || !file.respond_to?(:read)
+      return upload(file, options)
+    end
+
+    if file.is_a?(Pathname) || !file.respond_to?(:read)
       filename = file
       file     = File.open(file, "rb")
     else
       filename = "cloudinaryfile"
+    end
+
+    chunk_size = options[:chunk_size] || 20_000_000
+
+    if file.size < chunk_size
+      return upload(file, options)
     end
 
     filename = options[:filename] if options[:filename]
@@ -122,12 +133,13 @@ class Cloudinary::Uploader
     unique_upload_id = Cloudinary::Utils.random_public_id
     upload     = nil
     index      = 0
-    chunk_size = options[:chunk_size] || 20_000_000
+
     until file.eof?
       buffer      = file.read(chunk_size)
       current_loc = index*chunk_size
       range       = "bytes #{current_loc}-#{current_loc+buffer.size - 1}/#{file.size}"
-      upload      = upload_large_part(Cloudinary::Blob.new(buffer, :original_filename => filename), options.merge(:public_id => public_id, :unique_upload_id => unique_upload_id, :content_range => range))
+      upload      = upload_large_part(Cloudinary::Blob.new(buffer, :original_filename => filename),
+                                      options.merge(:unique_upload_id => unique_upload_id, :content_range => range))
       index       += 1
     end
     upload

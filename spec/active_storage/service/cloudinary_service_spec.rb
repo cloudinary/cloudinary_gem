@@ -176,7 +176,7 @@ if RUBY_VERSION > '2.2.2'
     it "should use global configuration options" do
       tags = SERVICE_CONFIGURATIONS[:cloudinary][:tags]
       expect(tags).not_to be_empty, "Please set a tags value under cloudinary in #{CONFIGURATION_PATH}"
-      expect(Cloudinary::Uploader).to receive(:upload).with(TEST_IMG, hash_including(tags: tags))
+      expect(Cloudinary::Uploader).to receive(:upload_large).with(TEST_IMG, hash_including(tags: tags))
       @service.upload(key, TEST_IMG, tags: tags)
     end
 
@@ -192,18 +192,18 @@ if RUBY_VERSION > '2.2.2'
       expect(tags).not_to be_empty, "Please set a tags value under cloudinary in #{CONFIGURATION_PATH}"
       override_tags = [TEST_TAG, TIMESTAMP_TAG, AS_TAG]
       expect(override_tags).not_to eql(tags), "Overriding tags should be different from configuration"
-      expect(Cloudinary::Uploader).to receive(:upload).with(TEST_IMG, hash_including(tags: override_tags))
+      expect(Cloudinary::Uploader).to receive(:upload_large).with(TEST_IMG, hash_including(tags: override_tags))
       @service.upload(key, TEST_IMG, tags: override_tags)
     end
 
     it "should correctly identify resource_type" do
-      expect(Cloudinary::Uploader).to receive(:upload).with(TEST_IMG_PATH, hash_including(resource_type: 'image'))
+      expect(Cloudinary::Uploader).to receive(:upload_large).with(TEST_IMG_PATH, hash_including(resource_type: 'image'))
       @service.upload(key, TEST_IMG_PATH)
 
-      expect(Cloudinary::Uploader).to receive(:upload).with(TEST_VIDEO_PATH, hash_including(resource_type: 'video'))
+      expect(Cloudinary::Uploader).to receive(:upload_large).with(TEST_VIDEO_PATH, hash_including(resource_type: 'video'))
       @service.upload(key, TEST_VIDEO_PATH)
 
-      expect(Cloudinary::Uploader).to receive(:upload).with(TEST_RAW_PATH, hash_including(resource_type: 'raw'))
+      expect(Cloudinary::Uploader).to receive(:upload_large).with(TEST_RAW_PATH, hash_including(resource_type: 'raw'))
       @service.upload(key, TEST_RAW_PATH)
     end
   end

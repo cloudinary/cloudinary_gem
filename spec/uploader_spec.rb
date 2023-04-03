@@ -566,24 +566,28 @@ describe Cloudinary::Uploader do
     temp_file = StringIO.new
     Cloudinary.populate_large_file(temp_file, LARGE_FILE_SIZE)
 
-    result = Cloudinary::Uploader.upload_large(temp_file, { :tags => [TIMESTAMP_TAG], filename: custom_filename })
+    result = Cloudinary::Uploader.upload_large(temp_file, { :tags => [TIMESTAMP_TAG],
+                                                            filename: custom_filename,
+                                                            :chunk_size => LARGE_CHUNK_SIZE,})
     expect(result["original_filename"]).to eq(File.basename(custom_filename, File.extname(custom_filename)))
   end
 
   it "should allow fallback of upload large with remote url to regular upload" do
     file = "http://cloudinary.com/images/old_logo.png"
-    result = Cloudinary::Uploader.upload_large(file, :chunk_size => 5243000, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    result = Cloudinary::Uploader.upload_large(file, :chunk_size => LARGE_CHUNK_SIZE, :tags => [TEST_TAG, TIMESTAMP_TAG])
     expect(result).to_not be_nil
     expect(result["width"]).to eq(TEST_IMG_W)
     expect(result["height"]).to eq(TEST_IMG_H)
   end
 
   it "should include special headers in upload_large" do
-    expect(RestClient::Request).to receive(:execute) do |options|
+    expect(RestClient::Request).to receive(:execute).twice do |options|
       expect(options[:headers]["Content-Range"]).to_not be_empty
       expect(options[:headers]["X-Unique-Upload-Id"]).to_not be_empty
     end
-    Cloudinary::Uploader.upload_large(TEST_IMG, { :tags => [TEST_TAG, TIMESTAMP_TAG]})
+    temp_file = StringIO.new
+    Cloudinary.populate_large_file(temp_file, LARGE_FILE_SIZE)
+    Cloudinary::Uploader.upload_large(temp_file, { :tags => [TEST_TAG, TIMESTAMP_TAG], :chunk_size => LARGE_CHUNK_SIZE})
   end
 
   context "unsigned" do
