@@ -1077,6 +1077,75 @@ class Cloudinary::Api
     call_metadata_api(:put, uri, params, options)
   end
 
+  # Lists all metadata rules definitions.
+  #
+  # @param [Hash] options The optional parameters.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  #
+  # @see https://cloudinary.com/documentation/conditional_metadata_rules_api#get_metadata_rules
+  def self.list_metadata_rules(options = {})
+    call_metadata_rules_api(:get, [], {}, options)
+  end
+
+
+  # Creates a new metadata rule definition.
+  #
+  # @param [Hash] rule    The rule to add.
+  # @param [Hash] options The optional parameters.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  #
+  # @see https://cloudinary.com/documentation/conditional_metadata_rules_api#create_a_metadata_rule
+  def self.add_metadata_rule(rule, options = {})
+    params = only(rule, :metadata_field_id, :condition, :result, :name)
+
+    call_metadata_rules_api(:post, [], params, options)
+  end
+
+  # Updates a metadata rule by external ID.
+  #
+  # Updates an existing metadata rule definition. Expects a JSON object which defines the updated rule.
+  #
+  # @param [String] external_id       The ID of the rule to update.
+  # @param [Hash]   rule              The rule definition.
+  # @param [Hash]   options           The optional parameters.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  #
+  # @see https://cloudinary.com/documentation/conditional_metadata_rules_api#update_a_metadata_rule_by_id
+  def self.update_metadata_rule(external_id, rule, options = {})
+    uri = [external_id]
+    params = only(rule, :metadata_field_id, :condition, :result, :name, :state)
+
+    call_metadata_rules_api(:put, uri, params, options)
+  end
+
+  # Deletes a metadata rule definition by external ID.
+  #
+  # The rule should no longer be considered a valid candidate for all other endpoints
+  # (it will not show up in the list of rules, etc).
+  #
+  # @param [String] external_id The ID of the rule to delete.
+  # @param [Hash]   options     The optional parameters.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  #
+  # @see https://cloudinary.com/documentation/conditional_metadata_rules_api#delete_a_metadata_rule_by_id
+  def self.delete_metadata_rule(external_id, options = {})
+    uri = [external_id]
+
+    call_metadata_rules_api(:delete, uri, {}, options)
+  end
+
   protected
 
   # Execute a call api for input params.
@@ -1124,6 +1193,22 @@ class Cloudinary::Api
   def self.call_metadata_api(method, uri, params, options)
     options[:content_type] = :json
     uri = ["metadata_fields", uri].reject(&:empty?).join("/")
+
+    call_api(method, uri, params, options)
+  end
+
+  # Protected function that assists with performing an API call to the metadata_rules part of the Admin API.
+  #
+  # @protected
+  # @param [Symbol] method  The HTTP method. Valid methods: get, post, put, delete
+  # @param [Array]  uri     REST endpoint of the API (without 'metadata_rules')
+  # @param [Hash]   params  Query/body parameters passed to the method
+  # @param [Hash]   options Additional options. Can be an override of the configuration, headers, etc.
+  # @return [Cloudinary::Api::Response] Returned response from Cloudinary
+  # @raise [Cloudinary::Api::Error]
+  def self.call_metadata_rules_api(method, uri, params, options)
+    options[:content_type] = :json
+    uri = ["metadata_rules", uri].reject(&:empty?).join("/")
 
     call_api(method, uri, params, options)
   end
