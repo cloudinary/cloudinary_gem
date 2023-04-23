@@ -1129,24 +1129,57 @@ describe Cloudinary::Utils do
       value            = "width * 2"
       normalized_value = "w_mul_2"
 
-      normalized_params =  %w[angle aspect_ratio dpr effect height opacity quality radius width x y zoom]
+      normalized_params = %w[angle aspect_ratio dpr effect height opacity quality width x y end_offset start_offset zoom]
       normalized_params.each do |param|
         it "should normalize value in #{param}" do
           # c_scale needed to test h_ and w_ parameters that are ignored without crop mode
-          result = Cloudinary::Utils.generate_transformation_string({ param => value , :crop => "scale"})
+          result = Cloudinary::Utils.generate_transformation_string({ param => value, :crop => "scale" })
           expect(result).to include(normalized_value) and not include(value)
-
         end
       end
 
-      non_normalized_params =  Cloudinary::Utils::SIMPLE_TRANSFORMATION_PARAMS.values.concat %w[overlay underlay]
+      non_normalized_params = %w[audio_codec audio_frequency border bit_rate color_space default_image delay density
+                                 fetch_format custom_function fps gravity overlay prefix page underlay video_sampling
+                                 streaming_profile keyframe_interval]
       non_normalized_params.each do |param|
         it "should not normalize value in #{param}" do
-          result = Cloudinary::Utils.generate_transformation_string({ param => value})
+          result = Cloudinary::Utils.generate_transformation_string({ param => value })
           expect(result).to include(value) and not include(normalized_value)
-
         end
       end
+    end
+
+    it "should support start offset" do
+      options = {
+        :width        => 100,
+        :start_offset => "idu - 5"
+      }
+      t = Cloudinary::Utils.generate_transformation_string options
+
+      expect(t).to include("so_idu_sub_5")
+
+      options = {
+        :width        => 100,
+        :start_offset => "$logotime"
+      }
+      t = Cloudinary::Utils.generate_transformation_string options
+      expect(t).to include("so_$logotime")
+    end
+
+    it "should support end offset" do
+      options = {
+        :width      => 100,
+        :end_offset => "idu - 5"
+      }
+      t = Cloudinary::Utils.generate_transformation_string options
+      expect(t).to include("eo_idu_sub_5")
+
+      options = {
+        :width      => 100,
+        :end_offset => "$logotime"
+      }
+      t = Cloudinary::Utils.generate_transformation_string options
+      expect(t).to include("eo_$logotime")
     end
 
     describe "context" do

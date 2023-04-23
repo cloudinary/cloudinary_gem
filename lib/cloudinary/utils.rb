@@ -1175,11 +1175,13 @@ class Cloudinary::Utils
   # @private
   def self.norm_range_value(value) # :nodoc:
     offset = /^#{offset_any_pattern}$/.match( value.to_s)
+
     if offset
-      modifier   = offset[5].present? ? 'p' : ''
-      value  = "#{offset[1]}#{modifier}"
+      modifier = offset[5].present? ? 'p' : ''
+      "#{offset[1]}#{modifier}"
+    else
+      normalize_expression(value)
     end
-    value
   end
   private_class_method :norm_range_value
 
