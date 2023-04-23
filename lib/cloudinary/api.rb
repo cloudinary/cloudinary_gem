@@ -406,6 +406,76 @@ class Cloudinary::Api
     call_api(:delete, uri, params, options)
   end
 
+  # Relates an asset to other assets by public IDs.
+  #
+  # @param [String]            public_id        The public ID of the asset.
+  # @param [String|Array]      assets_to_relate The array of up to 10 fully_qualified_public_ids given as
+  #                                             resource_type/type/public_id.
+  # @param [Hash]              options          The optional parameters. See the
+  #   {https://cloudinary.com/documentation/admin_api#add_related_assets Admin API} documentation.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  def self.add_related_assets(public_id, assets_to_relate, options={})
+    resource_type = options[:resource_type] || "image"
+    type          = options[:type] || "upload"
+    uri           = "resources/related_assets/#{resource_type}/#{type}/#{public_id}"
+    params = {:assets_to_relate => Cloudinary::Utils.build_array(assets_to_relate)}
+    call_api(:post, uri, params, options)
+  end
+
+  # Relates an asset to other assets by asset IDs.
+  #
+  # @param [String]            asset_id         The asset ID of the asset to update.
+  # @param [String|Array]      assets_to_relate The array of up to 10 asset IDs.
+  # @param [Hash]              options          The optional parameters. See the
+  #   {https://cloudinary.com/documentation/admin_api#add_related_assets_by_asset_id Admin API} documentation.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  def self.add_related_assets_by_asset_ids(asset_id, assets_to_relate, options={})
+    uri           = "resources/related_assets/#{asset_id}"
+    params = {:assets_to_relate => Cloudinary::Utils.build_array(assets_to_relate)}
+    call_api(:post, uri, params, options)
+  end
+
+  # Unrelates an asset from other assets by public IDs.
+  #
+  # @param [String]            public_id          The public ID of the asset.
+  # @param [String|Array]      assets_to_unrelate The array of up to 10 fully_qualified_public_ids given as
+  #                                               resource_type/type/public_id.
+  # @param [Hash]              options            The optional parameters. See the
+  #   {https://cloudinary.com/documentation/admin_api#delete_related_assets Admin API} documentation.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  def self.delete_related_assets(public_id, assets_to_unrelate, options={})
+    resource_type = options[:resource_type] || "image"
+    type          = options[:type] || "upload"
+    uri           = "resources/related_assets/#{resource_type}/#{type}/#{public_id}"
+    params = {:assets_to_unrelate => Cloudinary::Utils.build_array(assets_to_unrelate)}
+    call_api(:delete, uri, params, options)
+  end
+
+  # Unrelates an asset from other assets by asset IDs.
+  #
+  # @param [String]            asset_id           The asset ID of the asset to update.
+  # @param [String|Array]      assets_to_unrelate The array of up to 10 asset IDs.
+  # @param [Hash]              options            The optional parameters. See the
+  #   {https://cloudinary.com/documentation/admin_api#delete_related_assets_by_asset_id Admin API} documentation.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  def self.delete_related_assets_by_asset_ids(asset_id, assets_to_unrelate, options={})
+    uri           = "resources/related_assets/#{asset_id}"
+    params = {:assets_to_unrelate => Cloudinary::Utils.build_array(assets_to_unrelate)}
+    call_api(:delete, uri, params, options)
+  end
+
   # Lists all the tags currently used for a specified asset type.
   #
   # @param [Hash] options The optional parameters. See the

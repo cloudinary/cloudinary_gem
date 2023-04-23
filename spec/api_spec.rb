@@ -23,6 +23,11 @@ describe Cloudinary::Api do
   test_id_3   = "#{prefix}_3"
   test_key = "test_key_#{SUFFIX}"
 
+  test_asset_id = "4af5a0d1d4047808528b5425d166c101"
+
+  related_assets = %W[image/upload/#{test_id_2} image/upload/#{test_id_3}]
+  related_asset_ids = %w(4af5a0d1d4047808528b5425d166c102 4af5a0d1d4047808528b5425d166c103)
+
   include_context "metadata_field",
                   :external_id => METADATA_EXTERNAL_ID,
                   :label => METADATA_EXTERNAL_ID,
@@ -305,6 +310,48 @@ describe Cloudinary::Api do
   it "should allow deleting resources by tags" do
     expect(RestClient::Request).to receive(:execute).with(hash_including( :url => /.*\/tags\/api_test_tag_for_delete$/))
     @api.delete_resources_by_tag("api_test_tag_for_delete")
+  end
+
+  describe 'related assets' do
+    it "should allow adding related assets" do
+      expected = {
+                   :url => /.*\/resources\/related_assets\/image\/upload\/#{test_id_1}$/,
+                   :method => :post,
+                   :payload => { :assets_to_relate => related_assets },
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.add_related_assets(test_id_1, related_assets)
+    end
+
+    it "should allow adding related assets by asset ids" do
+      expected = {
+        :url => /.*\/resources\/related_assets\/#{test_asset_id}$/,
+        :method => :post,
+        :payload => { :assets_to_relate => related_asset_ids },
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.add_related_assets_by_asset_ids(test_asset_id, related_asset_ids)
+    end
+
+    it "should allow deleting related assets" do
+      expected = {
+        :url => /.*\/resources\/related_assets\/image\/upload\/#{test_id_1}$/,
+        :method => :delete,
+        :payload => { :assets_to_unrelate => related_assets },
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.delete_related_assets(test_id_1, related_assets)
+    end
+
+    it "should allow deleting related assets by asset ids" do
+      expected = {
+        :url => /.*\/resources\/related_assets\/#{test_asset_id}$/,
+        :method => :delete,
+        :payload => { :assets_to_unrelate => related_asset_ids },
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      @api.delete_related_assets_by_asset_ids(test_asset_id, related_asset_ids)
+    end
   end
 
   it "should allow listing tags" do
