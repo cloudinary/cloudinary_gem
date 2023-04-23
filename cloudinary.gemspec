@@ -57,6 +57,7 @@ Gem::Specification.new do |s|
 
   if RUBY_VERSION <= "2.4.0"
     s.add_development_dependency "simplecov", "<= 0.17.1" # support testing Ruby 1.9
+    s.add_development_dependency "rails-html-sanitizer", "<1.5.0"
   else
     s.add_development_dependency "simplecov", "> 0.18.0"
   end
