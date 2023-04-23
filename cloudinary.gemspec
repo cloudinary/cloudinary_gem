@@ -39,8 +39,12 @@ Gem::Specification.new do |s|
   else
     s.add_development_dependency "rake", "<= 12.2.1"
   end
+  if RUBY_VERSION >= "2.7.0"
+    s.add_development_dependency "sqlite3"
+  else
+    s.add_development_dependency "sqlite3", "< 1.6.0"
+  end
 
-  s.add_development_dependency "sqlite3"
   s.add_development_dependency "rspec", '>=3.5'
   s.add_development_dependency "rspec-retry"
 
