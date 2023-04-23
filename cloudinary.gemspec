@@ -39,8 +39,12 @@ Gem::Specification.new do |s|
   else
     s.add_development_dependency "rake", "<= 12.2.1"
   end
+  if RUBY_VERSION >= "2.7.0"
+    s.add_development_dependency "sqlite3"
+  else
+    s.add_development_dependency "sqlite3", "< 1.6.0"
+  end
 
-  s.add_development_dependency "sqlite3"
   s.add_development_dependency "rspec", '>=3.5'
   s.add_development_dependency "rspec-retry"
 
@@ -57,6 +61,7 @@ Gem::Specification.new do |s|
 
   if RUBY_VERSION <= "2.4.0"
     s.add_development_dependency "simplecov", "<= 0.17.1" # support testing Ruby 1.9
+    s.add_development_dependency "rails-html-sanitizer", "<1.5.0"
   else
     s.add_development_dependency "simplecov", "> 0.18.0"
   end
