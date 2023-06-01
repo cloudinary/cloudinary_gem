@@ -1,3 +1,14 @@
+1.26.0 / 2023-06-01
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for related assets Admin APIs
+  * Add support for expressions in `start_offset` and `end_offset` parameters
+  * Add support for Conditional Metadata Rules API
+  * Add support for large files in Active Storage
+
 1.25.0 / 2023-01-04
 ==================
 
