@@ -47,6 +47,7 @@ class Cloudinary::Uploader
       :filename_override                    => options[:filename_override],
       :headers                              => build_custom_headers(options[:headers]),
       :image_metadata                       => Cloudinary::Utils.as_safe_bool(options[:image_metadata]),
+      :media_metadata                       => Cloudinary::Utils.as_safe_bool(options[:media_metadata]),
       :invalidate                           => Cloudinary::Utils.as_safe_bool(options[:invalidate]),
       :moderation                           => options[:moderation],
       :notification_url                     => options[:notification_url],
