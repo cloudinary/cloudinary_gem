@@ -1,4 +1,6 @@
 class Cloudinary::Search
+  ENDPOINT = 'resources'
+
   SORT_BY    = :sort_by
   AGGREGATE  = :aggregate
   WITH_FIELD = :with_field
@@ -10,6 +12,8 @@ class Cloudinary::Search
       AGGREGATE  => {},
       WITH_FIELD => {}
     }
+
+    @endpoint = self.class::ENDPOINT
   end
 
   ## implicitly generate an instance delegate the method
@@ -82,7 +86,17 @@ class Cloudinary::Search
 
   def execute(options = {})
     options[:content_type] = :json
-    uri = 'resources/search'
+    uri = "#{@endpoint}/search"
     Cloudinary::Api.call_api(:post, uri, to_h, options)
+  end
+
+  # Sets the API endpoint.
+  #
+  # @param [String] endpoint the endpoint to set.
+  #
+  # @return [Cloudinary::Search]
+  def endpoint(endpoint)
+    @endpoint = endpoint
+    self
   end
 end

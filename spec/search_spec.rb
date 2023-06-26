@@ -48,6 +48,7 @@ describe Cloudinary::Search do
 
     it "should not duplicate values" do
       expected = {
+        [:url] => /.*\/resources\/search$/,
         [:payload] => {
           "sort_by" => [
             { "created_at" => "desc" },
