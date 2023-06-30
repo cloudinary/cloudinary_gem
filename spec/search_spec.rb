@@ -75,23 +75,76 @@ describe Cloudinary::Search do
     end
   end
 
+  context 'unit Search URL' do
+    include_context "config"
+    before(:each) do
+      ENV["CLOUDINARY_URL"] = "cloudinary://key:secret@test123?secure=true"
+      Cloudinary.reset_config
+    end
+
+    let(:cloud_name) { Cloudinary.config.cloud_name }
+    let(:root_path) { "https://res.cloudinary.com/#{cloud_name}" }
+    let(:search_path) { "#{root_path}/search/" }
+
+    search = Cloudinary::Search
+               .expression("resource_type:image AND tags=kitten AND uploaded_at>1d AND bytes>1m")
+               .sort_by("public_id", "desc")
+               .max_results(30)
+
+    b64query = "eyJleHByZXNzaW9uIjoicmVzb3VyY2VfdHlwZTppbWFnZSBBTkQgdGFncz1raXR0ZW4gQU5EIHVwbG9hZGVkX2F0" +
+      "PjFkIEFORCBieXRlcz4xbSIsIm1heF9yZXN1bHRzIjozMCwic29ydF9ieSI6W3sicHVibGljX2lkIjoiZGVzYyJ9XX0="
+
+    ttl300_sig  = "431454b74cefa342e2f03e2d589b2e901babb8db6e6b149abf25bc0dd7ab20b7"
+    ttl1000_sig = "25b91426a37d4f633a9b34383c63889ff8952e7ffecef29a17d600eeb3db0db7"
+
+    it 'should build Search URL using defaults' do
+      expect(search.to_url).to eq("#{search_path}#{ttl300_sig}/300/#{b64query}")
+    end
+
+    it 'should build Search URL with next cursor' do
+      expect(search.to_url(nil, NEXT_CURSOR)).to eq("#{search_path}#{ttl300_sig}/300/#{b64query}/#{NEXT_CURSOR}")
+    end
+
+    it 'should build Search URL with custom ttl and next cursor' do
+      expect(search.to_url(1000, NEXT_CURSOR)).to eq("#{search_path}#{ttl1000_sig}/1000/#{b64query}/#{NEXT_CURSOR}")
+    end
+
+    it 'should build Search URL with custom ttl and next cursor from the class' do
+      expect(search.ttl(1000).next_cursor(NEXT_CURSOR).to_url)
+        .to eq("#{search_path}#{ttl1000_sig}/1000/#{b64query}/#{NEXT_CURSOR}")
+    end
+
+    it 'should build Search URL with private_cdn' do
+      expect(search.to_url(300, "", { private_cdn: true }))
+        .to eq("https://#{cloud_name}-res.cloudinary.com/search/#{ttl300_sig}/300/#{b64query}")
+    end
+
+    it 'should build Search URL with private_cdn from config' do
+      Cloudinary.config do |config|
+        config.private_cdn = true
+      end
+      expect(search.to_url(300, ""))
+        .to eq("https://#{cloud_name}-res.cloudinary.com/search/#{ttl300_sig}/300/#{b64query}")
+    end
+  end
+
   context 'integration', :with_retries do
     SEARCH_TAG = TIMESTAMP_TAG + "_search"
     include_context 'cleanup', SEARCH_TAG
-    prefix = "api_test_#{SUFFIX}"
-    test_id_1 = "#{prefix}_1"
+    prefix      = "api_test_#{SUFFIX}"
+    test_id_1   = "#{prefix}_1"
     test_id_2   = "#{prefix}_2"
     test_id_3   = "#{prefix}_3"
     m_asset_ids = {}
 
     before(:all) do
-      result = Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_1, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=in_review')
+      result                 = Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_1, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=in_review')
       m_asset_ids[test_id_1] = result["asset_id"]
 
-      result = Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_2, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=new')
+      result                 = Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_2, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=new')
       m_asset_ids[test_id_2] = result["asset_id"]
 
-      result = Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_3, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=validated')
+      result                 = Cloudinary::Uploader.upload(TEST_IMG, public_id: test_id_3, tags: [TEST_TAG, TIMESTAMP_TAG, SEARCH_TAG], context: 'stage=validated')
       m_asset_ids[test_id_3] = result["asset_id"]
 
       sleep(1)

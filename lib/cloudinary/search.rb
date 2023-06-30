@@ -6,6 +6,8 @@ class Cloudinary::Search
   WITH_FIELD = :with_field
   KEYS_WITH_UNIQUE_VALUES = [SORT_BY, AGGREGATE, WITH_FIELD].freeze
 
+  TTL = 300 # Used for search URLs
+
   def initialize
     @query_hash = {
       SORT_BY    => {},
@@ -14,6 +16,8 @@ class Cloudinary::Search
     }
 
     @endpoint = self.class::ENDPOINT
+
+    @ttl = self.class::TTL
   end
 
   ## implicitly generate an instance delegate the method
@@ -73,6 +77,16 @@ class Cloudinary::Search
     self
   end
 
+  # Sets the time to live of the search URL.
+  #
+  # @param [Object] ttl The time to live in seconds.
+  #
+  # @return [Cloudinary::Search]
+  def ttl(ttl)
+    @ttl = ttl
+    self
+  end
+
   # Returns the query as an hash.
   #
   # @return [Hash]
@@ -88,6 +102,33 @@ class Cloudinary::Search
     options[:content_type] = :json
     uri = "#{@endpoint}/search"
     Cloudinary::Api.call_api(:post, uri, to_h, options)
+  end
+
+  # Creates a signed Search URL that can be used on the client side.
+  #
+  # @param [Integer] ttl The time to live in seconds.
+  # @param [String] next_cursor Starting position.
+  # @param [Hash] options Additional url delivery options.
+  #
+  # @return [String] The resulting Search URL
+  def to_url(ttl = nil, next_cursor = nil, options = {})
+    api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
+
+    ttl   = ttl || @ttl
+    query = self.to_h
+
+    _next_cursor = query.delete(:next_cursor)
+    next_cursor  = _next_cursor if next_cursor.nil?
+
+    b64query = Base64.urlsafe_encode64(JSON.generate(query.sort.to_h))
+
+    prefix = Cloudinary::Utils.build_distribution_domain(options)
+
+    signature = Cloudinary::Utils.hash("#{ttl}#{b64query}#{api_secret}", :sha256, :hexdigest)
+
+    next_cursor = "/#{next_cursor}" if !next_cursor.nil? && !next_cursor.empty?
+
+    "#{prefix}/search/#{signature}/#{ttl}/#{b64query}#{next_cursor}"
   end
 
   # Sets the API endpoint.

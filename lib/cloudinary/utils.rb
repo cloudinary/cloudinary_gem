@@ -524,18 +524,10 @@ class Cloudinary::Utils
     version = options.delete(:version)
     force_version = config_option_consume(options, :force_version, true)
     format = options.delete(:format)
-    cloud_name = config_option_consume(options, :cloud_name) || raise(CloudinaryException, "Must supply cloud_name in tag or in configuration")
 
-    secure = options.delete(:secure)
-    ssl_detected = options.delete(:ssl_detected)
-    secure = ssl_detected || Cloudinary.config.secure if secure.nil?
-    private_cdn = config_option_consume(options, :private_cdn)
-    secure_distribution = config_option_consume(options, :secure_distribution)
-    cname = config_option_consume(options, :cname)
     shorten = config_option_consume(options, :shorten)
     force_remote = options.delete(:force_remote)
-    cdn_subdomain = config_option_consume(options, :cdn_subdomain)
-    secure_cdn_subdomain = config_option_consume(options, :secure_cdn_subdomain)
+
     sign_url = config_option_consume(options, :sign_url)
     secret = config_option_consume(options, :api_secret)
     sign_version = config_option_consume(options, :sign_version) # Deprecated behavior
@@ -558,7 +550,7 @@ class Cloudinary::Utils
     type = type.to_s unless type.nil?
     resource_type ||= "image"
     source = source.to_s
-    if !force_remote
+    unless force_remote
       static_support = Cloudinary.config.static_file_support || Cloudinary.config.static_image_support
       return original_source if !static_support && type == "asset"
       return original_source if (type.nil? || type == "asset") && source.match(%r(^https?:/)i)
@@ -594,7 +586,9 @@ class Cloudinary::Utils
       signature = "s--#{signature[0, long_url_signature ? LONG_URL_SIGNATURE_LENGTH : SHORT_URL_SIGNATURE_LENGTH ]}--"
     end
 
-    prefix = unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
+    options[:source] = source
+    prefix = build_distribution_domain(options)
+
     source = [prefix, resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
     if sign_url && auth_token && !auth_token.empty?
       auth_token[:url] = URI.parse(source).path
@@ -705,6 +699,22 @@ class Cloudinary::Utils
     prefix += "/#{cloud_name}" if shared_domain
 
     prefix
+  end
+
+  def self.build_distribution_domain(options = {})
+    cloud_name = config_option_consume(options, :cloud_name) || raise(CloudinaryException, "Must supply cloud_name in tag or in configuration")
+
+    source = options.delete(:source)
+    secure = options.delete(:secure)
+    ssl_detected = options.delete(:ssl_detected)
+    secure = ssl_detected || Cloudinary.config.secure if secure.nil?
+    private_cdn = config_option_consume(options, :private_cdn)
+    secure_distribution = config_option_consume(options, :secure_distribution)
+    cname = config_option_consume(options, :cname)
+    cdn_subdomain = config_option_consume(options, :cdn_subdomain)
+    secure_cdn_subdomain = config_option_consume(options, :secure_cdn_subdomain)
+
+    unsigned_download_url_prefix(source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain, cname, secure, secure_distribution)
   end
 
   # Creates a base URL for the cloudinary api
@@ -1373,6 +1383,4 @@ class Cloudinary::Utils
     algorithm = ALGORITHM_SIGNATURE[signature_algorithm] || raise("Unsupported algorithm '#{signature_algorithm}'")
     algorithm.public_send(hash_method, input)
   end
-
-  private_class_method :hash
 end
