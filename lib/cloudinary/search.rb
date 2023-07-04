@@ -91,7 +91,7 @@ class Cloudinary::Search
   #
   # @return [Hash]
   def to_h
-    @query_hash.each_with_object({}) do |(key, value), query|
+    @query_hash.sort.each_with_object({}) do |(key, value), query|
       next if value.nil? || ((value.is_a?(Array) || value.is_a?(Hash)) && value.blank?)
 
       query[key] = KEYS_WITH_UNIQUE_VALUES.include?(key) ? value.values : value
@@ -120,7 +120,7 @@ class Cloudinary::Search
     _next_cursor = query.delete(:next_cursor)
     next_cursor  = _next_cursor if next_cursor.nil?
 
-    b64query = Base64.urlsafe_encode64(JSON.generate(query.sort.to_h))
+    b64query = Base64.urlsafe_encode64(JSON.generate(query))
 
     prefix = Cloudinary::Utils.build_distribution_domain(options)
 

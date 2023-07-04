@@ -50,12 +50,12 @@ describe Cloudinary::Search do
       expected = {
         [:url] => /.*\/resources\/search$/,
         [:payload] => {
+          "aggregate" => %w[format resource_type],
           "sort_by" => [
             { "created_at" => "desc" },
             { "public_id" => "asc" }
           ],
-          "aggregate" => ["format", "resource_type"],
-          "with_field" => ["context", "tags"]
+          "with_field" => %w[context tags]
         }.to_json
       }
 
