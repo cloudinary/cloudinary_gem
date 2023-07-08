@@ -207,6 +207,19 @@ class Cloudinary::Api
     call_api(:get, uri, params, options)
   end
 
+  # Find images based on their visual content.
+  #
+  # @param [Hash]   options      The optional parameters.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  def self.visual_search(options = {})
+    uri    = "resources/visual_search"
+    params = only(options, :image_url, :image_asset_id, :text)
+    call_api(:get, uri, params, options)
+  end
+
   # Returns the details of the specified asset and all its derived assets.
   #
   # Note that if you only need details about the original asset,
