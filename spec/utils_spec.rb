@@ -807,7 +807,9 @@ describe Cloudinary::Utils do
 
   it "build_upload_params canonize booleans" do
     options = { :backup         => true, :use_filename => false, :colors => :true,
-                :image_metadata => :false, :media_metadata => true, :invalidate => 1 }
+                :image_metadata => :false, :media_metadata => true, :invalidate => 1,
+                :visual_search  => true,
+    }
     params  = Cloudinary::Uploader.build_upload_params(options)
     expect(Cloudinary::Api.only(params, *options.keys))
       .to eq(:backup         => 1,
@@ -815,7 +817,8 @@ describe Cloudinary::Utils do
              :colors         => 1,
              :image_metadata => 0,
              :media_metadata => 1,
-             :invalidate     => 1
+             :invalidate     => 1,
+             :visual_search  => 1,
           )
     options = { :colors => "true", :exif => "false", :eager_async => "1", :media_metadata => true }
     params  = Cloudinary::Uploader.build_upload_params(options)

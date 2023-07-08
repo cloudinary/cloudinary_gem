@@ -63,6 +63,7 @@ class Cloudinary::Uploader
       :responsive_breakpoints               => Cloudinary::Utils.generate_responsive_breakpoints_string(options[:responsive_breakpoints]),
       :return_delete_token                  => Cloudinary::Utils.as_safe_bool(options[:return_delete_token]),
       :similarity_search                    => options[:similarity_search],
+      :visual_search                        => Cloudinary::Utils.as_safe_bool(options[:visual_search]),
       :tags                                 => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
       :timestamp                            => (options[:timestamp] || Time.now.to_i),
       :transformation                       => Cloudinary::Utils.generate_transformation_string(options.clone),
