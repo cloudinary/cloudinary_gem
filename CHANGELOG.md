@@ -1,3 +1,14 @@
+1.27.0 / 2023-07-31
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for `visual_search` Admin API
+  * Add support for Search URL
+  * Add support for `SearchFolders` API
+  * Add support for `media_metadata` API parameter
+
 1.26.0 / 2023-06-01
 ==================
 
