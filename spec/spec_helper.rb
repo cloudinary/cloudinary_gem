@@ -30,8 +30,9 @@ UPLOADER_TAG = "#{TEST_TAG}_uploader"
 OAUTH_TOKEN = "NTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZj17"
 API_TEST_PRESET = "api_test_upload_preset"
 
-EVAL_STR='if (resource_info["width"] < 450) { upload_options["quality_analysis"] = true };
-          upload_options["context"] = "width=" + resource_info["width"]'
+EVAL_STR = 'if (resource_info["width"] < 450) { upload_options["quality_analysis"] = true };
+           upload_options["context"] = "width=" + resource_info["width"]'
+ON_SUCCESS_STR = 'current_asset.update({tags: ["autocaption"]});'
 
 # Auth token
 KEY     = "00112233FF99"

@@ -104,10 +104,10 @@ describe Cloudinary::Uploader do
   end
 
 
-  it "should support the eval parameter" do
-    expected = {[:payload, :eval] => EVAL_STR}
+  it "should support eval and on_success parameters" do
+    expected = {[:payload, :eval] => EVAL_STR, [:payload, :on_success] => ON_SUCCESS_STR}
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-    Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :eval => EVAL_STR)
+    Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :eval => EVAL_STR, :on_success => ON_SUCCESS_STR)
   end
 
   it "should execute custom logic in eval upload parameter" do

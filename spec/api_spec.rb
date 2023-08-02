@@ -509,12 +509,14 @@ describe Cloudinary::Api do
                 [:payload, :name] => "new_preset",
                 [:payload, :folder] => "some_folder",
                 [:payload, :eval] => EVAL_STR,
+                [:payload, :on_success] => ON_SUCCESS_STR,
                 [:payload, :live] => true}
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
 
     @api.create_upload_preset(:name => "new_preset",
                               :folder => "some_folder",
                               :eval => EVAL_STR,
+                              :on_success => ON_SUCCESS_STR,
                               :tags => [TEST_TAG, TIMESTAMP_TAG],
                               :live => true)
   end
@@ -558,6 +560,7 @@ describe Cloudinary::Api do
                                                              :unsigned => true,
                                                              :disallow_public_id => true,
                                                              :eval => EVAL_STR,
+                                                             :on_success => ON_SUCCESS_STR,
                                                              :live => true))
     preset = @api.upload_preset(name)
     expect(preset["name"]).to eq(name)
@@ -566,6 +569,7 @@ describe Cloudinary::Api do
                                      "colors" => true,
                                      "disallow_public_id" => true,
                                      "eval" => EVAL_STR,
+                                     "on_success" => ON_SUCCESS_STR,
                                      "tags" => [TEST_TAG, TIMESTAMP_TAG],
                                      "live" => true)
   end
