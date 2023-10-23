@@ -152,13 +152,17 @@ describe Cloudinary::Api do
   end
 
   it "should allow visual search" do
+    image_file = File.new(TEST_IMG)
     expected = {
       :url     => /.*\/resources\/visual_search$/,
-      :method  => :get,
-      :payload => { :image_url => TEST_IMAGE_URL, :image_asset_id => test_asset_id, :text => "sample image" },
+      :method  => :post,
+      :payload => { :image_url => TEST_IMAGE_URL, :image_asset_id => test_asset_id, :text => "sample image" ,
+                    :image_file => image_file},
     }
+
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-    @api.visual_search({ "image_url" => TEST_IMAGE_URL, "image_asset_id" => test_asset_id, "text" => "sample image" })
+    @api.visual_search({ "image_url" => TEST_IMAGE_URL, "image_asset_id" => test_asset_id, "text" => "sample image",
+                         "image_file" => image_file})
   end
 
   describe "structured metadata" do

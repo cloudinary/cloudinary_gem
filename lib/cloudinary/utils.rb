@@ -1295,6 +1295,27 @@ class Cloudinary::Utils
     }
   end
 
+  # Handles file parameter.
+  #
+  # @param [Pathname, StringIO, File, String, int, _ToPath] file
+  # @return [StringIO, File] A File object.
+  #
+  # @private
+  def self.handle_file_param(file, options = {})
+    if file.is_a?(Pathname)
+      return File.open(file, "rb")
+    elsif file.is_a?(Cloudinary::Blob)
+      return file
+    elsif file.is_a?(StringIO)
+      file.rewind
+      return Cloudinary::Blob.new(file.read, options)
+    elsif file.respond_to?(:read) || Cloudinary::Utils.is_remote?(file)
+      return file
+    end
+
+    File.open(file, "rb")
+  end
+
   # The returned url should allow downloading the backedup asset based on the version and asset id
   #
   # asset and version id are returned with resource(<PUBLIC_ID1>, { versions: true })

@@ -216,8 +216,9 @@ class Cloudinary::Api
   # @raise [Cloudinary::Api::Error]
   def self.visual_search(options = {})
     uri    = "resources/visual_search"
-    params = only(options, :image_url, :image_asset_id, :text)
-    call_api(:get, uri, params, options)
+    params = only(options, :image_url, :image_asset_id, :text, :image_file)
+    params[:image_file] = Cloudinary::Utils.handle_file_param(params[:image_file]) if params.has_key?(:image_file)
+    call_api(:post, uri, params, options)
   end
 
   # Returns the details of the specified asset and all its derived assets.

@@ -88,16 +88,7 @@ class Cloudinary::Uploader
   def self.upload(file, options={})
     call_api("upload", options) do
       params = build_upload_params(options)
-      if file.is_a?(Pathname)
-        params[:file] = File.open(file, "rb")
-      elsif file.is_a?(StringIO)
-        file.rewind
-        params[:file] = Cloudinary::Blob.new(file.read, options)
-      elsif file.respond_to?(:read) || Cloudinary::Utils.is_remote?(file)
-        params[:file] = file
-      else
-        params[:file] = File.open(file, "rb")
-      end
+      params[:file] = Cloudinary::Utils.handle_file_param(file, options)
       [params, [:file]]
     end
   end
@@ -154,11 +145,7 @@ class Cloudinary::Uploader
     options[:resource_type] ||= :raw
     call_api("upload", options) do
       params = build_upload_params(options)
-      if file.is_a?(Pathname) || !file.respond_to?(:read)
-        params[:file] = File.open(file, "rb")
-      else
-        params[:file] = file
-      end
+      params[:file] = Cloudinary::Utils.handle_file_param(file, options)
       [params, [:file]]
     end
   end
