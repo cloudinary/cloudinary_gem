@@ -82,7 +82,7 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
     end
 
     if defined?(ActiveRecord::Base) && uploader.model.is_a?(ActiveRecord::Base)
-      uploader.model.update_column column, name
+      uploader.model.update_column(column, name)
     elsif defined?(Mongoid::Document) && uploader.model.is_a?(Mongoid::Document)
       # Mongoid support
       if Mongoid::VERSION.split(".").first.to_i >= 4
