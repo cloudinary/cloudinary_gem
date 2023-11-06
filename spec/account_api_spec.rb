@@ -163,5 +163,35 @@ describe Cloudinary::AccountApi do
       # Ensure we can find our ID in the list(Which means we got a real list as a response)
       expect(matched_group["id"]).to eq(group_id)
     end
+
+    it "should get user by last login true" do
+      time_millis = (Time.now.to_f.round(3) * 1000).to_i
+      user_name = "SDK TEST Get Users By Last Login True #{time_millis}"
+      user_email = "sdk-test-get-users-by-llt+#{time_millis}@cloudinary.com"
+
+      user = api.create_user(user_name, user_email, user_role, [])
+      user_id = user["id"]
+
+      user_by_last_login = api.users(true, [], user_name, nil, {}, true, Date.today, Date.today)
+      expect(user_by_last_login["users"].count).to eq(0)
+
+      del_user_res = api.delete_user(user_id)
+      expect(del_user_res["message"]).to eq("ok")
+    end
+
+    it "should get user by last login false" do
+      time_millis = (Time.now.to_f.round(3) * 1000).to_i
+      user_name = "SDK TEST Get Users By Last Login TrFalseue #{time_millis}"
+      user_email = "sdk-test-get-users-by-llf+#{time_millis}@cloudinary.com"
+
+      user = api.create_user(user_name, user_email, user_role, [])
+      user_id = user["id"]
+
+      user_by_last_login = api.users(true, [], user_name, nil, {}, false, Date.today, Date.today)
+      expect(user_by_last_login["users"].count).to eq(1)
+
+      del_user_res = api.delete_user(user_id)
+      expect(del_user_res["message"]).to eq("ok")
+    end
   end
 end
