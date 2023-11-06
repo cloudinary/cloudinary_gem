@@ -1,3 +1,17 @@
+1.28.0 / 2023-11-06
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for `image_file` parameter in `visual_search` Admin API
+  * Add support for `on_success` upload parameter
+
+Other Changes
+-------------
+
+  * Replace `update_all` to `update_column` in CarrierWave storage
+
 1.27.0 / 2023-07-31
 ==================
 
