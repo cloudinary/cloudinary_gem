@@ -13,10 +13,10 @@ class Cloudinary::AccountApi
   # @param [Object] options additional options
   def self.create_sub_account(name, cloud_name = nil, custom_attributes = {}, enabled = nil, base_account = nil, options = {})
     params = {
-      name: name,
-      cloud_name: cloud_name,
-      custom_attributes: custom_attributes,
-      enabled: enabled,
+      name:                name,
+      cloud_name:          cloud_name,
+      custom_attributes:   custom_attributes,
+      enabled:             enabled,
       base_sub_account_id: base_account
     }
 
@@ -35,10 +35,10 @@ class Cloudinary::AccountApi
   # @param [Object] options additional options
   def self.update_sub_account(sub_account_id, name = nil, cloud_name = nil, custom_attributes = nil, enabled = nil, options = {})
     params = {
-      name: name,
-      cloud_name: cloud_name,
+      name:              name,
+      cloud_name:        cloud_name,
       custom_attributes: custom_attributes,
-      enabled: enabled
+      enabled:           enabled
     }
 
     call_account_api(:put, ['sub_accounts', sub_account_id], params, options.merge(content_type: :json))
@@ -53,8 +53,8 @@ class Cloudinary::AccountApi
   def self.sub_accounts(enabled = nil, ids = [], prefix = nil, options = {})
     params = {
       enabled: enabled,
-      ids: ids,
-      prefix: prefix
+      ids:     ids,
+      prefix:  prefix
     }
 
     call_account_api(:get, 'sub_accounts', params, options.merge(content_type: :json))
@@ -84,9 +84,9 @@ class Cloudinary::AccountApi
   # @param [Object] options additional options
   def self.create_user(name, email, role, sub_account_ids = [], options = {})
     params = {
-      name: name,
-      email: email,
-      role: role,
+      name:            name,
+      email:           email,
+      role:            role,
       sub_account_ids: sub_account_ids
     }
 
@@ -111,9 +111,9 @@ class Cloudinary::AccountApi
   # @param [Object] options additional options
   def self.update_user(user_id, name = nil, email = nil, role = nil, sub_account_ids = nil, options = {})
     params = {
-      name: name,
-      email: email,
-      role: role,
+      name:            name,
+      email:           email,
+      role:            role,
       sub_account_ids: sub_account_ids
     }
 
@@ -135,10 +135,10 @@ class Cloudinary::AccountApi
   # @param [Object] options additional options
   def self.users(pending = nil, user_ids = [], prefix = nil, sub_account_id = nil, options = {})
     params = {
-      ids: user_ids,
-      prefix: prefix,
+      ids:            user_ids,
+      prefix:         prefix,
       sub_account_id: sub_account_id,
-      pending: pending
+      pending:        pending
     }
 
     call_account_api(:get, 'users', params, options.merge(content_type: :json))
@@ -208,6 +208,44 @@ class Cloudinary::AccountApi
   # @param [Object] options additional options
   def self.user_group_users(group_id, options = {})
     call_account_api(:get, ['user_groups', group_id, 'users'], {}, options.merge(content_type: :json))
+  end
+
+  # Lists access keys.
+  #
+  # @param [String] sub_account_id  The ID of the sub-account.
+  # @param [Object] options         Additional options.
+  def self.access_keys(sub_account_id, options = {})
+    params = Cloudinary::Api.only(options, :page_size, :page, :sort_by, :sort_order)
+    call_account_api(:get, ['sub_accounts', sub_account_id, 'access_keys'], params, options)
+  end
+
+  # Generates access key.
+  #
+  # @param [String]   sub_account_id  The ID of the sub-account.
+  # @param [String]   name            The display name as shown in the management console.
+  # @param [Boolean]  enabled         Whether to create the access key as enabled (default is enabled).
+  # @param [Object]   options         Additional options.
+  def self.generate_access_key(sub_account_id, name = nil, enabled = nil, options = {})
+    params = {
+      name:    name,
+      enabled: enabled,
+    }
+    call_account_api(:post, ['sub_accounts', sub_account_id, 'access_keys'], params, options.merge(content_type: :json))
+  end
+
+  # Updates access key.
+  #
+  # @param [String]   sub_account_id  The ID of the sub-account.
+  # @param [String]   api_key         The API key.
+  # @param [String]   name            The display name as shown in the management console.
+  # @param [Boolean]  enabled         Enable or disable the access key.
+  # @param [Object]   options         Additional options.
+  def self.update_access_key(sub_account_id, api_key, name = nil, enabled = nil, options = {})
+    params = {
+      name:    name,
+      enabled: enabled,
+    }
+    call_account_api(:put, ['sub_accounts', sub_account_id, 'access_keys', api_key], params, options.merge(content_type: :json))
   end
 
   def self.call_account_api(method, uri, params, options)
