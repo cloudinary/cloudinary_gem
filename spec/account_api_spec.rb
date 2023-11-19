@@ -163,5 +163,31 @@ describe Cloudinary::AccountApi do
       # Ensure we can find our ID in the list(Which means we got a real list as a response)
       expect(matched_group["id"]).to eq(group_id)
     end
+
+    it "should list access keys" do
+      access_keys = api.access_keys(cloud_id)
+
+      expect(access_keys['total']).to eq 1
+      expect(access_keys['access_keys'].count).to eq 1
+    end
+
+    it "should generate access key" do
+      access_key = api.generate_access_key(cloud_id, 'test_key', false)
+
+      expect(access_key['name']).to eq 'test_key'
+      expect(access_key['enabled']).to be_falsey
+    end
+
+    it "should update access key" do
+      access_key = api.generate_access_key(cloud_id, 'test_key', false)
+
+      expect(access_key['name']).to eq 'test_key'
+      expect(access_key['enabled']).to be_falsey
+
+      updated_key = api.update_access_key(cloud_id, access_key['api_key'], 'updated_key', true)
+
+      expect(updated_key['name']).to eq 'updated_key'
+      expect(updated_key['enabled']).to be_truthy
+    end
   end
 end
