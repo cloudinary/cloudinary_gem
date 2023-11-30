@@ -4,7 +4,8 @@ class Cloudinary::Search
   SORT_BY    = :sort_by
   AGGREGATE  = :aggregate
   WITH_FIELD = :with_field
-  KEYS_WITH_UNIQUE_VALUES = [SORT_BY, AGGREGATE, WITH_FIELD].freeze
+  FIELDS     = :fields
+  KEYS_WITH_UNIQUE_VALUES = [SORT_BY, AGGREGATE, WITH_FIELD, FIELDS].freeze
 
   TTL = 300 # Used for search URLs
 
@@ -12,7 +13,8 @@ class Cloudinary::Search
     @query_hash = {
       SORT_BY    => {},
       AGGREGATE  => {},
-      WITH_FIELD => {}
+      WITH_FIELD => {},
+      FIELDS => {},
     }
 
     @endpoint = self.class::ENDPOINT
@@ -59,7 +61,7 @@ class Cloudinary::Search
   #
   # @param [String] value  Supported values: resource_type, type, pixels (only the image assets in the response are
   #                        aggregated), duration (only the video assets in the response are aggregated), format, and
-  #                        bytes. For aggregation fields without discrete values, the results are divided into 
+  #                        bytes. For aggregation fields without discrete values, the results are divided into
   #                        categories.
   # @return [Cloudinary::Search]
   def aggregate(value)
@@ -74,6 +76,19 @@ class Cloudinary::Search
   # @return [Cloudinary::Search]
   def with_field(value)
     @query_hash[WITH_FIELD][value] = value
+    self
+  end
+
+
+  # The list of the asset attributes to include for each asset in the response.
+  #
+  # @param [Array] value The array of attributes' names.
+  #
+  # @return [Cloudinary::Search]
+  def fields(value)
+    Cloudinary::Utils.build_array(value).each do |field|
+      @query_hash[FIELDS][field] = field
+    end
     self
   end
 

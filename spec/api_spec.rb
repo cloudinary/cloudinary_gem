@@ -238,6 +238,28 @@ describe Cloudinary::Api do
     end
   end
 
+  describe ":fields" do
+    it "should allow specifying response fields as array" do
+      expected = {
+        :url => /.*\/resources\/image\/tags\/#{TIMESTAMP_TAG}/,
+        [:payload, :fields] => "tags,secure_url"
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+      @api.resources_by_tag(TIMESTAMP_TAG, :type=>"upload", :fields => %w[tags secure_url])
+    end
+
+    it "should allow specifying response fields as string" do
+      expected = {
+        :url => /.*\/resources\/image\/tags\/#{TIMESTAMP_TAG}/,
+        [:payload, :fields] => "context,url"
+      }
+      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+
+      @api.resources_by_tag(TIMESTAMP_TAG, :type=>"upload", :fields => "context,url")
+    end
+  end
+
   it "should allow get resource metadata" do
     resource = @api.resource(test_id_1)
     expect(resource).not_to be_blank
@@ -666,7 +688,7 @@ describe Cloudinary::Api do
     expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
     @api.resource(test_id_1, :api_proxy => proxy)
   end
-  
+
   describe 'usage' do
     let(:yesterday) { Date.today - 1 }
 

@@ -46,11 +46,17 @@ describe Cloudinary::Search do
       expect(query).to eq(with_field: %w(context tags))
     end
 
+    it 'should add fields to query' do
+      query = Cloudinary::Search.fields(%w[context tags]).fields('metadata').to_h
+      expect(query).to eq(fields: %w(context tags metadata))
+    end
+
     it "should not duplicate values" do
       expected = {
         [:url] => /.*\/resources\/search$/,
         [:payload] => {
           "aggregate" => %w[format resource_type],
+          "fields" => %w[tags context metadata],
           "sort_by" => [
             { "created_at" => "desc" },
             { "public_id" => "asc" }
@@ -71,6 +77,9 @@ describe Cloudinary::Search do
         .with_field("context")
         .with_field("context")
         .with_field("tags")
+        .fields(%w[tags context])
+        .fields('metadata')
+        .fields('tags')
         .execute
     end
   end

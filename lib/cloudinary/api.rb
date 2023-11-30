@@ -68,7 +68,7 @@ class Cloudinary::Api
     type          = options[:type]
     uri           = "resources/#{resource_type}"
     uri           += "/#{type}" unless type.blank?
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :prefix, :tags, :context, :moderations, :direction, :start_at, :metadata), options)
+    call_api(:get, uri, list_resources_params(options).merge(only(options, :prefix, :start_at)), options)
   end
 
   # Lists assets with the specified tag.
@@ -87,7 +87,7 @@ class Cloudinary::Api
   def self.resources_by_tag(tag, options={})
     resource_type = options[:resource_type] || "image"
     uri           = "resources/#{resource_type}/tags/#{tag}"
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction, :metadata), options)
+    call_api(:get, uri, list_resources_params(options), options)
   end
 
   # Lists assets currently in the specified moderation queue and status.
@@ -107,7 +107,7 @@ class Cloudinary::Api
   def self.resources_by_moderation(kind, status, options={})
     resource_type = options[:resource_type] || "image"
     uri           = "resources/#{resource_type}/moderations/#{kind}/#{status}"
-    call_api(:get, uri, only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction, :metadata), options)
+    call_api(:get, uri, list_resources_params(options), options)
   end
 
   # Lists assets with the specified contextual metadata.
@@ -129,30 +129,9 @@ class Cloudinary::Api
   def self.resources_by_context(key, value=nil, options={})
     resource_type = options[:resource_type] || "image"
     uri           = "resources/#{resource_type}/context"
-    params = only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction, :key, :value, :metadata)
-    params[:key] = key
-    params[:value] = value
-    call_api(:get, uri, params, options)
+    call_api(:get, uri, list_resources_params(options, :key => key, :value => value), options)
   end
 
-  # Returns the details of the specified asset and all its derived assets by asset id.
-  # 
-  # Note that if you only need details about the original asset,
-  # you can also use the Uploader::upload or Uploader::explicit methods, which return the same information and
-  # are not rate limited.
-  # 
-  # @param [String] asset_id The Asset ID of the asset.
-  # @param [Hash]   options  The optional parameters. See the <a href=https://cloudinary.com/documentation/admin_api#get_the_details_of_a_single_resource target="_blank"> Admin API</a> documentation.
-  # 
-  # @return [Cloudinary::Api::Response]
-  # 
-  # @see https://cloudinary.com/documentation/admin_api#get_the_details_of_a_single_resource
-  def self.resource_by_asset_id(asset_id, options={})
-    uri    = "resources/#{asset_id}"
-    params = prepare_resource_details_params(options)
-    call_api(:get, uri, params, options)
-  end
-  
   # Lists assets with the specified public IDs.
   #
   # @param [String|Array] public_ids The requested public_ids (up to 100).
@@ -168,7 +147,7 @@ class Cloudinary::Api
     resource_type = options[:resource_type] || "image"
     type          = options[:type] || "upload"
     uri           = "resources/#{resource_type}/#{type}"
-    call_api(:get, uri, only(options, :tags, :context, :moderations).merge(:public_ids => public_ids), options)
+    call_api(:get, uri, resources_params(options, :public_ids => public_ids), options)
   end
 
   # Lists assets with the specified asset IDs.
@@ -184,9 +163,7 @@ class Cloudinary::Api
   # @see https://cloudinary.com/documentation/admin_api#get_resources
   def self.resources_by_asset_ids(asset_ids, options={})
     uri = "resources/by_asset_ids"
-    params = only(options, :public_ids, :tags, :moderations, :context)
-    params[:asset_ids] = asset_ids
-    call_api(:get, uri, params, options)
+    call_api(:get, uri, resources_params(options, :asset_ids => asset_ids), options)
   end
 
   # Returns all assets stored directly in a specified asset folder, regardless of the public ID paths of those assets.
@@ -202,9 +179,7 @@ class Cloudinary::Api
   # @see https://cloudinary.com/documentation/dynamic_folders#new_admin_api_endpoints
   def self.resources_by_asset_folder(asset_folder, options={})
     uri = "resources/by_asset_folder"
-    params = only(options, :next_cursor, :max_results, :tags, :context, :moderations, :direction, :key, :value, :metadata)
-    params[:asset_folder] = asset_folder
-    call_api(:get, uri, params, options)
+    call_api(:get, uri, list_resources_params(options, :asset_folder => asset_folder), options)
   end
 
   # Find images based on their visual content.
@@ -240,6 +215,23 @@ class Cloudinary::Api
     resource_type = options[:resource_type] || "image"
     type          = options[:type] || "upload"
     uri           = "resources/#{resource_type}/#{type}/#{public_id}"
+    call_api(:get, uri, prepare_resource_details_params(options), options)
+  end
+
+  # Returns the details of the specified asset and all its derived assets by asset id.
+  #
+  # Note that if you only need details about the original asset,
+  # you can also use the Uploader::upload or Uploader::explicit methods, which return the same information and
+  # are not rate limited.
+  #
+  # @param [String] asset_id The Asset ID of the asset.
+  # @param [Hash]   options  The optional parameters. See the <a href=https://cloudinary.com/documentation/admin_api#get_the_details_of_a_single_resource target="_blank"> Admin API</a> documentation.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @see https://cloudinary.com/documentation/admin_api#get_the_details_of_a_single_resource
+  def self.resource_by_asset_id(asset_id, options={})
+    uri    = "resources/#{asset_id}"
     call_api(:get, uri, prepare_resource_details_params(options), options)
   end
 
@@ -1398,5 +1390,20 @@ class Cloudinary::Api
     params[:access_mode] = access_mode
     params[by_key] = value
     call_api("post", "resources/#{resource_type}/#{type}/update_access_mode", params, options)
+  end
+
+  private
+
+  RESOURCES_PARAMS = [:tags, :context, :metadata, :moderations, :fields].freeze
+  LIST_RESOURCES_PARAMS = [:next_cursor, :max_results, :direction].freeze
+
+  def self.resources_params(options, params = {})
+    params.merge!(only(options, *RESOURCES_PARAMS))
+    params[:fields] = Cloudinary::Utils.build_array(options[:fields]).join(",") unless params[:fields].nil?
+    params
+  end
+
+  def self.list_resources_params(options, params = {})
+    params.merge(resources_params(options)).merge!(only(options, *LIST_RESOURCES_PARAMS))
   end
 end
