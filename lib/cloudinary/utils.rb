@@ -998,6 +998,12 @@ class Cloudinary::Utils
     option_value.nil? ? default_value : option_value
   end
 
+  def self.config_option_fetch(options, option_name, default_value = nil)
+    return options.fetch(option_name) if options.include?(option_name)
+    option_value = Cloudinary.config.send(option_name)
+    option_value.nil? ? default_value : option_value
+  end
+
   def self.as_bool(value)
     case value
     when nil then nil
@@ -1250,7 +1256,8 @@ class Cloudinary::Utils
   # @param options url and transformation options. This argument may be changed by the function!
   #
   def self.patch_fetch_format(options={})
-    if options[:type] === :fetch
+    use_fetch_format = config_option_consume(options, :use_fetch_format)
+    if options[:type] === :fetch || use_fetch_format
       format_arg = options.delete(:format)
       options[:fetch_format] ||= format_arg
     end

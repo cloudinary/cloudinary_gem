@@ -131,6 +131,27 @@ describe CloudinaryHelper do
         expect(test_tag.children[3][:src]).to eq("#{upload_path}/vc_auto/movie.webm")
       end
 
+      it "should generate video tag with default sources with use_fetch_format" do
+        options.merge!(:use_fetch_format => true)
+        test_tag = TestTag.new helper.cl_video_tag("movie.mp4", options)
+
+        expect(test_tag[:poster]).to eq(helper.cl_video_thumbnail_path("movie.mp4", { :use_fetch_format => true}))
+
+        expect(test_tag.children.length).to eq(4)
+        expect(test_tag.children[0][:type]).to eq("video/mp4; codecs=hev1")
+        expect(test_tag.children[0][:src]).to eq("#{upload_path}/f_mp4,vc_h265/movie.mp4")
+
+        expect(test_tag.children[1][:type]).to eq("video/webm; codecs=vp9")
+        expect(test_tag.children[1][:src]).to eq("#{upload_path}/f_webm,vc_vp9/movie.mp4")
+
+        expect(test_tag.children[2][:type]).to eq("video/mp4")
+        expect(test_tag.children[2][:src]).to eq("#{upload_path}/f_mp4,vc_auto/movie.mp4")
+
+        expect(test_tag.children[3][:type]).to eq("video/webm")
+        expect(test_tag.children[3][:src]).to eq("#{upload_path}/f_webm,vc_auto/movie.mp4")
+      end
+
+
       it "should generate video tag with given custom sources" do
         options.merge!(:sources => [
           {

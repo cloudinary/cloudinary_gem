@@ -53,7 +53,7 @@ module CloudinaryHelper
   #     }
   #   ])
   def cl_video_tag(source, options = {}, &block)
-    source = strip_known_ext(source)
+    source = strip_known_ext(source) unless Cloudinary::Utils.config_option_fetch(options, :use_fetch_format)
     video_attributes = [:autoplay,:controls,:loop,:muted,:poster, :preload]
     options = Cloudinary::Utils.deep_symbolize_keys(DEFAULT_VIDEO_OPTIONS.merge(options))
 
@@ -155,8 +155,9 @@ module CloudinaryHelper
       content_tag('video', tag_options.merge(video_options)) do
         source_tags = sources.map do |source|
           type = source[:type]
+          options[:format] = type
           transformation = source[:transformations] || {}
-          cloudinary_tag("#{source_name}.#{type}", options.merge(transformation)) do |url, _tag_options|
+          cloudinary_tag(source_name, options.merge(transformation)) do |url, _tag_options|
             mime_type = "video/#{(type == 'ogv' ? 'ogg' : type)}"
             if source[:codecs]
               codecs = source[:codecs].is_a?(Array) ? source[:codecs].join(", ") : source[:codecs]
