@@ -42,9 +42,9 @@ the [Ruby on Rails SDK Guide](https://cloudinary.com/documentation/rails_integra
 |-------------|------------|----------|----------|
 | 1.x         | v          | v        | v        |
 
-| SDK Version | Rails 5.x | Rails 6.x |
-|-------------|-----------|-----------|
-| 1.x         | v         | v         |
+| SDK Version | Rails 5.x | Rails 6.x | Rails 7.x |
+|-------------|-----------|-----------|-----------|
+| 1.x         | v         | v         | v         |
 
 ## Installation
 
