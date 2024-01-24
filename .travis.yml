@@ -2,18 +2,22 @@ dist: jammy
 language: ruby
 rvm:
   - 2.7.8
-  - 3.0.6
   - 3.1.4
   - 3.2.2
   - 3.3.0
 
 matrix:
   include:
-    - name: "Ruby 1.9"
+    - name: "Ruby: 1.9.3"
       dist: precise
       rvm: 1.9.3
       before_install:
         - gem install bundler -v 1.17.3
+    - name: "Ruby: 3.0.6"
+      rvm: ruby-3.0.6
+      before_install:
+        - rvm pkg install openssl
+        - rvm install ruby-3.0.6 --with-openssl-dir=$HOME/.rvm/usr
 
 before_script: >
   export CLOUDINARY_URL=$(bash tools/get_test_cloud.sh);
