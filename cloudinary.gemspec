@@ -39,7 +39,7 @@ Gem::Specification.new do |s|
   else
     s.add_development_dependency "rake", "<= 12.2.1"
   end
-  if RUBY_VERSION >= "2.7.0"
+  if RUBY_VERSION >= "3.0.0"
     s.add_development_dependency "sqlite3"
   else
     s.add_development_dependency "sqlite3", "< 1.6.0"
