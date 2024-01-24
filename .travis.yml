@@ -1,9 +1,11 @@
-dist: focal
+dist: jammy
 language: ruby
 rvm:
-  - 2.6.7
-  - 2.7.4
-  - 3.0.2
+  - 2.7.8
+  - 3.0.6
+  - 3.1.4
+  - 3.2.2
+  - 3.3.0
 
 matrix:
   include:
@@ -12,11 +14,6 @@ matrix:
       rvm: 1.9.3
       before_install:
         - gem install bundler -v 1.17.3
-    - name: "Ruby 2.5.9"
-      dist: xenial
-      rvm: ruby-2.5.9
-      before_install:
-        - gem install bundler -v 2.3.26
 
 before_script: >
   export CLOUDINARY_URL=$(bash tools/get_test_cloud.sh);
