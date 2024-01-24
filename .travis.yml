@@ -14,10 +14,10 @@ matrix:
       before_install:
         - gem install bundler -v 1.17.3
     - name: "Ruby: 3.0.6"
-      rvm: ruby-3.0.6
+      rvm: 3.0.6
       before_install:
         - rvm pkg install openssl
-        - rvm install ruby-3.0.6 --with-openssl-dir=$HOME/.rvm/usr
+        - rvm reinstall ruby-3.0.6 --with-openssl-dir=$HOME/.rvm/usr
 
 before_script: >
   export CLOUDINARY_URL=$(bash tools/get_test_cloud.sh);
