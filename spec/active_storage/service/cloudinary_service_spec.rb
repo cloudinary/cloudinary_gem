@@ -43,31 +43,31 @@ if RUBY_VERSION > '2.2.2'
 
       it "should not override the key in the context field" do
         key = SecureRandom.base58(24)
-        url = @service.url_for_direct_upload(key, extra_context: { active_storage_key: "oops" })
+        url = @service.url_for_direct_upload(key, context: { active_storage_key: "oops" })
         expect(url).to include("context=active_storage_key%3D#{key}")
       end
 
       it "should allow the description in a context field" do
         key = SecureRandom.base58(24)
-        url = @service.url_for_direct_upload(key, extra_context: { alt: "yes" })
+        url = @service.url_for_direct_upload(key, context: { alt: "yes" })
         expect(url).to include("context=alt%3Dyes%7Cactive_storage_key%3D#{key}")
       end
 
       it "should allow the caption in a context field" do
         key = SecureRandom.base58(24)
-        url = @service.url_for_direct_upload(key, extra_context: { caption: "yes" })
+        url = @service.url_for_direct_upload(key, context: { caption: "yes" })
         expect(url).to include("context=caption%3Dyes%7Cactive_storage_key%3D#{key}")
       end
 
-      it "should ignore invalid extra_context values" do
+      it "should ignore invalid context values" do
         key = SecureRandom.base58(24)
-        url = @service.url_for_direct_upload(key, extra_context: nil)
+        url = @service.url_for_direct_upload(key, context: nil)
         expect(url).to include("context=active_storage_key%3D#{key}")
       end
 
       it "should allow other context fields" do
         key = SecureRandom.base58(24)
-        url = @service.url_for_direct_upload(key, extra_context: { foo: 123 })
+        url = @service.url_for_direct_upload(key, context: { foo: 123 })
         expect(url).to include("context=foo%3D123%7Cactive_storage_key%3D#{key}")
       end
 

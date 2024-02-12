@@ -81,8 +81,9 @@ module ActiveStorage
         # through direct upload (client side js), filename is missing, and that leads to inconsistent/broken URLs.
         # To avoid that, we explicitly pass file format in options.
         options[:format] = ext_for_file(key) if options[:resource_type] == "raw"
+        context = options.delete(:context)
         options[:context] = {active_storage_key: key}
-        options[:context].reverse_merge!(options[:extra_context]) if options[:extra_context].is_a?(Hash)
+        options[:context].reverse_merge!(context) if context.is_a?(Hash)
         options.delete(:file)
         payload[:url] = api_uri("upload", options)
       end
