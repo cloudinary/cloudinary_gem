@@ -71,6 +71,12 @@ if RUBY_VERSION > '2.2.2'
         expect(url).to include("context=foo%3D123%7Cactive_storage_key%3D#{key}")
       end
 
+      it "should allow ActionController::Parameters" do
+        key = SecureRandom.base58(24)
+        url = @service.url_for_direct_upload(key, context: ActionController::Parameters.new(foo: 123).permit(:foo))
+        expect(url).to include("context=foo%3D123%7Cactive_storage_key%3D#{key}")
+      end
+
       it "should include format for raw file" do
         key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), filename: TEST_RAW
         url = @service.url_for_direct_upload(key, resource_type: "raw")

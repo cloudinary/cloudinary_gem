@@ -83,7 +83,7 @@ module ActiveStorage
         options[:format] = ext_for_file(key) if options[:resource_type] == "raw"
         context = options.delete(:context)
         options[:context] = {active_storage_key: key}
-        options[:context].reverse_merge!(context) if context.is_a?(Hash)
+        options[:context].reverse_merge!(context) if context.respond_to?(:merge)
         options.delete(:file)
         payload[:url] = api_uri("upload", options)
       end
