@@ -1,3 +1,21 @@
+1.29.0 / 2024-02-26
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for `context` parameter in `url_for_direct_upload`
+  * Add support for `use_fetch_format` parameter in `cl_video_tag`
+  * Add support for `fields` parameter in Search and Admin APIs
+  * Add support for access keys management in Account Provisioning API
+
+Other Changes
+-------------
+
+  * Avoid early loading of `ActionView::Base`
+  * Fix `sqlite3` dependency version
+  * Add Rails 7.x to supported versions on `README.md`
+
 1.28.0 / 2023-11-06
 ==================
 
