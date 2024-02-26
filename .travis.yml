@@ -8,11 +8,6 @@ rvm:
 
 matrix:
   include:
-    - name: "Ruby: 1.9.3"
-      dist: precise
-      rvm: 1.9.3
-      before_install:
-        - gem install bundler -v 1.17.3
     # There is an OpenSSL issue on Jammy with Ruby 3.0
     - name: "Ruby: 3.0.6"
       dist: focal
