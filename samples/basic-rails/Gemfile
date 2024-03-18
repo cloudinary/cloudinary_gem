@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 6.0.3'
+gem 'rails'
+gem 'puma'
 gem 'cloudinary', :path => "../.."
 
 group :test, :development do

@@ -1,7 +1,8 @@
-require "rest_client"
+require "faraday"
 require "json"
 
 module Cloudinary::BaseApi
+  @adapter = nil
   class Error < CloudinaryException; end
   class NotFound < Error; end
   class NotAllowed < Error; end
@@ -15,17 +16,19 @@ module Cloudinary::BaseApi
     attr_reader :rate_limit_reset_at, :rate_limit_remaining, :rate_limit_allowed
 
     def initialize(response=nil)
-      if response
-        # This sets the instantiated self as the response Hash
-        update Cloudinary::Api.parse_json_response response
-
-        # According to RFC 2616, header names are case-insensitive.
-        lc_headers = response.headers.transform_keys(&:downcase)
-
-        @rate_limit_allowed   = lc_headers[:x_featureratelimit_limit].to_i if lc_headers[:x_featureratelimit_limit]
-        @rate_limit_reset_at  = Time.parse(lc_headers[:x_featureratelimit_reset]) if lc_headers[:x_featureratelimit_reset]
-        @rate_limit_remaining = lc_headers[:x_featureratelimit_remaining].to_i if lc_headers[:x_featureratelimit_remaining]
+      unless response
+        return
       end
+
+      # This sets the instantiated self as the response Hash
+      update Cloudinary::Api.parse_json_response response
+
+      # According to RFC 2616, header names are case-insensitive.
+      lc_headers            = response.headers.transform_keys(&:downcase)
+
+      @rate_limit_allowed   = lc_headers["x-featureratelimit-limit"].to_i if lc_headers["x-featureratelimit-limit"]
+      @rate_limit_reset_at  = Time.parse(lc_headers["x-featureratelimit-reset"]) if lc_headers["x-featureratelimit-reset"]
+      @rate_limit_remaining = lc_headers["x-featureratelimit-remaining"].to_i if lc_headers["x-featureratelimit-remaining"]
     end
   end
 
@@ -36,28 +39,30 @@ module Cloudinary::BaseApi
   end
 
   def call_json_api(method, api_url, payload, timeout, headers, proxy = nil, user = nil, password = nil)
-    RestClient::Request.execute(method: method,
-                                url: api_url,
-                                payload: payload,
-                                timeout: timeout,
-                                headers: headers,
-                                proxy: proxy,
-                                user: user,
-                                password: password) do |response|
-      return Response.new(response) if response.code == 200
-      exception_class = case response.code
-                        when 400 then BadRequest
-                        when 401 then AuthorizationRequired
-                        when 403 then NotAllowed
-                        when 404 then NotFound
-                        when 409 then AlreadyExists
-                        when 420 then RateLimited
-                        when 500 then GeneralError
-                        else raise GeneralError.new("Server returned unexpected status code - #{response.code} - #{response.body}")
-                        end
-      json = Cloudinary::Api.parse_json_response(response)
-      raise exception_class.new(json["error"]["message"])
+    conn = Faraday.new(url: api_url) do |faraday|
+      faraday.proxy = proxy if proxy
+      faraday.request :json
+      faraday.adapter @adapter || Faraday.default_adapter
     end
+
+    response = conn.run_request(method.downcase.to_sym, nil, payload, headers) do |req|
+      req.options.timeout = timeout if timeout
+      req.basic_auth(user, password) if user && password
+    end
+
+    return Response.new(response) if response.status == 200
+    exception_class = case response.status
+                      when 400 then BadRequest
+                      when 401 then AuthorizationRequired
+                      when 403 then NotAllowed
+                      when 404 then NotFound
+                      when 409 then AlreadyExists
+                      when 420 then RateLimited
+                      when 500 then GeneralError
+                      else raise GeneralError.new("Server returned unexpected status code - #{response.status} - #{response.body}")
+                      end
+    json = Cloudinary::Api.parse_json_response(response)
+    raise exception_class.new(json["error"]["message"])
   end
 
   private

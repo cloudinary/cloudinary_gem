@@ -1,5 +1,5 @@
 require 'tmpdir'
-require 'rest_client'
+require 'faraday'
 require 'json'
 require 'rubygems/package'
 
@@ -11,7 +11,7 @@ unless Rake::Task.task_defined?('cloudinary:fetch_assets') # prevent double-load
       processing_files = %w[canvas-to-blob.min.js load-image.all.min.js jquery.fileupload-process.js jquery.fileupload-image.js jquery.fileupload-validate.js]
       files = index_files + processing_files
 
-      release = JSON(RestClient.get("https://api.github.com/repos/cloudinary/cloudinary_js/releases/latest"))
+      release = JSON(Faraday.get("https://api.github.com/repos/cloudinary/cloudinary_js/releases/latest").body)
 
       FileUtils.rm_rf 'vendor/assets'
       html_folder = 'vendor/assets/html'
@@ -20,7 +20,7 @@ unless Rake::Task.task_defined?('cloudinary:fetch_assets') # prevent double-load
       FileUtils.mkdir_p js_folder
 
       puts "Fetching cloudinary_js version #{release["tag_name"]}\n\n"
-      sio = StringIO.new(RestClient.get(release["tarball_url"]).body)
+      sio = StringIO.new(Faraday.get(release["tarball_url"]).body)
       file = Zlib::GzipReader.new(sio)
       tar = Gem::Package::TarReader.new(file)
       tar.each_entry do |entry|

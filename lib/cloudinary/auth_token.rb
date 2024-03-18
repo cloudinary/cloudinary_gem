@@ -1,11 +1,7 @@
 # frozen_string_literal: true
 
 require 'openssl'
-if RUBY_VERSION > "2"
-  require "ostruct"
-else
-  require "cloudinary/ostruct2"
-end
+require "ostruct"
 
 
 module Cloudinary

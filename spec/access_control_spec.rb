@@ -67,9 +67,6 @@ describe "Access Control" do
 
       it 'should allow the user to define ACL in the upload parameters' do
         options[:access_control] = [acl]
-        expect(RestClient::Request).to receive(:execute).with(
-            deep_hash_value( {[:payload, :access_control] => "[#{acl_string}]"})
-        ).and_call_original
         expect(resource).to have_key('access_control')
         response_acl = resource["access_control"]
         expect(response_acl.length).to be(1)
@@ -84,9 +81,6 @@ describe "Access Control" do
 
       it 'should allow the user to define ACL in the update parameters' do
         resource # upload before setting the expect
-        expect(RestClient::Request).to receive(:execute).with(
-            deep_hash_value( {[:payload, :access_control] => "[#{acl_string}]"})
-        ).and_call_original
         result = Cloudinary::Api.update(
             resource['public_id'],
             :tags => [TEST_TAG, TIMESTAMP_TAG, 'access_control_test'],
