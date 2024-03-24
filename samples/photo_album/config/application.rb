@@ -63,5 +63,7 @@ module PhotoAlbum
 
     # Version of your assets, change this if you want to expire all your assets
     config.assets.version = '1.0'
+
+    config.active_support.cache_format_version = 7.0
   end
 end

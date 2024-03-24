@@ -16,5 +16,7 @@ module Basic
 
     # Enable escaping HTML in JSON.
     config.active_support.escape_html_entities_in_json = true
+
+    config.active_support.cache_format_version = 7.0
   end
 end
