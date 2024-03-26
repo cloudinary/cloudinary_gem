@@ -12,7 +12,7 @@ RSpec.describe CloudinaryHelper do
   end
 
   let(:helper) {
-    ActionView::Base.new(ActionView::LookupContext.new([]))
+    ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil)
   }
   let(:cloud_name) {DUMMY_CLOUD}
   let(:root_path) {"http://res.cloudinary.com/#{cloud_name}"}
@@ -162,13 +162,13 @@ RSpec.describe CloudinaryHelper do
   end
 
   context "#cl_picture_tag" do
-    let (:options) {{
+    let(:options) {{
         :cloud_name => DUMMY_CLOUD,
         :width => ResponsiveTest::BREAKPOINTS.last,
         :height => ResponsiveTest::BREAKPOINTS.last,
         :crop => :fill}}
-    let (:fill_trans_str) {Cloudinary::Utils.generate_transformation_string(options)}
-    let (:sources) {
+    let(:fill_trans_str) {Cloudinary::Utils.generate_transformation_string(options)}
+    let(:sources) {
       [
           {
               :min_width => ResponsiveTest::BREAKPOINTS.third,
@@ -217,7 +217,7 @@ RSpec.describe CloudinaryHelper do
     common_srcset = {breakpoints: breakpoint_list}
     fill_transformation = {width: max_width, height: max_width, crop: "fill"}
     fill_transformation_str = "c_fill,h_#{max_width},w_#{max_width}"
-    let (:options) {{
+    let(:options) {{
       :cloud_name => DUMMY_CLOUD,
       }}
     let(:test_tag) {TestTag.new(helper.cl_source_tag(PUBLIC_ID, options))}

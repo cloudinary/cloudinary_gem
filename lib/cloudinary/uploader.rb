@@ -1,9 +1,10 @@
 # Copyright Cloudinary
-require 'rest_client'
+require 'faraday'
 require 'json'
 require 'cloudinary/cache'
 
 class Cloudinary::Uploader
+  @adapter = nil
 
   REMOTE_URL_REGEX = Cloudinary::Utils::REMOTE_URL_REGEX
   # @deprecated use {Cloudinary::Utils.build_eager} instead
@@ -12,72 +13,49 @@ class Cloudinary::Uploader
   end
 
   # @private
-  def self.build_upload_params(options)
+  def self.build_upload_params(options, as_bool = false)
     #symbolize keys
     options = options.clone
     options.keys.each { |key| options[key.to_sym] = options.delete(key) if key.is_a?(String) }
 
     params = {
-      :access_control                       => Cloudinary::Utils.json_array_param(options[:access_control]),
-      :access_mode                          => options[:access_mode],
-      :allowed_formats                      => Cloudinary::Utils.build_array(options[:allowed_formats]).join(","),
-      :asset_folder                         => options[:asset_folder],
-      :async                                => Cloudinary::Utils.as_safe_bool(options[:async]),
-      :auto_tagging                         => options[:auto_tagging] && options[:auto_tagging].to_f,
-      :background_removal                   => options[:background_removal],
-      :backup                               => Cloudinary::Utils.as_safe_bool(options[:backup]),
-      :callback                             => options[:callback],
-      :categorization                       => options[:categorization],
-      :cinemagraph_analysis                 => Cloudinary::Utils.as_safe_bool(options[:cinemagraph_analysis]),
-      :colors                               => Cloudinary::Utils.as_safe_bool(options[:colors]),
-      :context                              => Cloudinary::Utils.encode_context(options[:context]),
-      :custom_coordinates                   => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
-      :detection                            => options[:detection],
-      :discard_original_filename            => Cloudinary::Utils.as_safe_bool(options[:discard_original_filename]),
-      :display_name                         => options[:display_name],
-      :eager                                => Cloudinary::Utils.build_eager(options[:eager]),
-      :eager_async                          => Cloudinary::Utils.as_safe_bool(options[:eager_async]),
-      :eager_notification_url               => options[:eager_notification_url],
-      :exif                                 => Cloudinary::Utils.as_safe_bool(options[:exif]),
-      :eval                                 => options[:eval],
-      :on_success                           => options[:on_success],
-      :face_coordinates                     => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
-      :faces                                => Cloudinary::Utils.as_safe_bool(options[:faces]),
-      :folder                               => options[:folder],
-      :format                               => options[:format],
-      :filename_override                    => options[:filename_override],
-      :headers                              => build_custom_headers(options[:headers]),
-      :image_metadata                       => Cloudinary::Utils.as_safe_bool(options[:image_metadata]),
-      :media_metadata                       => Cloudinary::Utils.as_safe_bool(options[:media_metadata]),
-      :invalidate                           => Cloudinary::Utils.as_safe_bool(options[:invalidate]),
-      :moderation                           => options[:moderation],
-      :notification_url                     => options[:notification_url],
-      :ocr                                  => options[:ocr],
-      :overwrite                            => Cloudinary::Utils.as_safe_bool(options[:overwrite]),
-      :phash                                => Cloudinary::Utils.as_safe_bool(options[:phash]),
-      :proxy                                => options[:proxy],
-      :public_id                            => options[:public_id],
-      :public_id_prefix                     => options[:public_id_prefix],
-      :quality_analysis                     => Cloudinary::Utils.as_safe_bool(options[:quality_analysis]),
-      :quality_override                     => options[:quality_override],
-      :raw_convert                          => options[:raw_convert],
-      :responsive_breakpoints               => Cloudinary::Utils.generate_responsive_breakpoints_string(options[:responsive_breakpoints]),
-      :return_delete_token                  => Cloudinary::Utils.as_safe_bool(options[:return_delete_token]),
-      :similarity_search                    => options[:similarity_search],
-      :visual_search                        => Cloudinary::Utils.as_safe_bool(options[:visual_search]),
-      :tags                                 => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
-      :timestamp                            => (options[:timestamp] || Time.now.to_i),
-      :transformation                       => Cloudinary::Utils.generate_transformation_string(options.clone),
-      :type                                 => options[:type],
-      :unique_filename                      => Cloudinary::Utils.as_safe_bool(options[:unique_filename]),
-      :upload_preset                        => options[:upload_preset],
-      :use_filename                         => Cloudinary::Utils.as_safe_bool(options[:use_filename]),
-      :use_filename_as_display_name         => Cloudinary::Utils.as_safe_bool(options[:use_filename_as_display_name]),
-      :use_asset_folder_as_public_id_prefix => Cloudinary::Utils.as_safe_bool(options[:use_asset_folder_as_public_id_prefix]),
-      :unique_display_name                  => Cloudinary::Utils.as_safe_bool(options[:unique_display_name]),
-      :accessibility_analysis               => Cloudinary::Utils.as_safe_bool(options[:accessibility_analysis]),
-      :metadata                             => Cloudinary::Utils.encode_context(options[:metadata])
+      :access_control         => Cloudinary::Utils.json_array_param(options[:access_control]),
+      :allowed_formats        => Cloudinary::Utils.build_array(options[:allowed_formats]).join(","),
+      :auto_tagging           => options[:auto_tagging] && options[:auto_tagging].to_f,
+      :context                => Cloudinary::Utils.encode_context(options[:context]),
+      :custom_coordinates     => Cloudinary::Utils.encode_double_array(options[:custom_coordinates]),
+      :eager                  => Cloudinary::Utils.build_eager(options[:eager]),
+      :face_coordinates       => Cloudinary::Utils.encode_double_array(options[:face_coordinates]),
+      :headers                => build_custom_headers(options[:headers]),
+      :responsive_breakpoints => Cloudinary::Utils.generate_responsive_breakpoints_string(options[:responsive_breakpoints]),
+      :tags                   => options[:tags] && Cloudinary::Utils.build_array(options[:tags]).join(","),
+      :timestamp              => (options[:timestamp] || Time.now.to_i),
+      :transformation         => Cloudinary::Utils.generate_transformation_string(options.clone),
+      :metadata               => Cloudinary::Utils.encode_context(options[:metadata])
     }
+
+    bool_params = [
+      :async, :backup, :cinemagraph_analysis, :colors, :discard_original_filename, :eager_async, :exif, :faces,
+      :image_metadata, :media_metadata, :invalidate, :overwrite, :phash, :quality_analysis, :return_delete_token,
+      :visual_search, :unique_filename, :use_filename, :use_filename_as_display_name,
+      :use_asset_folder_as_public_id_prefix, :unique_display_name, :accessibility_analysis
+    ]
+
+    string_params = [
+      :access_mode, :asset_folder, :background_removal, :callback, :categorization, :detection, :display_name,
+      :eager_notification_url, :eval, :on_success, :folder, :format, :filename_override, :moderation, :notification_url,
+      :ocr, :proxy, :public_id, :public_id_prefix, :quality_override, :raw_convert, :similarity_search, :type,
+      :upload_preset
+    ]
+
+    bool_params.each do |b|
+      params[b] =  as_bool ? Cloudinary::Utils.as_bool(options[b]): Cloudinary::Utils.as_safe_bool(options[b])
+    end
+
+    string_params.each do |s|
+      params[s] =  options[s]
+    end
+
     params
   end
 
@@ -394,29 +372,39 @@ class Cloudinary::Uploader
       params[:signature]  = Cloudinary::Utils.api_sign_request(params.reject { |k, v| non_signable.include?(k) }, api_secret, signature_algorithm)
       params[:api_key]    = api_key
     end
-    proxy   = options[:api_proxy] || Cloudinary.config.api_proxy
-    timeout = options.fetch(:timeout) { Cloudinary.config.to_h.fetch(:timeout, 60) }
 
-    result = nil
+    api_url   = Cloudinary::Utils.cloudinary_api_url(action, options)
+    api_proxy = options[:api_proxy] || Cloudinary.config.api_proxy
+    timeout   = options.fetch(:timeout) { Cloudinary.config.to_h.fetch(:timeout, 60) }
 
-    api_url = Cloudinary::Utils.cloudinary_api_url(action, options)
-    RestClient::Request.execute(:method => :post, :url => api_url, :payload => params.reject { |k, v| v.nil? || v=="" }, :timeout => timeout, :headers => headers, :proxy => proxy) do
-    |response, request, tmpresult|
-      raise CloudinaryException, "Server returned unexpected status code - #{response.code} - #{response.body}" unless [200, 400, 401, 403, 404, 500].include?(response.code)
-      begin
-        result = Cloudinary::Utils.json_decode(response.body)
-      rescue => e
-        # Error is parsing json
-        raise CloudinaryException, "Error parsing server response (#{response.code}) - #{response.body}. Got - #{e}"
-      end
-      if result["error"]
-        if return_error
-          result["error"]["http_code"] = response.code
-        else
-          raise CloudinaryException, result["error"]["message"]
-        end
+    conn =  Faraday.new(url: api_url) do |faraday|
+      faraday.proxy = api_proxy if api_proxy
+      faraday.request :multipart, **options
+      faraday.request :url_encoded
+      faraday.adapter @adapter || Faraday.default_adapter
+    end
+
+    response = conn.send(:post) do |req|
+      req.headers = headers
+      req.body = params.reject { |_, v| v.nil? || v=="" }
+      req.options.timeout = timeout if timeout
+    end
+
+    raise CloudinaryException, "Server returned unexpected status code - #{response.status} - #{response.body}" unless [200, 400, 401, 403, 404, 500].include?(response.status)
+    begin
+      result = Cloudinary::Utils.json_decode(response.body)
+    rescue => e
+      # Error is parsing json
+      raise CloudinaryException, "Error parsing server response (#{response.status}) - #{response.body}. Got - #{e}"
+    end
+    if result["error"]
+      if return_error
+        result["error"]["http_code"] = response.status
+      else
+        raise CloudinaryException, result["error"]["message"]
       end
     end
+
     if use_cache && !result.nil?
       cache_results(result)
     end

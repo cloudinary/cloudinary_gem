@@ -36,6 +36,7 @@ describe Cloudinary::Api do
 
   before(:all) do
     @api = Cloudinary::Api
+    @mock_api = MockedApi
 
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_1, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
     Cloudinary::Uploader.upload(TEST_IMG, :public_id => test_id_2, :tags => [TEST_TAG, TIMESTAMP_TAG], :context => "key=value", :eager =>[:width =>TEST_WIDTH, :crop =>:scale])
@@ -63,12 +64,12 @@ describe Cloudinary::Api do
     expected = {
       [:payload, :derived_next_cursor] => "b16b8bd80426df43a107f26b0348"
     }
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-    @api.resource("test", {"derived_next_cursor" => "b16b8bd80426df43a107f26b0348"})
+    res = @mock_api.resource("test", { "derived_next_cursor" => "b16b8bd80426df43a107f26b0348"})
+    expect(res).to have_deep_hash_values_of(expected)
   end
 
   it "should allow listing resource_types" do
-    expect(@api.resource_types()["resource_types"]).to include("image")
+    expect(@api.resource_types["resource_types"]).to include("image")
   end
 
   it "should allow listing resources" do
@@ -147,8 +148,9 @@ describe Cloudinary::Api do
 
   it "should allow listing resources by start date", :start_at => true do
     start_at = Time.now
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :start_at] => start_at, [:payload, :direction] => "asc"}))
-    @api.resources(:type=>"upload", :start_at=>start_at, :direction => "asc")
+    expected = {[:payload, :start_at] => start_at.to_s, [:payload, :direction] => "asc"}
+    res = @mock_api.resources(:type =>"upload", :start_at =>start_at, :direction => "asc")
+    expect(res).to have_deep_hash_values_of(expected)
   end
 
   it "should allow visual search" do
@@ -156,13 +158,13 @@ describe Cloudinary::Api do
     expected = {
       :url     => /.*\/resources\/visual_search$/,
       :method  => :post,
-      :payload => { :image_url => TEST_IMAGE_URL, :image_asset_id => test_asset_id, :text => "sample image" ,
-                    :image_file => image_file},
+      :payload => { "image_url" => TEST_IMAGE_URL, "image_asset_id" => test_asset_id, "text" => "sample image",
+                    "image_file" => /.*UploadIO.*/},
     }
 
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-    @api.visual_search({ "image_url" => TEST_IMAGE_URL, "image_asset_id" => test_asset_id, "text" => "sample image",
-                         "image_file" => image_file})
+    res = @mock_api.visual_search({ "image_url"  => TEST_IMAGE_URL, "image_asset_id" => test_asset_id, "text" => "sample image",
+                                    "image_file" => image_file})
+    expect(res).to have_deep_hash_values_of(expected)
   end
 
   describe "structured metadata" do
@@ -224,17 +226,16 @@ describe Cloudinary::Api do
           :url => /.*\/resources\/image\/tags\/#{TIMESTAMP_TAG}/,
           [:payload, :direction] => "asc"
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-
-      @api.resources_by_tag(TIMESTAMP_TAG, :type=>"upload", :direction => "asc")
+      res = @mock_api.resources_by_tag(TIMESTAMP_TAG, :type =>"upload", :direction => "asc")
+      expect(res).to have_deep_hash_values_of(expected)
     end
     it "should accept an integer of '1' or '-1'" do
       expected = {
           :url => /.*\/resources\/image\/tags\/#{TIMESTAMP_TAG}/,
           [:payload, :direction] => "-1"
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      @api.resources_by_tag(TIMESTAMP_TAG, :type=>"upload", :direction => "-1")
+      res = @mock_api.resources_by_tag(TIMESTAMP_TAG, :type =>"upload", :direction => "-1")
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 
@@ -244,9 +245,8 @@ describe Cloudinary::Api do
         :url => /.*\/resources\/image\/tags\/#{TIMESTAMP_TAG}/,
         [:payload, :fields] => "tags,secure_url"
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-
-      @api.resources_by_tag(TIMESTAMP_TAG, :type=>"upload", :fields => %w[tags secure_url])
+      res = @mock_api.resources_by_tag(TIMESTAMP_TAG, :type =>"upload", :fields => %w[tags secure_url])
+      expect(res).to have_deep_hash_values_of(expected)
     end
 
     it "should allow specifying response fields as string" do
@@ -254,9 +254,8 @@ describe Cloudinary::Api do
         :url => /.*\/resources\/image\/tags\/#{TIMESTAMP_TAG}/,
         [:payload, :fields] => "context,url"
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-
-      @api.resources_by_tag(TIMESTAMP_TAG, :type=>"upload", :fields => "context,url")
+      res = @mock_api.resources_by_tag(TIMESTAMP_TAG, :type =>"upload", :fields => "context,url")
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 
@@ -286,43 +285,51 @@ describe Cloudinary::Api do
         [:payload, :cinemagraph_analysis] => true,
         [:method] => :get
     }
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-    @api.resource(test_id_1, :cinemagraph_analysis => true)
+    res = @mock_api.resource(test_id_1, :cinemagraph_analysis => true)
+    expect(res).to have_deep_hash_values_of(expected)
   end
 
   it "should allow deleting derived resource" do
     derived_resource_id = "derived_id"
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :derived_resource_ids] => derived_resource_id}))
-    @api.delete_derived_resources(derived_resource_id)
+    res = @mock_api.delete_derived_resources(derived_resource_id)
+    expect(res).to have_deep_hash_values_of({[:payload, :derived_resource_ids] => derived_resource_id})
   end
 
   it "should allow deleting derived resources by transformations" do
-    public_id = "public_id"
-    transformations = "c_crop,w_100"
-    expect(RestClient::Request).to receive(:execute).with(
-        deep_hash_value( {[:payload, :public_ids] => public_id,
-                          [:payload, :transformations] => "c_crop,w_100"}))
-    @api.delete_derived_by_transformation(public_id, "c_crop,w_100")
+    public_id                  = "public_id"
+    transformations            = "c_crop,w_100"
+    expected = {
+      [:payload, :public_ids]      => public_id,
+      [:payload, :transformations] => "c_crop,w_100"
+    }
 
-    transformations = {:crop => "crop", :width => 100}
-    expect(RestClient::Request).to receive(:execute).with(
-        deep_hash_value( {[:payload, :public_ids] => public_id,
-                          [:payload, :transformations] => "c_crop,w_100"}))
-    @api.delete_derived_by_transformation(public_id, transformations)
+    res = @mock_api.delete_derived_by_transformation(public_id, transformations)
+    expect(res).to have_deep_hash_values_of(expected)
 
-    transformations = [{:crop => "crop", :width => 100}, {:crop => "scale", :width => 300}]
-    expect(RestClient::Request).to receive(:execute).with(
-        deep_hash_value( {[:payload, :public_ids] => public_id,
-                          [:payload, :transformations] => "c_crop,w_100|c_scale,w_300"}))
-    @api.delete_derived_by_transformation(public_id, transformations)
+    transformations            = {:crop => "crop", :width => 100}
+    expected = {
+      [:payload, :public_ids]      => public_id,
+      [:payload, :transformations] => "c_crop,w_100"
+    }
 
+    res = @mock_api.delete_derived_by_transformation(public_id, transformations)
+    expect(res).to have_deep_hash_values_of(expected)
+
+    transformations            = [{:crop => "crop", :width => 100}, {:crop => "scale", :width => 300}]
+    expected = {
+      [:payload, :public_ids]      => public_id,
+      [:payload, :transformations] => "c_crop,w_100|c_scale,w_300"
+    }
+
+    res = @mock_api.delete_derived_by_transformation(public_id, transformations)
+    expect(res).to have_deep_hash_values_of(expected)
   end
 
   it "should allow deleting multiple resources and comma inclusive public IDs", :focus => true do
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :public_ids] => ["apit_test", "test_id_2", "api_test3"]}))
-    @api.delete_resources(["apit_test", "test_id_2", "api_test3"])
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :public_ids] => "apit_test,test_id_2,api_test3"}))
-    @api.delete_resources("apit_test,test_id_2,api_test3")
+    res = @mock_api.delete_resources(%w[apit_test test_id_2 api_test3])
+    expect(res).to have_deep_hash_values_of({[:payload, :public_ids] => ["apit_test", "test_id_2", "api_test3"]})
+    res = @mock_api.delete_resources("apit_test,test_id_2,api_test3")
+    expect(res).to have_deep_hash_values_of({[:payload, :public_ids] => "apit_test,test_id_2,api_test3"})
   end
 
   it "should allow deleting resource transformations" do
@@ -339,13 +346,13 @@ describe Cloudinary::Api do
   end
 
   it "should allow deleting resources by prefix" do
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( {[:payload, :prefix] => "api_test_by"}))
-    @api.delete_resources_by_prefix("api_test_by")
+    res = @mock_api.delete_resources_by_prefix("api_test_by")
+    expect(res).to have_deep_hash_values_of({[:payload, :prefix] => "api_test_by"})
   end
 
   it "should allow deleting resources by tags" do
-    expect(RestClient::Request).to receive(:execute).with(hash_including( :url => /.*\/tags\/api_test_tag_for_delete$/))
-    @api.delete_resources_by_tag("api_test_tag_for_delete")
+    res = @mock_api.delete_resources_by_tag("api_test_tag_for_delete")
+    expect(res).to have_deep_hash_values_of(:url => /.*\/tags\/api_test_tag_for_delete$/)
   end
 
   describe 'related assets' do
@@ -353,40 +360,41 @@ describe Cloudinary::Api do
       expected = {
                    :url => /.*\/resources\/related_assets\/image\/upload\/#{test_id_1}$/,
                    :method => :post,
-                   :payload => { :assets_to_relate => related_assets },
+                   :payload => { "assets_to_relate" => related_assets },
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      @api.add_related_assets(test_id_1, related_assets)
+      res = @mock_api.add_related_assets(test_id_1, related_assets)
+      expect(res).to have_deep_hash_values_of(expected)
     end
 
     it "should allow adding related assets by asset ids" do
       expected = {
         :url => /.*\/resources\/related_assets\/#{test_asset_id}$/,
         :method => :post,
-        :payload => { :assets_to_relate => related_asset_ids },
+        :payload => { "assets_to_relate" => related_asset_ids },
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      @api.add_related_assets_by_asset_ids(test_asset_id, related_asset_ids)
+      res = @mock_api.add_related_assets_by_asset_ids(test_asset_id, related_asset_ids)
+      expect(res).to have_deep_hash_values_of(expected)
     end
 
     it "should allow deleting related assets" do
       expected = {
         :url => /.*\/resources\/related_assets\/image\/upload\/#{test_id_1}$/,
         :method => :delete,
-        :payload => { :assets_to_unrelate => related_assets },
+        :payload => { "assets_to_unrelate" => related_assets },
+
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      @api.delete_related_assets(test_id_1, related_assets)
+      res = @mock_api.delete_related_assets(test_id_1, related_assets)
+      expect(res).to have_deep_hash_values_of(expected)
     end
 
     it "should allow deleting related assets by asset ids" do
       expected = {
         :url => /.*\/resources\/related_assets\/#{test_asset_id}$/,
         :method => :delete,
-        :payload => { :assets_to_unrelate => related_asset_ids },
+        :payload => { "assets_to_unrelate" => related_asset_ids },
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      @api.delete_related_assets_by_asset_ids(test_asset_id, related_asset_ids)
+      res = @mock_api.delete_related_assets_by_asset_ids(test_asset_id, related_asset_ids)
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 
@@ -502,8 +510,8 @@ describe Cloudinary::Api do
           :method => :delete,
           [:payload, :transformation] => public_id
         }
-        expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-        @api.delete_transformation(public_id)
+        res = @mock_api.delete_transformation(public_id)
+        expect(res).to have_deep_hash_values_of(expected)
       end
 
       it "should allow unsafe update of named transformation" do
@@ -513,13 +521,13 @@ describe Cloudinary::Api do
             :method => :put,
             [:payload, :unsafe_update] => "c_scale,w_103",
             [:payload, :transformation] => public_id}
-        expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-        @api.update_transformation(public_id, :unsafe_update => { "crop" => "scale", "width" => 103 })
+        res = @mock_api.update_transformation(public_id, :unsafe_update => { "crop" => "scale", "width" => 103 })
+        expect(res).to have_deep_hash_values_of(expected)
       end
 
       it "should allow listing of named transformations" do
-        expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :named ]=> true))
-        @api.transformations :named => true
+        res= @mock_api.transformations :named => true
+        expect(res).to have_deep_hash_values_of([:payload, :named ]=> true)
       end
 
     end
@@ -537,14 +545,15 @@ describe Cloudinary::Api do
                 [:payload, :eval] => EVAL_STR,
                 [:payload, :on_success] => ON_SUCCESS_STR,
                 [:payload, :live] => true}
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
 
-    @api.create_upload_preset(:name => "new_preset",
-                              :folder => "some_folder",
-                              :eval => EVAL_STR,
-                              :on_success => ON_SUCCESS_STR,
-                              :tags => [TEST_TAG, TIMESTAMP_TAG],
-                              :live => true)
+
+    res = @mock_api.create_upload_preset(:name       => "new_preset",
+                                         :folder     => "some_folder",
+                                         :eval       => EVAL_STR,
+                                         :on_success => ON_SUCCESS_STR,
+                                         :tags       => [TEST_TAG, TIMESTAMP_TAG],
+                                         :live       => true)
+    expect(res).to have_deep_hash_values_of(expected)
   end
 
   describe "upload_presets" do
@@ -554,9 +563,8 @@ describe Cloudinary::Api do
           [:payload, :next_cursor] => 1234567,
           [:payload, :max_results] => 10
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      @api.upload_presets :next_cursor => 1234567, :max_results => 10
-
+      res = @mock_api.upload_presets :next_cursor => 1234567, :max_results => 10
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
   it "should allow getting a single upload_preset", :upload_preset => true do
@@ -636,8 +644,8 @@ describe Cloudinary::Api do
       [:payload, :detection] => "adv_face",
       [:payload, :notification_url] => "http://example.com"
     }
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-    Cloudinary::Api.update("public_id", {:detection => "adv_face", :notification_url => "http://example.com"})
+    res = @mock_api.update("public_id", { :detection => "adv_face", :notification_url => "http://example.com"})
+    expect(res).to have_deep_hash_values_of(expected)
   end
 
   it "should support display name and unique display name", :focus => true do
@@ -646,47 +654,48 @@ describe Cloudinary::Api do
       [:payload, :display_name] => "dummy_display_name",
       [:payload, :unique_display_name] => true
     }
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-    Cloudinary::Api.update("public_id", { :asset_folder        => "dummy_folder",
-                                          :display_name        => "dummy_display_name",
-                                          :unique_display_name => true })
+    res = @mock_api.update("public_id", {
+      :asset_folder        => "dummy_folder",
+      :display_name        => "dummy_display_name",
+      :unique_display_name => true })
+    expect(res).to have_deep_hash_values_of(expected)
   end
 
   it "should support requesting auto_tagging" do
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :auto_tagging] => 0.5))
-    Cloudinary::Api.update("public_id", {:auto_tagging => 0.5})
+    res = @mock_api.update("public_id", {:auto_tagging => 0.5})
+    expect(res).to have_deep_hash_values_of([:payload, :auto_tagging] => 0.5)
   end
 
   it "should support updating metadata" do
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value([:payload, :metadata] => "key=value"))
-    Cloudinary::Api.update("public_id", { :metadata => { :key => :value } })
+    res = @mock_api.update("public_id", { :metadata => { :key => :value } })
+    expect(res).to have_deep_hash_values_of([:payload, :metadata] => "key=value")
   end
 
   it "should support updating metadata with clear_invalid" do
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value([:payload, :clear_invalid] => 1))
-    Cloudinary::Api.update("public_id", { :clear_invalid => true })
+    res = @mock_api.update("public_id", { :clear_invalid => true })
+    expect(res).to have_deep_hash_values_of([:payload, :clear_invalid] => 1)
   end
 
   it "should support quality_override" do
     ['auto:advanced', 'auto:best', '80:420', 'none'].each do |q|
       expected = {[:payload, :quality_override] => q}
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      Cloudinary::Api.update Pathname.new(TEST_IMG), :quality_override => q
+      res = @mock_api.update Pathname.new(TEST_IMG), :quality_override => q
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 
   it "should support listing by moderation kind and value" do
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value([:url] => /.*manual\/approved$/, [:payload, :max_results] => 1000))
-    Cloudinary::Api.resources_by_moderation(:manual, :approved, :max_results => 1000)
+    res = @mock_api.resources_by_moderation(:manual, :approved, :max_results => 1000)
+    expect(res).to have_deep_hash_values_of([:url] => /.*manual\/approved$/, [:payload, :max_results] => 1000)
   end
 
   it "should support the api_proxy parameter" do
     proxy = "https://myuser:mypass@my.proxy.com"
     expected = {
-      [:proxy] => proxy
+      [:request, :proxy, :uri] => proxy
     }
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-    @api.resource(test_id_1, :api_proxy => proxy)
+    res = @mock_api.resource(test_id_1, :api_proxy => proxy)
+    expect(res).to have_deep_hash_values_of(expected)
   end
 
   describe 'usage' do
@@ -719,8 +728,8 @@ describe Cloudinary::Api do
         [:method] => :get,
         [:payload, :asset_folder] => UNIQUE_TEST_FOLDER,
     }
-    expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-    @api.resources_by_asset_folder(UNIQUE_TEST_FOLDER)
+    res = @mock_api.resources_by_asset_folder(UNIQUE_TEST_FOLDER)
+    expect(res).to have_deep_hash_values_of(expected)
   end
 
   describe 'folders' do
@@ -729,21 +738,21 @@ describe Cloudinary::Api do
           [:url] => /.*\/folders\/#{UNIQUE_TEST_FOLDER}$/,
           [:method] => :post
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      @api.create_folder(UNIQUE_TEST_FOLDER)
+      res = @mock_api.create_folder(UNIQUE_TEST_FOLDER)
+      expect(res).to have_deep_hash_values_of(expected)
     end
     it "should support listing folders" do
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders$/, [:method] => :get))
-      Cloudinary::Api.root_folders
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:url] => /.*\/folders\/test_folder1$/, [:method] => :get))
-      Cloudinary::Api.subfolders("test_folder1")
+      res = @mock_api.root_folders
+      expect(res).to have_deep_hash_values_of([:url] => /.*\/folders$/, [:method] => :get)
+      res = @mock_api.subfolders("test_folder1")
+      expect(res).to have_deep_hash_values_of([:url] => /.*\/folders\/test_folder1$/, [:method] => :get)
     end
     it "should URL escape the folder name" do
       expected = {
         [:url] => %r".*\/folders\/sub%5Efolder%20test$"
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      Cloudinary::Api.subfolders("sub^folder test")
+      res = @mock_api.subfolders("sub^folder test")
+      expect(res).to have_deep_hash_values_of(expected)
     end
     it "should throw if folder is missing" do
       expect{Cloudinary::Api.subfolders("I_do_not_exist")}.to raise_error(Cloudinary::Api::NotFound)
@@ -753,24 +762,24 @@ describe Cloudinary::Api do
           [:payload, :max_results] => 3,
           [:payload, :next_cursor] => NEXT_CURSOR,
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      @api.root_folders :max_results => 3, :next_cursor => NEXT_CURSOR
+      res = @mock_api.root_folders :max_results => 3, :next_cursor => NEXT_CURSOR
+      expect(res).to have_deep_hash_values_of(expected)
     end
     it 'should include max_results and next_cursor for subfolders call' do
       expected = {
           [:payload, :max_results] => 3,
           [:payload, :next_cursor] => NEXT_CURSOR,
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      @api.subfolders GENERIC_FOLDER_NAME, :max_results => 3, :next_cursor => NEXT_CURSOR
+      res = @mock_api.subfolders GENERIC_FOLDER_NAME, :max_results => 3, :next_cursor => NEXT_CURSOR
+      expect(res).to have_deep_hash_values_of(expected)
     end
     it "should support deleting a folder" do
       expected = {
         :url => %r"/folders/#{GENERIC_FOLDER_NAME}$",
         :method => :delete
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      @api.delete_folder(GENERIC_FOLDER_NAME)
+      res = @mock_api.delete_folder(GENERIC_FOLDER_NAME)
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 
@@ -892,42 +901,42 @@ describe Cloudinary::Api do
   describe 'create_upload_mapping' do
     mapping = "api_test_upload_mapping#{rand(100000)}"
     it 'should create mapping' do
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :template] => "http://cloudinary.com"))
-      Cloudinary::Api.create_upload_mapping(mapping, :template =>"http://cloudinary.com")
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value( [:payload, :template] => "http://res.cloudinary.com"))
-      Cloudinary::Api.update_upload_mapping(mapping, "template" =>"http://res.cloudinary.com")
+      res = @mock_api.create_upload_mapping(mapping, :template =>"http://cloudinary.com")
+      expect(res).to have_deep_hash_values_of([:payload, :template] => "http://cloudinary.com")
+      res = @mock_api.update_upload_mapping(mapping, "template" =>"http://res.cloudinary.com")
+      expect(res).to have_deep_hash_values_of([:payload, :template] => "http://res.cloudinary.com")
     end
   end
 
   describe "access_mode", :with_retries do
     i = 0
 
-    publicId = ""
+    public_id = ""
     access_mode_tag = ''
     before(:each) do
       i += 1
       access_mode_tag = TEST_TAG + "access_mode" + i.to_s
       result = Cloudinary::Uploader.upload TEST_IMG, access_mode: "authenticated", tags: [TEST_TAG, TIMESTAMP_TAG, access_mode_tag]
-      publicId = result["public_id"]
+      public_id = result["public_id"]
       expect(result["access_mode"]).to eq("authenticated")
     end
 
     it "should update access mode by ids" do
-      result = Cloudinary::Api.update_resources_access_mode_by_ids "public", [publicId]
+      result = Cloudinary::Api.update_resources_access_mode_by_ids "public", [public_id]
 
       expect(result["updated"]).to be_an_instance_of(Array)
       expect(result["updated"].length).to eq(1)
       resource = result["updated"][0]
-      expect(resource["public_id"]).to eq(publicId)
+      expect(resource["public_id"]).to eq(public_id)
       expect(resource["access_mode"]).to eq('public')
     end
     it "should update access mode by prefix" do
-      result = Cloudinary::Api.update_resources_access_mode_by_prefix "public", publicId[0..-3]
+      result = Cloudinary::Api.update_resources_access_mode_by_prefix "public", public_id[0..-3]
 
       expect(result["updated"]).to be_an_instance_of(Array)
       expect(result["updated"].length).to eq(1)
       resource = result["updated"][0]
-      expect(resource["public_id"]).to eq(publicId)
+      expect(resource["public_id"]).to eq(public_id)
       expect(resource["access_mode"]).to eq('public')
     end
     it "should update access mode by tag" do
@@ -936,7 +945,7 @@ describe Cloudinary::Api do
       expect(result["updated"]).to be_an_instance_of(Array)
       expect(result["updated"].length).to eq(1)
       resource = result["updated"][0]
-      expect(resource["public_id"]).to eq(publicId)
+      expect(resource["public_id"]).to eq(public_id)
       expect(resource["access_mode"]).to eq('public')
     end
   end

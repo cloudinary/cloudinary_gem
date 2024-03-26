@@ -5,8 +5,8 @@ require 'rspec/retry'
 require 'rexml/parsers/ultralightparser'
 require 'nokogiri'
 require 'rspec/version'
-require 'rest_client'
-require 'active_storage/test_helper' if RUBY_VERSION >= '2.2.2'
+require 'faraday'
+require 'active_storage/test_helper'
 require 'cloudinary'
 
 Cloudinary.config.enhance_image_tag = true
@@ -130,7 +130,7 @@ end
 
 CALLS_SERVER_WITH_PARAMETERS = "calls server with parameters"
 RSpec.shared_examples CALLS_SERVER_WITH_PARAMETERS do |expected|
-  expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+  expect(Faraday).to receive(:post).with(deep_hash_value(expected))
 end
 
 # Create a regexp with the given +tag+ name.
@@ -244,13 +244,12 @@ RSpec::Matchers.define :be_served_by_cloudinary do
         url.gsub!(/https?:\/\/res.cloudinary.com/, res_prefix_uri.to_s)
       end
     end
-    code = 0
+    status = 0
     @url = url
-    RestClient.get @url do |response, request, result|
-      @result = result
-      code = response.code
-    end
-    values_match? 200, code
+    response = Faraday.get @url
+    @result = response
+    status = response.status
+    values_match? 200, status
   end
 
   failure_message do |actual|
@@ -287,7 +286,7 @@ RSpec::Matchers.define :have_cloudinary_account_config do |expected|
 end
 
 def deep_fetch(hash, path)
-  Array(path).reduce(hash) { |h, key| h && h.fetch(key, nil) }
+  Array(path).reduce(hash) { |h, key| h && h.transform_keys!(&:to_sym) && h.fetch(key.to_sym, nil) }
 end
 
 # Matches deep values in the actual Hash, disregarding other keys and values.
@@ -333,7 +332,7 @@ RSpec::Matchers.define :be_a_metadata_field do |type, values|
     if type
       expect(metadata_field["type"]).to eq(type)
     else
-      expect(["string", "integer", "date", "enum", "set"]).to include(metadata_field["type"])
+      expect(%w[string integer date enum set]).to include(metadata_field["type"])
     end
 
     expect(metadata_field["label"]).to be_a(String)
@@ -341,7 +340,7 @@ RSpec::Matchers.define :be_a_metadata_field do |type, values|
     expect(metadata_field).to have_key("default_value")
     expect(metadata_field).to have_key("validation")
 
-    if ["enum", "set"].include?(metadata_field["type"])
+    if %w[enum set].include?(metadata_field["type"])
       expect(metadata_field["datasource"]).to be_a_metadata_field_datasource
     end
 
@@ -355,18 +354,7 @@ RSpec::Matchers.define :be_a_usage_result do
   match do |result|
     expect(result).not_to be_empty
 
-    keys = [
-      'plan',
-      'last_updated',
-      'transformations',
-      'objects',
-      'bandwidth',
-      'storage',
-      'requests',
-      'resources',
-      'derived_resources',
-      'media_limits'
-    ]
+    keys = %w[plan last_updated transformations objects bandwidth storage requests resources derived_resources media_limits]
 
     keys.each do |key|
       expect(result).to have_key(key)
@@ -383,8 +371,9 @@ module Cloudinary
       return arrays_match?(expected, actual.to_a)
     elsif Regexp === expected
       return expected.match actual.to_s
+    elsif Symbol === expected
+      return expected.to_s == actual.to_s
     end
-
 
     return true if actual == expected
 
@@ -433,3 +422,132 @@ module Cloudinary
     file_io.rewind
   end
 end
+
+class StubbedAdapter < Faraday::Adapter::Test
+  def call(env)
+
+    if env.request_headers["Content-Type"] == "application/x-www-form-urlencoded"
+      payload = parse_form_params(env.request_body)
+    elsif env.request_headers["Content-Type"] == "application/json"
+      payload = JSON.parse(env.request_body)
+    else
+      serialized_body = ''
+
+      # Read from the CompositeReadIO and append to the serialized_body
+      while (chunk = env.request_body.read(4096))
+        serialized_body << chunk
+      end
+
+      payload = parse_multipart(serialized_body, env.request.boundary)
+    end
+
+    # Stubbed response
+    response = Faraday::Response.new
+    response.finish(
+      status: 200,
+      response_headers: {
+                "X-FeatureRateLimit-Limit" => 1,
+                "X-FeatureRateLimit-Remaining" => 1,
+                "X-FeatureRateLimit-Reset" => Time.new.to_s,
+              }.merge!(env.request_headers),
+      body: {
+      :request => env.request,
+      :url => env.url,
+      :method => env.method.downcase.to_sym,
+      :payload => payload,
+      :headers => env.request_headers
+
+    }.to_json)
+
+    response
+  end
+
+  private
+
+  def parse_form_params(request_body)
+    params  = URI.decode_www_form(request_body)
+    payload = {}
+
+    # Convert parameters with the same name into an array
+    params.each do |raw_key, value|
+      key = raw_key.chomp("[]")
+      if payload.key?(key) || raw_key != key
+        unless payload.key?(key)
+          payload[key] = []
+        end
+        payload[key] = [payload[key]] unless payload[key].is_a?(Array)
+        payload[key] << try_parse_value(value)
+      else
+        payload[key] = try_parse_value(value)
+      end
+    end
+    payload
+  end
+
+  def parse_multipart(serialized_body, boundary)
+    parts = serialized_body.split("--#{boundary}")
+
+    parts.collect!(&:strip!)
+
+    # Remove the last empty part
+    parts.pop if parts.last == "--"
+
+    # Parse each part
+    multipart_params = {}
+    parts.each do |part|
+      next if part.nil? || part.empty?
+
+      header, body        = part.split("\r\n\r\n", 2)
+      header_lines        = header.split("\r\n")
+      content_disposition = header_lines.find { |line| line.start_with?('Content-Disposition:') }
+
+      # Extract name and filename from Content-Disposition header
+      name     = content_disposition.match(/name="([^"]+)"/)[1]
+      filename = content_disposition.match(/filename="([^"]+)"/)&.captures&.first
+
+      if filename
+        multipart_params["file"] = filename
+      else
+        # Regular form field
+        multipart_params[name] = try_parse_value(body.strip)
+      end
+    end
+    multipart_params
+  end
+
+  def try_parse_value(string)
+    Integer(string || '')
+  rescue ArgumentError
+    if %w[true false].include?(string)
+      return string == "true"
+    end
+    string
+  end
+end
+
+Faraday::Adapter.register_middleware(stubbed: StubbedAdapter)
+
+class MockedUploader < Cloudinary::Uploader
+  @adapter = :stubbed
+end
+
+class MockedApi < Cloudinary::Api
+  @adapter = :stubbed
+end
+
+class MockedSearchApi < Cloudinary::Search
+  def execute(options = {})
+    options[:content_type] = :json
+    uri = "#{@endpoint}/search"
+    MockedApi.call_api(:post, uri, to_h, options)
+  end
+end
+
+class MockedSearchFoldersApi < Cloudinary::SearchFolders
+  def execute(options = {})
+    options[:content_type] = :json
+    uri = "#{@endpoint}/search"
+    MockedApi.call_api(:post, uri, to_h, options)
+  end
+end
+

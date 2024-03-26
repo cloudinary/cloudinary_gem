@@ -9,14 +9,14 @@ describe Cloudinary::SearchFolders do
         :method => :post,
         :payload => {
           "expression" => "path:test*",
-        }.to_json
+        }
       }
 
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-
-      Cloudinary::SearchFolders
+      res = MockedSearchFoldersApi
         .expression("path:test*")
         .execute
+
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 end

@@ -39,10 +39,12 @@ module ActiveStorage
         begin
           extra_headers = checksum.nil? ? {} : {Headers::CONTENT_MD5 => checksum}
           options = @options.merge(options)
+          resource_type = resource_type(io, key)
+          options[:format] = ext_for_file(key) if resource_type == "raw"
           Cloudinary::Uploader.upload_large(
             io,
             public_id: public_id_internal(key),
-            resource_type: resource_type(io, key),
+            resource_type: resource_type,
             context: {active_storage_key: key, checksum: checksum},
             extra_headers: extra_headers,
             **options

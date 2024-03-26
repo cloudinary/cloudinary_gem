@@ -5,6 +5,7 @@ describe 'Metadata Rules' do
   before(:all) do
     @id = UNIQUE_TEST_ID
     @api = Cloudinary::Api
+    @mock_api = MockedApi
 
     @external_id_rule = "metadata_rule_#{@id}"
     @external_id_rule_delete = "metadata_rule_deletion_#{@id}"
@@ -29,9 +30,9 @@ describe 'Metadata Rules' do
         :method => :get
       }
 
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      res = @mock_api.list_metadata_rules
 
-      @api.list_metadata_rules
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 
@@ -40,12 +41,12 @@ describe 'Metadata Rules' do
       expected = {
         :url => /.*\/metadata_rules$/,
         :method => :post,
-        :payload => @metadata_rule.to_json,
+        :payload => @metadata_rule,
       }
 
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      res = @mock_api.add_metadata_rule(@metadata_rule)
 
-      @api.add_metadata_rule(@metadata_rule)
+      expect(res).to have_deep_hash_values_of(expected)
     end
 
   end
@@ -55,12 +56,12 @@ describe 'Metadata Rules' do
       expected = {
         :url => /.*\/metadata_rules\/#{@external_id_rule}$/,
         :method => :put,
-        :payload => @metadata_rule_update.to_json,
+        :payload => @metadata_rule_update,
       }
 
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      res = @mock_api.update_metadata_rule(@external_id_rule, @metadata_rule_update)
 
-      @api.update_metadata_rule(@external_id_rule, @metadata_rule_update)
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 
@@ -69,12 +70,12 @@ describe 'Metadata Rules' do
       expected = {
         :url => /.*\/metadata_rules\/#{@external_id_rule_delete}$/,
         :method => :delete,
-        :payload => '{}',
+        :payload => {},
       }
 
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      res = @mock_api.delete_metadata_rule(@external_id_rule_delete)
 
-      @api.delete_metadata_rule(@external_id_rule_delete)
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 end

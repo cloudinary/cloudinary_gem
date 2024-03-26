@@ -649,7 +649,7 @@ class Cloudinary::Api
   #
   # @see https://cloudinary.com/documentation/admin_api#update_an_upload_preset
   def self.update_upload_preset(name, options={})
-    params = Cloudinary::Uploader.build_upload_params(options)
+    params = Cloudinary::Uploader.build_upload_params(options, true)
     call_api(:put, "upload_presets/#{name}", params.merge(only(options, :unsigned, :disallow_public_id, :live)), options)
   end
 
@@ -664,7 +664,7 @@ class Cloudinary::Api
   #
   # @see https://cloudinary.com/documentation/admin_api#create_an_upload_preset
   def self.create_upload_preset(options={})
-    params = Cloudinary::Uploader.build_upload_params(options)
+    params = Cloudinary::Uploader.build_upload_params(options, true)
     call_api(:post, "upload_presets", params.merge(only(options, :name, :unsigned, :disallow_public_id, :live)), options)
   end
 
@@ -1254,7 +1254,7 @@ class Cloudinary::Api
     return Cloudinary::Utils.json_decode(response.body)
   rescue => e
     # Error is parsing json
-    raise GeneralError.new("Error parsing server response (#{response.code}) - #{response.body}. Got - #{e}")
+    raise GeneralError.new("Error parsing server response (#{response.status}) - #{response.body}. Got - #{e}")
   end
 
   # Protected function that assists with performing an API call to the metadata_fields part of the Admin API.

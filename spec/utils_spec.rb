@@ -561,7 +561,7 @@ describe Cloudinary::Utils do
     let(:expected_transformation) do
       (specific_transformation.blank? || specific_transformation.match(/\/$/)) ? specific_transformation : "#{specific_transformation}/"
     end
-    let! (:authenticated_image) do
+    let!(:authenticated_image) do
       Cloudinary::Uploader.upload "http://res.cloudinary.com/demo/image/upload/sample.jpg",
                                   :type => 'authenticated',
                                   :tags => TEST_TAG
@@ -826,6 +826,27 @@ describe Cloudinary::Utils do
       .to eq(:exif => 0, :colors => 1, :eager_async => 1, :media_metadata => 1)
     expect(Cloudinary::Uploader.build_upload_params(:backup => nil)[:backup]).to be_nil
     expect(Cloudinary::Uploader.build_upload_params({})[:backup]).to be_nil
+  end
+
+  it "build_upload_params force booleans" do
+    options = { :backup         => true, :use_filename => false, :colors => :true,
+                :image_metadata => :false, :media_metadata => true, :invalidate => 1,
+                :visual_search  => true,
+    }
+    params  = Cloudinary::Uploader.build_upload_params(options, true)
+    expect(Cloudinary::Api.only(params, *options.keys))
+      .to eq(:backup         => true,
+             :use_filename   => false,
+             :colors         => true,
+             :image_metadata => false,
+             :media_metadata => true,
+             :invalidate     => true,
+             :visual_search  => true,
+             )
+    options = { :colors => "true", :exif => "false", :eager_async => "1", :media_metadata => true }
+    params  = Cloudinary::Uploader.build_upload_params(options, true)
+    expect(Cloudinary::Api.only(params, *options.keys))
+      .to eq(:exif => false, :colors => true, :eager_async => true, :media_metadata => true)
   end
 
   it "should add version if public_id contains /" do

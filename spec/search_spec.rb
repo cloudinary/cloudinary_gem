@@ -62,12 +62,10 @@ describe Cloudinary::Search do
             { "public_id" => "asc" }
           ],
           "with_field" => %w[context tags]
-        }.to_json
+        }
       }
 
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-
-      Cloudinary::Search
+      res = MockedSearchApi
         .sort_by("created_at", "asc")
         .sort_by("created_at")
         .sort_by("public_id", "asc")
@@ -81,6 +79,8 @@ describe Cloudinary::Search do
         .fields('metadata')
         .fields('tags')
         .execute
+
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 

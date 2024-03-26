@@ -5,6 +5,7 @@ describe 'Metadata' do
   before(:all) do
     @id = UNIQUE_TEST_ID
     @api = Cloudinary::Api
+    @mock_api = MockedApi
 
     # External IDs for metadata fields that should be created and later deleted
     @metadata_fields = []
@@ -122,9 +123,9 @@ describe 'Metadata' do
         :method => :get
       }
 
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      res = @mock_api.list_metadata_fields
 
-      @api.list_metadata_fields
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 
@@ -143,12 +144,12 @@ describe 'Metadata' do
       expected = {
         :url => /.*\/metadata_fields$/,
         :method => :post,
-        :payload => field.to_json,
+        :payload => field,
       }
 
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      res = @mock_api.add_metadata_field(field)
 
-      @api.add_metadata_field(field)
+      expect(res).to have_deep_hash_values_of(expected)
     end
 
     it 'should create an integer metadata field' do
@@ -157,12 +158,12 @@ describe 'Metadata' do
       expected = {
         :url => /.*\/metadata_fields$/,
         :method => :post,
-        :payload => field.to_json
+        :payload => field
       }
 
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      res = @mock_api.add_metadata_field(field)
 
-      @api.add_metadata_field(field)
+      expect(res).to have_deep_hash_values_of(expected)
     end
 
     it 'should create a date metadata field' do
@@ -187,12 +188,12 @@ describe 'Metadata' do
       expected = {
         :url => /.*\/metadata_fields$/,
         :method => :post,
-        :payload => field.to_json,
+        :payload => field,
       }
 
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      res = @mock_api.add_metadata_field(field)
 
-      @api.add_metadata_field(field)
+      expect(res).to have_deep_hash_values_of(expected)
     end
 
     it 'should create a set metadata field' do
@@ -330,25 +331,12 @@ describe 'Metadata' do
       expected = {
         :url => /.*\/metadata_fields\/#{@external_id_delete}$/,
         :method => :delete,
-        :payload => '{}',
+        :payload => {},
       }
 
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
+      res = @mock_api.delete_metadata_field(@external_id_delete)
 
-      @api.delete_metadata_field(@external_id_delete)
-    end
-
-    it 'should cause subsequent attempts to create a new metadata field with the same external id to fail' do
-      skip "Skipping test due to BE change"
-      @api.delete_metadata_field(@external_id_delete_2)
-
-      expect {
-        @api.add_metadata_field(
-          'external_id' => @external_id_delete_2,
-          'label' => @external_id_delete_2,
-          'type' => 'integer'
-        )
-      }.to raise_error(@api::BadRequest)
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 
@@ -395,42 +383,48 @@ describe 'Metadata' do
 
   describe 'reorder_metadata_fields' do
     it 'should reorder the metadata fields for label order by asc' do
-      allow(RestClient::Request).to receive(:execute) do |req|
-        expect(req[:method]).to eq(:put)
-        expect(req[:url]).to end_with('/metadata_fields/order')
-        expect(JSON.parse(req[:payload])).to match(
+      expected = {
+        :url => /.*\/metadata_fields\/order$/,
+        :method => :put,
+        :payload => {
           'order_by' => 'label',
           'direction' => 'asc'
-        )
-      end
+        }
+      }
 
-      @api.reorder_metadata_fields('label', 'asc')
+      res = @mock_api.reorder_metadata_fields('label', 'asc')
+
+      expect(res).to have_deep_hash_values_of(expected)
     end
 
     it 'should reorder the metadata fields for external_id order by desc' do
-      allow(RestClient::Request).to receive(:execute) do |req|
-        expect(req[:method]).to eq(:put)
-        expect(req[:url]).to end_with('/metadata_fields/order')
-        expect(JSON.parse(req[:payload])).to match(
+      expected = {
+        :url => /.*\/metadata_fields\/order$/,
+        :method => :put,
+        :payload => {
           'order_by' => 'external_id',
           'direction' => 'desc'
-        )
-      end
+        }
+      }
 
-      @api.reorder_metadata_fields('external_id', 'desc')
+      res = @mock_api.reorder_metadata_fields('external_id', 'desc')
+
+      expect(res).to have_deep_hash_values_of(expected)
     end
 
     it 'should reorder the metadata fields for created_at order by asc' do
-      allow(RestClient::Request).to receive(:execute) do |req|
-        expect(req[:method]).to eq(:put)
-        expect(req[:url]).to end_with('/metadata_fields/order')
-        expect(JSON.parse(req[:payload])).to match(
+      expected = {
+        :url => /.*\/metadata_fields\/order$/,
+        :method => :put,
+        :payload => {
           'order_by' => 'created_at',
           'direction' => 'asc'
-        )
-      end
+        }
+      }
 
-      @api.reorder_metadata_fields('created_at', 'asc')
+      res = @mock_api.reorder_metadata_fields('created_at', 'asc')
+
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 

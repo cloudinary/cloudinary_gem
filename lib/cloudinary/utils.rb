@@ -7,6 +7,8 @@ require 'uri'
 require 'aws_cf_signer'
 require 'json'
 require 'cgi'
+require 'faraday'
+require 'faraday/multipart'
 require 'cloudinary/auth_token'
 require 'cloudinary/responsive'
 
@@ -1305,22 +1307,26 @@ class Cloudinary::Utils
   # Handles file parameter.
   #
   # @param [Pathname, StringIO, File, String, int, _ToPath] file
-  # @return [StringIO, File] A File object.
+  # @return [StringIO, File, String] A File object.
   #
   # @private
   def self.handle_file_param(file, options = {})
+    original_filename = options[:original_filename] || "cloudinaryfile"
+    content_type = options[:content_type] || "application/octet-stream"
     if file.is_a?(Pathname)
-      return File.open(file, "rb")
+      return Faraday::FilePart.new(file.to_s, content_type)
     elsif file.is_a?(Cloudinary::Blob)
-      return file
+      return Faraday::FilePart.new(file, file.content_type, file.original_filename)
     elsif file.is_a?(StringIO)
       file.rewind
-      return Cloudinary::Blob.new(file.read, options)
-    elsif file.respond_to?(:read) || Cloudinary::Utils.is_remote?(file)
-      return file
+      return Faraday::FilePart.new(file, content_type, original_filename)
+    elsif file.respond_to?(:read)
+      return Faraday::FilePart.new(file, content_type, original_filename)
+    elsif Cloudinary::Utils.is_remote?(file)
+      return file.to_s
     end
-
-    File.open(file, "rb")
+    # we got file path
+    Faraday::FilePart.new(file.to_s, content_type)
   end
 
   # The returned url should allow downloading the backedup asset based on the version and asset id

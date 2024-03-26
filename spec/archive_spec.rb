@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'cloudinary'
-require 'rest_client'
+require 'faraday'
 require 'zip'
 
 RSpec.shared_context 'archive' do
@@ -50,13 +50,11 @@ describe Cloudinary::Utils do
       it 'should generate a valid url' do
         expect(archive_result).not_to be_empty
       end
-      if RUBY_VERSION > "2"
-        it 'should include two files' do
-          Zip::File.open_buffer(RestClient.get(archive_result)) do |zip_file|
-            list = zip_file.glob('*').map(&:name)
-            expect(list.length).to be(2)
-            expect(list).to include('tag_sample.jpg', 'tag_samplebw.jpg')
-          end
+      it 'should include two files' do
+        Zip::File.open_buffer(Faraday.get(archive_result).body) do |zip_file|
+          list = zip_file.glob('*').map(&:name)
+          expect(list.length).to be(2)
+          expect(list).to include('tag_sample.jpg', 'tag_samplebw.jpg')
         end
       end
     end
@@ -144,13 +142,13 @@ describe Cloudinary::Uploader do
         [:payload, :fully_qualified_public_ids] => test_ids,
         [:url]                                  => %r"/auto/generate_archive$"
       }
-      expect(RestClient::Request).to receive(:execute).with(deep_hash_value(expected))
-      Cloudinary::Uploader.create_archive(
+      res = MockedUploader.create_archive(
         {
           :resource_type              => :auto,
           :fully_qualified_public_ids => test_ids
         }
       )
+      expect(res).to have_deep_hash_values_of(expected)
     end
   end
 
