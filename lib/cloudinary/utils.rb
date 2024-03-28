@@ -728,8 +728,9 @@ class Cloudinary::Utils
   def self.base_api_url(path, options = {})
     cloudinary = options[:upload_prefix] || Cloudinary.config.upload_prefix || UPLOAD_PREFIX
     cloud_name = options[:cloud_name] || Cloudinary.config.cloud_name || raise(CloudinaryException, 'Must supply cloud_name')
+    api_version = options[:api_version] || Cloudinary.config.api_version || 'v1_1'
 
-    [cloudinary, 'v1_1', cloud_name, path].join('/')
+    [cloudinary, api_version, cloud_name, path].join('/')
   end
 
   def self.cloudinary_api_url(action = 'upload', options = {})

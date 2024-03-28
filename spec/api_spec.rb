@@ -1010,6 +1010,24 @@ describe Cloudinary::Api do
       expect(bp).to be_truthy
     end
   end
+
+  describe "Analysis API" do
+    it "should analyze URI" do
+      expected = {
+        :url     => /.*\/v2\/.*\/analysis\/analyze\/uri$/,
+        :method  => :post,
+        :payload => {
+          "analysis_type" => "captioning",
+          "uri"           => "https://res.cloudinary.com/demo/image/upload/dog",
+          "parameters"    => { "custom" => { "model_name" => "my_model", "model_version" => 1 } } },
+      }
+
+      res = @mock_api.analyze("uri", "captioning",
+                              :uri        => "https://res.cloudinary.com/demo/image/upload/dog",
+                              :parameters => { custom: { model_name: "my_model", model_version: 1 } })
+      expect(res).to have_deep_hash_values_of(expected)
+    end
+  end
 end
 
 describe Cloudinary::Api::Response do
