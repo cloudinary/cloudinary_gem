@@ -1222,6 +1222,25 @@ class Cloudinary::Api
     call_metadata_rules_api(:delete, uri, {}, options)
   end
 
+  # Analyzes an asset with the requested analysis type.
+  #
+  # @param [Object] input_type    The type of input for the asset to analyze ('uri').
+  # @param [Object] analysis_type The type of analysis to run ('google_tagging', 'captioning', 'fashion').
+  # @param [Hash] options         The optional parameters.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  def self.analyze(input_type, analysis_type, options = {})
+    api_uri = ["analysis", "analyze", input_type]
+    params = only(options, :uri, :parameters)
+    params["analysis_type"] = analysis_type
+
+    options[:api_version] = 'v2'
+
+    call_api(:post, api_uri, params, options)
+  end
+
   protected
 
   # Execute a call api for input params.
@@ -1236,13 +1255,14 @@ class Cloudinary::Api
     api_key     = options[:api_key] || Cloudinary.config.api_key
     api_secret  = options[:api_secret] || Cloudinary.config.api_secret
     oauth_token = options[:oauth_token] || Cloudinary.config.oauth_token
+    api_version = options[:api_version] || Cloudinary.config.api_version || 'v1_1'
 
     validate_authorization(api_key, api_secret, oauth_token)
 
     auth = { :key => api_key, :secret => api_secret, :oauth_token => oauth_token }
 
     call_cloudinary_api(method, uri, auth, params, options) do |cloudinary, inner_uri|
-      [cloudinary, 'v1_1', cloud_name, inner_uri]
+      [cloudinary, api_version, cloud_name, inner_uri]
     end
   end
 

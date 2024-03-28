@@ -252,12 +252,13 @@ class Cloudinary::AccountApi
     account_id = options[:account_id] || Cloudinary.account_config.account_id || raise('Must supply account_id')
     api_key    = options[:provisioning_api_key] || Cloudinary.account_config.provisioning_api_key || raise('Must supply provisioning api_key')
     api_secret = options[:provisioning_api_secret] || Cloudinary.account_config.provisioning_api_secret || raise('Must supply provisioning api_secret')
+    api_version = options[:api_version] || Cloudinary.config.api_version || 'v1_1'
 
     params.reject! { |_, v| v.nil? }
     auth = { :key => api_key, :secret => api_secret }
 
     call_cloudinary_api(method, uri, auth, params, options) do |cloudinary, inner_uri|
-      [cloudinary, 'v1_1', 'provisioning', 'accounts', account_id, inner_uri]
+      [cloudinary, api_version, 'provisioning', 'accounts', account_id, inner_uri]
     end
   end
 
