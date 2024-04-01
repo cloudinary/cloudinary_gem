@@ -10,19 +10,18 @@ describe Cloudinary::Utils do
       # config.cloud_name = "demo"
       config.secure_distribution = nil
       config.private_cdn         = false
-      config.secure              = false
       config.cname               = nil
       config.cdn_subdomain       = false
     end
   end
 
   let(:cloud_name) { Cloudinary.config.cloud_name }
-  let(:root_path) { "http://res.cloudinary.com/#{cloud_name}" }
+  let(:root_path) { "https://res.cloudinary.com/#{cloud_name}" }
   let(:upload_path) { "#{root_path}/image/upload" }
 
   it "should allow overriding cloud_name in options" do
     expect(["test", { :cloud_name => "test321" }])
-      .to produce_url("http://res.cloudinary.com/test321/image/upload/test")
+      .to produce_url("https://res.cloudinary.com/test321/image/upload/test")
             .and empty_options
   end
 
@@ -59,7 +58,7 @@ describe Cloudinary::Utils do
 
   it "should allow overriding private_cdn if private_cdn=true" do
     expect(["test", { :private_cdn => true }])
-      .to produce_url("http://#{cloud_name}-res.cloudinary.com/image/upload/test")
+      .to produce_url("https://#{cloud_name}-res.cloudinary.com/image/upload/test")
             .and empty_options
   end
 
@@ -71,7 +70,7 @@ describe Cloudinary::Utils do
   end
 
   it "should allow overriding cname if cname=example.com" do
-    expect(["test", { :cname => "example.com" }])
+    expect(["test", { :secure => false, :cname => "example.com" }])
       .to produce_url("http://example.com/#{cloud_name}/image/upload/test")
             .and empty_options
   end
@@ -91,10 +90,10 @@ describe Cloudinary::Utils do
 
   it "should support url_suffix in shared distribution" do
     expect(["test", { :url_suffix => "hello" }])
-      .to produce_url("http://res.cloudinary.com/#{cloud_name}/images/test/hello")
+      .to produce_url("https://res.cloudinary.com/#{cloud_name}/images/test/hello")
             .and empty_options
     expect(["test", { :url_suffix => "hello", :angle => 0 }])
-      .to produce_url("http://res.cloudinary.com/#{cloud_name}/images/a_0/test/hello")
+      .to produce_url("https://res.cloudinary.com/#{cloud_name}/images/a_0/test/hello")
             .and empty_options
   end
 
@@ -109,16 +108,16 @@ describe Cloudinary::Utils do
 
   it "should support url_suffix for private_cdn" do
     expect(["test", { :url_suffix => "hello", :private_cdn => true }])
-      .to produce_url("http://#{cloud_name}-res.cloudinary.com/images/test/hello")
+      .to produce_url("https://#{cloud_name}-res.cloudinary.com/images/test/hello")
             .and empty_options
     expect(["test", { :url_suffix => "hello", :angle => 0, :private_cdn => true }])
-      .to produce_url("http://#{cloud_name}-res.cloudinary.com/images/a_0/test/hello")
+      .to produce_url("https://#{cloud_name}-res.cloudinary.com/images/a_0/test/hello")
             .and empty_options
   end
 
   it "should put format after url_suffix" do
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :format => "jpg" }])
-      .to produce_url("http://#{cloud_name}-res.cloudinary.com/images/test/hello.jpg")
+      .to produce_url("https://#{cloud_name}-res.cloudinary.com/images/test/hello.jpg")
             .and empty_options
   end
 
@@ -130,7 +129,7 @@ describe Cloudinary::Utils do
                                                 :type       => "authenticated",
                                                 :sign_url   => true,
                                                 :overlay    => "text:Helvetica_50:test+text"
-    expect(expected).to eq("http://res.cloudinary.com/test/image/authenticated/s--j5Z1ILxd--/l_text:Helvetica_50:test+text/some_public_id.jpg")
+    expect(expected).to eq("https://res.cloudinary.com/test/image/authenticated/s--j5Z1ILxd--/l_text:Helvetica_50:test+text/some_public_id.jpg")
   end
 
   it "should sign an URL using SHA1 and generate a short signature by default" do
@@ -140,7 +139,7 @@ describe Cloudinary::Utils do
                                                 :api_secret => "b",
                                                 :sign_url   => true
 
-    expect(expected).to eq("http://res.cloudinary.com/test123/image/upload/s--v2fTPYTu--/sample.jpg")
+    expect(expected).to eq("https://res.cloudinary.com/test123/image/upload/s--v2fTPYTu--/sample.jpg")
   end
 
   it "should sign an URL using SHA256 and generate a long signature when long_url_signature is true" do
@@ -151,7 +150,7 @@ describe Cloudinary::Utils do
                                                 :sign_url           => true,
                                                 :long_url_signature => true
 
-    expect(expected).to eq("http://res.cloudinary.com/test123/image/upload/s--2hbrSMPOjj5BJ4xV7SgFbRDevFaQNUFf--/sample.jpg")
+    expect(expected).to eq("https://res.cloudinary.com/test123/image/upload/s--2hbrSMPOjj5BJ4xV7SgFbRDevFaQNUFf--/sample.jpg")
   end
 
   it "should sign url with SHA256 algorithm set in configuration" do
@@ -163,45 +162,45 @@ describe Cloudinary::Utils do
                                                 :api_secret => "b",
                                                 :sign_url   => true
 
-    expect(expected).to eq("http://res.cloudinary.com/test123/image/upload/s--2hbrSMPO--/sample.jpg")
+    expect(expected).to eq("https://res.cloudinary.com/test123/image/upload/s--2hbrSMPO--/sample.jpg")
   end
 
   it "should not sign the url_suffix" do
     expected_signature = Cloudinary::Utils.cloudinary_url("test", :format => "jpg", :sign_url => true).match(/s--[0-9A-Za-z_-]{8}--/).to_s
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :format => "jpg", :sign_url => true }])
-      .to produce_url("http://#{cloud_name}-res.cloudinary.com/images/#{expected_signature}/test/hello.jpg")
+      .to produce_url("https://#{cloud_name}-res.cloudinary.com/images/#{expected_signature}/test/hello.jpg")
             .and empty_options
 
     expected_signature = Cloudinary::Utils.cloudinary_url("test", :format => "jpg", :angle => 0, :sign_url => true).match(/s--[0-9A-Za-z_-]{8}--/).to_s
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :format => "jpg", :angle => 0, :sign_url => true }])
-      .to produce_url("http://#{cloud_name}-res.cloudinary.com/images/#{expected_signature}/a_0/test/hello.jpg")
+      .to produce_url("https://#{cloud_name}-res.cloudinary.com/images/#{expected_signature}/a_0/test/hello.jpg")
             .and empty_options
   end
 
   it "should support url_suffix for raw uploads" do
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :resource_type => :raw }])
-      .to produce_url("http://#{cloud_name}-res.cloudinary.com/files/test/hello")
+      .to produce_url("https://#{cloud_name}-res.cloudinary.com/files/test/hello")
             .and empty_options
   end
 
   it "should support url_suffix for videos" do
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :resource_type => :video }])
-      .to produce_url("http://#{cloud_name}-res.cloudinary.com/videos/test/hello")
+      .to produce_url("https://#{cloud_name}-res.cloudinary.com/videos/test/hello")
             .and empty_options
   end
 
   it "should support url_suffix for private images" do
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :resource_type => :image, :type => :private }])
-      .to produce_url("http://#{cloud_name}-res.cloudinary.com/private_images/test/hello")
+      .to produce_url("https://#{cloud_name}-res.cloudinary.com/private_images/test/hello")
             .and empty_options
     expect(["test", { :url_suffix => "hello", :private_cdn => true, :format => "jpg", :resource_type => :image, :type => :private }])
-      .to produce_url("http://#{cloud_name}-res.cloudinary.com/private_images/test/hello.jpg")
+      .to produce_url("https://#{cloud_name}-res.cloudinary.com/private_images/test/hello.jpg")
             .and empty_options
   end
 
   it "should support url_suffix for authenticated images" do
     expect(["test", { :url_suffix => "hello", :format => "jpg", :resource_type => :image, :type => :authenticated }])
-      .to produce_url("http://res.cloudinary.com/#{cloud_name}/authenticated_images/test/hello.jpg")
+      .to produce_url("https://res.cloudinary.com/#{cloud_name}/authenticated_images/test/hello.jpg")
             .and empty_options
   end
 
@@ -219,16 +218,16 @@ describe Cloudinary::Utils do
 
     it "should support use_root_path for private_cdn" do
       expect(["test", { :use_root_path => true, :private_cdn => true }])
-        .to produce_url("http://#{cloud_name}-res.cloudinary.com/test")
+        .to produce_url("https://#{cloud_name}-res.cloudinary.com/test")
               .and empty_options
       expect(["test", { :use_root_path => true, :private_cdn => true, :angle => 0 }])
-        .to produce_url("http://#{cloud_name}-res.cloudinary.com/a_0/test")
+        .to produce_url("https://#{cloud_name}-res.cloudinary.com/a_0/test")
               .and empty_options
     end
 
     it "should support use_root_path together with url_suffix for private_cdn" do
       expect(["test", { :use_root_path => true, :url_suffix => "hello", :private_cdn => true }])
-        .to produce_url("http://#{cloud_name}-res.cloudinary.com/test/hello")
+        .to produce_url("https://#{cloud_name}-res.cloudinary.com/test/hello")
               .and empty_options
     end
 
@@ -301,32 +300,32 @@ describe Cloudinary::Utils do
   describe "gravity" do
     it "should support auto" do
       expect(["test", { width: 100, height: 100, crop: 'crop', gravity: 'auto' }])
-        .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto,h_100,w_100/test")
+        .to produce_url("https://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto,h_100,w_100/test")
               .and mutate_options_to({ width: 100, height: 100 })
       expect(["test", { width: 100, height: 100, crop: 'crop', gravity: 'auto' }])
-        .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto,h_100,w_100/test")
+        .to produce_url("https://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto,h_100,w_100/test")
               .and mutate_options_to({ width: 100, height: 100 })
     end
     it "should support focal gravity" do
       ["adv_face", "adv_faces", "adv_eyes", "face", "faces", "body", "no_faces"].each do |focal|
         expect(["test", { width: 100, height: 100, crop: 'crop', gravity: "auto:#{focal}" }])
-          .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto:#{focal},h_100,w_100/test")
+          .to produce_url("https://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto:#{focal},h_100,w_100/test")
                 .and mutate_options_to({ width: 100, height: 100 })
       end
     end
     it "should support auto level with thumb cropping" do
       [0, 10, 100].each do |level|
         expect(["test", { width: 100, height: 100, crop: 'thumb', gravity: "auto:#{level}" }])
-          .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_thumb,g_auto:#{level},h_100,w_100/test")
+          .to produce_url("https://res.cloudinary.com/#{cloud_name}/image/upload/c_thumb,g_auto:#{level},h_100,w_100/test")
                 .and mutate_options_to({ width: 100, height: 100 })
         expect(["test", { width: 100, height: 100, crop: 'thumb', gravity: "auto:adv_faces:#{level}" }])
-          .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_thumb,g_auto:adv_faces:#{level},h_100,w_100/test")
+          .to produce_url("https://res.cloudinary.com/#{cloud_name}/image/upload/c_thumb,g_auto:adv_faces:#{level},h_100,w_100/test")
                 .and mutate_options_to({ width: 100, height: 100 })
       end
     end
     it "should support custom_no_override" do
       expect(["test", { width: 100, height: 100, crop: 'crop', gravity: "auto:custom_no_override" }])
-        .to produce_url("http://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto:custom_no_override,h_100,w_100/test")
+        .to produce_url("https://res.cloudinary.com/#{cloud_name}/image/upload/c_crop,g_auto:custom_no_override,h_100,w_100/test")
               .and mutate_options_to({ width: 100, height: 100 })
     end
   end
@@ -422,14 +421,14 @@ describe Cloudinary::Utils do
   end
 
   it "should ignore http links only if type is not given or is asset" do
-    expect(["http://test", { :type => nil }])
-      .to produce_url("http://test")
+    expect(["https://test", { :type => nil }])
+      .to produce_url("https://test")
             .and empty_options
-    expect(["http://test", { :type => :asset }])
-      .to produce_url("http://test")
+    expect(["https://test", { :type => :asset }])
+      .to produce_url("https://test")
             .and empty_options
-    expect(["http://test", { :type => :fetch }])
-      .to produce_url("#{root_path}/image/fetch/http://test")
+    expect(["https://test", { :type => :fetch }])
+      .to produce_url("#{root_path}/image/fetch/https://test")
             .and empty_options
   end
 
@@ -446,14 +445,14 @@ describe Cloudinary::Utils do
   end
 
   it "should escape fetch urls" do
-    expect(["http://blah.com/hello?a=b", { :type => :fetch }])
-      .to produce_url("#{root_path}/image/fetch/http://blah.com/hello%3Fa%3Db")
+    expect(["https://blah.com/hello?a=b", { :type => :fetch }])
+      .to produce_url("#{root_path}/image/fetch/https://blah.com/hello%3Fa%3Db")
             .and empty_options
   end
 
   it "should should escape http urls" do
-    expect(["http://www.youtube.com/watch?v=d9NF2edxy-M", { :type => :youtube }])
-      .to produce_url("#{root_path}/image/youtube/http://www.youtube.com/watch%3Fv%3Dd9NF2edxy-M")
+    expect(["https://www.youtube.com/watch?v=d9NF2edxy-M", { :type => :youtube }])
+      .to produce_url("#{root_path}/image/youtube/https://www.youtube.com/watch%3Fv%3Dd9NF2edxy-M")
             .and empty_options
   end
 
@@ -510,8 +509,8 @@ describe Cloudinary::Utils do
   end
 
   it "should support format for fetch urls" do
-    expect(["http://cloudinary.com/images/logo.png", { :format => "jpg", :type => :fetch }])
-      .to produce_url("#{root_path}/image/fetch/f_jpg/http://cloudinary.com/images/logo.png")
+    expect(["https://cloudinary.com/images/logo.png", { :format => "jpg", :type => :fetch }])
+      .to produce_url("#{root_path}/image/fetch/f_jpg/https://cloudinary.com/images/logo.png")
             .and empty_options
   end
 
@@ -562,7 +561,7 @@ describe Cloudinary::Utils do
       (specific_transformation.blank? || specific_transformation.match(/\/$/)) ? specific_transformation : "#{specific_transformation}/"
     end
     let!(:authenticated_image) do
-      Cloudinary::Uploader.upload "http://res.cloudinary.com/demo/image/upload/sample.jpg",
+      Cloudinary::Uploader.upload "https://res.cloudinary.com/demo/image/upload/sample.jpg",
                                   :type => 'authenticated',
                                   :tags => TEST_TAG
     end
@@ -589,15 +588,15 @@ describe Cloudinary::Utils do
     end
     it "should correctly sign fetch URL" do
       options[:type] = :fetch
-      expect(["http://res.cloudinary.com/demo/sample.png", options])
-        .to produce_url(%r"^#{root_path}/image/fetch/s--[\w-]+--/#{expected_transformation}v#{authenticated_image['version']}/http://res.cloudinary.com/demo/sample.png$")
+      expect(["https://res.cloudinary.com/demo/sample.png", options])
+        .to produce_url(%r"^#{root_path}/image/fetch/s--[\w-]+--/#{expected_transformation}v#{authenticated_image['version']}/https://res.cloudinary.com/demo/sample.png$")
               .and empty_options
     end
   end
 
   { 'overlay' => :l, :underlay => :u }.each do |param, letter|
     describe param do
-      let(:root_path) { "http://res.cloudinary.com/#{cloud_name}" }
+      let(:root_path) { "https://res.cloudinary.com/#{cloud_name}" }
       let(:layers_options) { [
         # [name,                    options,                                              result]
         ["string", "text:hello", "text:hello"],
@@ -653,7 +652,7 @@ describe Cloudinary::Utils do
     { 'overlay' => 'l' }.each do |param, short|
       # 'underlay' => 'u' behaves the same as overlay
       describe param do
-        let(:root_path) { "http://res.cloudinary.com/#{cloud_name}" }
+        let(:root_path) { "https://res.cloudinary.com/#{cloud_name}" }
         # [name, options, result]
         layers_options = [
           ["string", "text:test_text:hello", "text:test_text:hello"],
@@ -665,7 +664,7 @@ describe Cloudinary::Utils do
           ["text with text style parameter (explicit)", "text:Arial_18_antialias_best_hinting_medium:Hello%20World%252C%20Nice%20to%20meet%20you%3F", "text:Arial_18_antialias_best_hinting_medium:Hello%20World%252C%20Nice%20to%20meet%20you%3F"],
           ["subtitles", { :resource_type => "subtitles", :public_id => "subtitles.srt" }, "subtitles:subtitles.srt"],
           ["subtitles with font family and size", { :resource_type => "subtitles", :public_id => "subtitles.srt", :font_family => "Arial", :font_size => "40" }, "subtitles:Arial_40:subtitles.srt"],
-          ["image of type fetch", { :public_id => "http://res.cloudinary.com/demo/image/upload/ci", :type => "fetch" }, "fetch:aHR0cDovL3Jlcy5jbG91ZGluYXJ5LmNvbS9kZW1vL2ltYWdlL3VwbG9hZC9jaQ=="]
+          ["image of type fetch", { :public_id => "https://res.cloudinary.com/demo/image/upload/ci", :type => "fetch" }, "fetch:aHR0cHM6Ly9yZXMuY2xvdWRpbmFyeS5jb20vZGVtby9pbWFnZS91cGxvYWQvY2k="]
         ]
         layers_options.each do |name, options, result|
           it "should support #{name}" do
@@ -712,46 +711,26 @@ describe Cloudinary::Utils do
     expect(options).to produce_url("#{upload_path}/$style_!Arial_12!/l_text:$style:hello-world/sample")
   end
 
-  it "should use ssl_detected if secure is not given as parameter and not set to true in configuration" do
-    expect(["test", { :ssl_detected => true }])
-      .to produce_url("https://res.cloudinary.com/#{cloud_name}/image/upload/test")
-            .and empty_options
-  end
-
-  it "should use secure if given over ssl_detected and configuration" do
-    Cloudinary.config.secure = true
-    expect(["test", { :ssl_detected => true, :secure => false }])
-      .to produce_url("#{upload_path}/test")
-            .and empty_options
-  end
-
-  it "should use secure: true from configuration over ssl_detected" do
-    Cloudinary.config.secure = true
-    expect(["test", { :ssl_detected => false }])
-      .to produce_url("https://res.cloudinary.com/#{cloud_name}/image/upload/test")
-            .and empty_options
-  end
-
-  it "should support extenal cname" do
-    expect(["test", { :cname => "hello.com" }])
+  it "should support external cname" do
+    expect(["test", { :secure => false, :cname => "hello.com" }])
       .to produce_url("http://hello.com/#{cloud_name}/image/upload/test")
             .and empty_options
   end
 
-  it "should support extenal cname with cdn_subdomain on" do
-    expect(["test", { :cname => "hello.com", :private_cdn => true, :cdn_subdomain => true }])
+  it "should support external cname with cdn_subdomain on" do
+    expect(["test", { :secure => false, :cname => "hello.com", :private_cdn => true, :cdn_subdomain => true }])
       .to produce_url("http://a2.hello.com/image/upload/test")
             .and empty_options
   end
 
   it "should support cdn_subdomain with secure on if using shared_domain" do
-    expect(["test", { :secure => true, :cdn_subdomain => true }])
+    expect(["test", { :cdn_subdomain => true }])
       .to produce_url("https://res-2.cloudinary.com/#{cloud_name}/image/upload/test")
             .and empty_options
   end
 
   it "should support secure_cdn_subdomain false override with secure" do
-    expect(["test", { :secure => true, :cdn_subdomain => true, :secure_cdn_subdomain => false }])
+    expect(["test", { :cdn_subdomain => true, :secure_cdn_subdomain => false }])
       .to produce_url("https://res.cloudinary.com/#{cloud_name}/image/upload/test")
             .and empty_options
   end

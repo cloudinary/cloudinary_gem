@@ -138,12 +138,12 @@ describe 'cloudinary:sync_static' do
       allow(Cloudinary.config).to receive(:static_file_support).and_return(true)
       subject.invoke
 
-      expect(['logo1.png', '/images/logo1.png']).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/image/asset/logo1-7dc60722d4653261648038b579fdb89e.png')
-      expect('images/logo1.png').not_to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/image/asset/logo1-7dc60722d4653261648038b579fdb89e.png')
-      expect('1.js').to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/raw/asset/1-b01de57adb485efdde843154d030644e.js')
-      expect(['javascripts/1.js', '/javascripts/1.js']).not_to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/raw/asset/1-b01de57adb485efdde843154d030644e.js')
-      expect('1.css').to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/raw/asset/1-f24cc6123afd401ab86d8596cabc619f.css')
-      expect(['stylesheets/1.css', '/stylesheets/1.css']).not_to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/raw/asset/1-f24cc6123afd401ab86d8596cabc619f.css')
+      expect(['logo1.png', '/images/logo1.png']).to be_asset_mapped_by_cloudinary_url_to('https://res.cloudinary.com/test/image/asset/logo1-7dc60722d4653261648038b579fdb89e.png')
+      expect('images/logo1.png').not_to be_asset_mapped_by_cloudinary_url_to('https://res.cloudinary.com/test/image/asset/logo1-7dc60722d4653261648038b579fdb89e.png')
+      expect('1.js').to be_asset_mapped_by_cloudinary_url_to('https://res.cloudinary.com/test/raw/asset/1-b01de57adb485efdde843154d030644e.js')
+      expect(['javascripts/1.js', '/javascripts/1.js']).not_to be_asset_mapped_by_cloudinary_url_to('https://res.cloudinary.com/test/raw/asset/1-b01de57adb485efdde843154d030644e.js')
+      expect('1.css').to be_asset_mapped_by_cloudinary_url_to('https://res.cloudinary.com/test/raw/asset/1-f24cc6123afd401ab86d8596cabc619f.css')
+      expect(['stylesheets/1.css', '/stylesheets/1.css']).not_to be_asset_mapped_by_cloudinary_url_to('https://res.cloudinary.com/test/raw/asset/1-f24cc6123afd401ab86d8596cabc619f.css')
 
       # without :type => 'asset'
       expect(Cloudinary::Utils.cloudinary_url('logo1.png')).not_to include('7dc60722d4653261648038b579fdb89e')
@@ -153,7 +153,7 @@ describe 'cloudinary:sync_static' do
       allow(Cloudinary.config).to receive(:static_image_support).and_return(true)
       subject.invoke
 
-      expect(['logo1.png', '/images/logo1.png']).to be_asset_mapped_by_cloudinary_url_to('http://res.cloudinary.com/test/image/asset/logo1-7dc60722d4653261648038b579fdb89e.png')
+      expect(['logo1.png', '/images/logo1.png']).to be_asset_mapped_by_cloudinary_url_to('https://res.cloudinary.com/test/image/asset/logo1-7dc60722d4653261648038b579fdb89e.png')
     end
   end
 
