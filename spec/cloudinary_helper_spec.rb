@@ -15,7 +15,7 @@ RSpec.describe CloudinaryHelper do
     ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil)
   }
   let(:cloud_name) {DUMMY_CLOUD}
-  let(:root_path) {"http://res.cloudinary.com/#{cloud_name}"}
+  let(:root_path) {"https://res.cloudinary.com/#{cloud_name}"}
   let(:upload_path) {"#{root_path}/image/upload"}
 
   let(:options) { {} }
@@ -71,7 +71,7 @@ RSpec.describe CloudinaryHelper do
       it "should use data-src for responsive_width" do
         expect(test_tag.name).to match( 'img')
         expect(test_tag['class']).to eq("cld-responsive")
-        expect(test_tag['data-src']).to eq( "http://res.cloudinary.com/test/image/upload/c_limit,w_auto/sample.jpg")
+        expect(test_tag['data-src']).to eq( "https://res.cloudinary.com/test/image/upload/c_limit,w_auto/sample.jpg")
       end
     end
 
@@ -80,7 +80,7 @@ RSpec.describe CloudinaryHelper do
       it "should use data-src for dpr auto" do
         expect(test_tag.name).to match( 'img')
         expect(test_tag['class']).to eq( 'cld-hidpi')
-        expect(test_tag['data-src']).to eq( "http://res.cloudinary.com/test/image/upload/dpr_auto/sample.jpg")
+        expect(test_tag['data-src']).to eq( "https://res.cloudinary.com/test/image/upload/dpr_auto/sample.jpg")
       end
     end
 
@@ -90,14 +90,14 @@ RSpec.describe CloudinaryHelper do
           expect(test_tag.name).to match( 'img')
           expect(test_tag['class']).to be_nil
           expect(test_tag['data-src']).to be_nil
-          expect(test_tag['src']).to eq( "http://res.cloudinary.com/test/image/upload/dpr_auto,w_auto/sample.jpg")
+          expect(test_tag['src']).to eq( "https://res.cloudinary.com/test/image/upload/dpr_auto,w_auto/sample.jpg")
         end
         it "should override :responsive" do
           Cloudinary.config.responsive = true
           expect(test_tag.name).to match( 'img')
           expect(test_tag['class']).to be_nil
           expect(test_tag['data-src']).to be_nil
-          expect(test_tag['src']).to eq( "http://res.cloudinary.com/test/image/upload/dpr_auto,w_auto/sample.jpg")
+          expect(test_tag['src']).to eq( "https://res.cloudinary.com/test/image/upload/dpr_auto,w_auto/sample.jpg")
         end
       end
       context "as option" do
@@ -117,13 +117,13 @@ RSpec.describe CloudinaryHelper do
         it "should use normal responsive behaviour" do
           expect(test_tag.name).to match( 'img')
           expect(test_tag['class']).to eq( 'cld-responsive')
-          expect(test_tag['data-src']).to eq( "http://res.cloudinary.com/test/image/upload/w_auto/sample.jpg")
+          expect(test_tag['data-src']).to eq( "https://res.cloudinary.com/test/image/upload/w_auto/sample.jpg")
         end
       end
       context "width" do
         let(:options) { {:dpr => :auto, :cloud_name => "test", :width => "auto:breakpoints", :client_hints => true}}
         it "supports auto width" do
-          expect(test_tag['src']).to eq( "http://res.cloudinary.com/test/image/upload/dpr_auto,w_auto:breakpoints/sample.jpg")
+          expect(test_tag['src']).to eq( "https://res.cloudinary.com/test/image/upload/dpr_auto,w_auto:breakpoints/sample.jpg")
         end
       end
     end
@@ -242,10 +242,10 @@ RSpec.describe CloudinaryHelper do
     tag = helper.cl_source_tag(PUBLIC_ID, srcset: {breakpoints: breakpoint_list})
     expect(tag).to eql(
       "<source srcset=\"" +
-        "http://res.cloudinary.com/#{DUMMY_CLOUD}/image/upload/c_scale,w_100/sample.jpg 100w, " +
-        "http://res.cloudinary.com/#{DUMMY_CLOUD}/image/upload/c_scale,w_200/sample.jpg 200w, " +
-        "http://res.cloudinary.com/#{DUMMY_CLOUD}/image/upload/c_scale,w_300/sample.jpg 300w, " +
-        "http://res.cloudinary.com/#{DUMMY_CLOUD}/image/upload/c_scale,w_399/sample.jpg 399w" +
+        "https://res.cloudinary.com/#{DUMMY_CLOUD}/image/upload/c_scale,w_100/sample.jpg 100w, " +
+        "https://res.cloudinary.com/#{DUMMY_CLOUD}/image/upload/c_scale,w_200/sample.jpg 200w, " +
+        "https://res.cloudinary.com/#{DUMMY_CLOUD}/image/upload/c_scale,w_300/sample.jpg 300w, " +
+        "https://res.cloudinary.com/#{DUMMY_CLOUD}/image/upload/c_scale,w_399/sample.jpg 399w" +
         "\">")
       end
 
@@ -268,7 +268,7 @@ RSpec.describe CloudinaryHelper do
                                 :type => "authenticated",
                                 :version => "1486020273",
                                 :auth_token => {key: KEY, start_time: 11111111, duration: 300}
-      expect(tag).to match /<img.*src="http:\/\/res.cloudinary.com\/#{DUMMY_CLOUD}\/image\/authenticated\/v1486020273\/sample.jpg\?__cld_token__=st=11111111~exp=11111411~hmac=9bd6f41e2a5893da8343dc8eb648de8bf73771993a6d1457d49851250caf3b80.*>/
+      expect(tag).to match /<img.*src="https:\/\/res.cloudinary.com\/#{DUMMY_CLOUD}\/image\/authenticated\/v1486020273\/sample.jpg\?__cld_token__=st=11111111~exp=11111411~hmac=9bd6f41e2a5893da8343dc8eb648de8bf73771993a6d1457d49851250caf3b80.*>/
 
     end
 

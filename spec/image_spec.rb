@@ -28,7 +28,7 @@ describe 'Responsive breakpoints' do
   end
 
   let(:cloud_name) {COMMON_TRANS[:cloud_name]}
-  let(:root_path) {"http://res.cloudinary.com/#{cloud_name}"}
+  let(:root_path) {"https://res.cloudinary.com/#{cloud_name}"}
   let(:upload_path) {"#{root_path}/image/upload"}
 
   let(:options) {COMMON_TRANS}

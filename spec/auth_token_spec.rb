@@ -19,6 +19,7 @@ describe 'auth_token' do
       Cloudinary.class_variable_set :@@config, nil
       Cloudinary.config_from_url 'cloudinary://a:b@test123'
       Cloudinary.config :private_cdn => true
+      Cloudinary.config :secure => false
       Cloudinary.config.auth_token = { :key => KEY, :duration => 300, :start_time => 11111111 }
 
     end

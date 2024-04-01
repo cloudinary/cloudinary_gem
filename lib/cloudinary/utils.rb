@@ -100,7 +100,6 @@ class Cloudinary::Utils
       secure_distribution
       shorten
       sign_url
-      ssl_detected
       type
       url_suffix
       use_root_path
@@ -707,9 +706,7 @@ class Cloudinary::Utils
     cloud_name = config_option_consume(options, :cloud_name) || raise(CloudinaryException, "Must supply cloud_name in tag or in configuration")
 
     source = options.delete(:source)
-    secure = options.delete(:secure)
-    ssl_detected = options.delete(:ssl_detected)
-    secure = ssl_detected || Cloudinary.config.secure if secure.nil?
+    secure = config_option_consume(options, :secure, true)
     private_cdn = config_option_consume(options, :private_cdn)
     secure_distribution = config_option_consume(options, :secure_distribution)
     cname = config_option_consume(options, :cname)

@@ -325,7 +325,6 @@ module CloudinaryHelper
   private
 
   def cloudinary_url_internal(source, options = {})
-    options[:ssl_detected] = request.ssl? if defined?(request) && request && request.respond_to?(:ssl?)
     if defined?(CarrierWave::Uploader::Base) && source.is_a?(CarrierWave::Uploader::Base)
       if source.version_name.present?
         options[:transformation] = Cloudinary::Utils.build_array(source.transformation) + Cloudinary::Utils.build_array(options[:transformation])
