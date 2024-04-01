@@ -36,7 +36,8 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
       params[:type]=uploader.class.storage_type
 
       params[:resource_type] ||= :auto
-      uploader.metadata = Cloudinary::Uploader.upload(data, params)
+      upload_method = uploader.upload_chunked? ? "upload_large" : "upload"
+      uploader.metadata = Cloudinary::Uploader.send(upload_method, data, params)
       if uploader.metadata["error"]
         raise Cloudinary::CarrierWave::UploadError.new(uploader.metadata["error"]["message"], uploader.metadata["error"]["http_code"])
       end
