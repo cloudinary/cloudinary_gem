@@ -97,7 +97,7 @@ describe 'cloudinary:sync_static' do
         actual = [actual] unless actual.respond_to? :all?
         actual.all? do |public_path|
           @public_path = public_path
-          @actual = Cloudinary::Utils.cloudinary_url(public_path, :cloud_name => 'test', :type => 'asset')
+          @actual = Cloudinary::Utils.cloudinary_url(public_path, :cloud_name => 'test', :type => 'asset', :analytics => false)
           @actual == expected
         end
       end

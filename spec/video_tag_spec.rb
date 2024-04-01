@@ -27,6 +27,7 @@ describe CloudinaryHelper do
       config.secure_distribution = nil
       config.private_cdn         = false
       config.secure              = false
+      config.analytics           = false
       config.cname               = nil
       config.cdn_subdomain       = false
       config.api_key             = "1234"

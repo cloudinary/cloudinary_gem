@@ -12,6 +12,7 @@ describe Cloudinary::Utils do
       config.private_cdn         = false
       config.cname               = nil
       config.cdn_subdomain       = false
+      config.analytics           = false
     end
   end
 
@@ -739,6 +740,16 @@ describe Cloudinary::Utils do
     expect(["test", { :secure => true, :cdn_subdomain => true, :secure_cdn_subdomain => true, :private_cdn => true }])
       .to produce_url("https://#{cloud_name}-res-2.cloudinary.com/image/upload/test")
             .and empty_options
+  end
+
+  it "should support analytics" do
+    expect(["test", { :analytics => true }])
+      .to produce_url(/https:\/\/res.cloudinary.com\/#{cloud_name}\/image\/upload\/test\?_a=[\w]+/)
+  end
+
+  it "should not add analytics in case public id contains '?'" do
+    expect(["test?a=b", { :analytics => true }])
+      .to produce_url("https://res.cloudinary.com/#{cloud_name}/image/upload/test%3Fa%3Db")
   end
 
   it "should support string param" do

@@ -25,6 +25,7 @@ module Cloudinary
   autoload :CarrierWave, "cloudinary/carrier_wave"
   autoload :Search, "cloudinary/search"
   autoload :SearchFolders, "cloudinary/search_folders"
+  autoload :Analytics, "cloudinary/analytics"
 
   CF_SHARED_CDN         = "d3jpl91pxevbkh.cloudfront.net"
   AKAMAI_SHARED_CDN     = "res.cloudinary.com"
