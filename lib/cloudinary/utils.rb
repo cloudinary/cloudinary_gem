@@ -591,12 +591,22 @@ class Cloudinary::Utils
     prefix = build_distribution_domain(options)
 
     source = [prefix, resource_type, type, signature, transformation, version, source].reject(&:blank?).join("/")
+
+    token = nil
     if sign_url && auth_token && !auth_token.empty?
       auth_token[:url] = URI.parse(source).path
       token = Cloudinary::AuthToken.generate auth_token
-      source += "?#{token}"
     end
 
+    analytics = config_option_consume(options, :analytics, true)
+    analytics_token = nil
+    if analytics && ! original_source.include?("?") # Disable analytics for public IDs containing query params.
+      analytics_token = Cloudinary::Analytics.sdk_analytics_query_param
+    end
+
+    query_params = [token, analytics_token].compact.join("&")
+
+    source += "?#{query_params}" unless query_params.empty?
     source
   end
 

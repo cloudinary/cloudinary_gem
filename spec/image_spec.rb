@@ -25,6 +25,7 @@ describe 'Responsive breakpoints' do
 
   before :each do
     Cloudinary.reset_config
+    Cloudinary.config.analytics = false
   end
 
   let(:cloud_name) {COMMON_TRANS[:cloud_name]}

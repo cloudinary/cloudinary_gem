@@ -14,6 +14,7 @@ describe 'active_storage' do
   let(:key) {ActiveStorage::BlobKey.new({key: SecureRandom.base58(24), filename: BASENAME})}
 
   before :all do
+    Cloudinary.config.analytics = false
     @key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), filename: BASENAME
     @file_key = ActiveStorage::BlobKey.new key: SecureRandom.base58(24), filename: File.basename(TEST_RAW),
                                            content_type: "application/zip"

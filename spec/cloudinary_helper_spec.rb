@@ -22,6 +22,7 @@ RSpec.describe CloudinaryHelper do
   before :each do
     Cloudinary.reset_config
     Cloudinary.config.enhance_image_tag = true
+    Cloudinary.config.analytics = false
   end
   context "#cl_image_upload_tag" do
     let(:options) {{:multiple => true}}
