@@ -192,11 +192,6 @@ module Cloudinary::CarrierWave
 
   end
 
-  # @deprecated
-  def self.split_format(identifier)
-    return Cloudinary::PreloadedFile.split_format(identifier)
-  end
-
   def default_format
     "png"
   end

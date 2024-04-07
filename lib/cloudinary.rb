@@ -27,10 +27,7 @@ module Cloudinary
   autoload :SearchFolders, "cloudinary/search_folders"
   autoload :Analytics, "cloudinary/analytics"
 
-  CF_SHARED_CDN         = "d3jpl91pxevbkh.cloudfront.net"
-  AKAMAI_SHARED_CDN     = "res.cloudinary.com"
-  OLD_AKAMAI_SHARED_CDN = "cloudinary-a.akamaihd.net"
-  SHARED_CDN            = AKAMAI_SHARED_CDN
+  SHARED_CDN      = "res.cloudinary.com"
 
   USER_AGENT      = "CloudinaryRuby/#{VERSION} (Ruby #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL})"
   @@user_platform = defined?(Rails.version) ? "Rails/#{Rails.version}" : ""
