@@ -151,7 +151,7 @@ module ActiveStorage
 
     # Return the partial content in the byte +range+ of the file at the +key+.
     def download_chunk(key, range)
-      url = Cloudinary::Utils.unsigned_download_url(public_id(key), resource_type: resource_type(nil, key))
+      url = Cloudinary::Utils.cloudinary_url(public_id(key), resource_type: resource_type(nil, key))
       uri = URI(url)
       instrument :download, key: key do
         req = Net::HTTP::Get.new(uri)

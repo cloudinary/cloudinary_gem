@@ -286,13 +286,6 @@ module CloudinaryHelper
     Cloudinary::Utils.private_download_url(public_id, format, options)
   end
 
-  # Helper method that uses the deprecated ZIP download API.
-  # Replaced by cl_download_zip_url that uses the more advanced and robust archive generation and download API
-  # @deprecated
-  def cl_zip_download_url(tag, options = {})
-    Cloudinary::Utils.zip_download_url(tag, options)
-  end
-
   # @see {Cloudinary::Utils.download_archive_url}
   def cl_download_archive_url(options = {})
     Cloudinary::Utils.download_archive_url(options)
@@ -304,13 +297,13 @@ module CloudinaryHelper
   end
 
   def cl_signed_download_url(public_id, options = {})
-    Cloudinary::Utils.signed_download_url(public_id, options)
+    Cloudinary::Utils.cloudinary_url(public_id, options)
   end
 
   def self.included(base)
     ActionView::Helpers::FormBuilder.send(:include, Cloudinary::FormBuilder)
     base.class_eval do
-      if !method_defined?(:image_tag)
+      unless method_defined?(:image_tag)
         include ActionView::Helpers::AssetTagHelper
       end
       alias_method :image_tag_without_cloudinary, :image_tag unless public_method_defined? :image_tag_without_cloudinary

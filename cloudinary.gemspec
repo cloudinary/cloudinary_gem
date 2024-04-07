@@ -19,8 +19,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.required_ruby_version = '~> 3'
-
-  s.add_dependency "aws_cf_signer", ">= 0.1.3", "< 1.0.0"
+  
   s.add_dependency "faraday", ">= 2.0.1", "< 3.0.0"
   s.add_dependency "faraday-multipart", "~> 1.0", ">= 1.0.4"
 

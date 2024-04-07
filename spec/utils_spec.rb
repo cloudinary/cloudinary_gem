@@ -941,10 +941,6 @@ describe Cloudinary::Utils do
     it_behaves_like "a signed url"
   end
 
-  describe ":sign_version (deprecated)" do
-    it_behaves_like "a signed url", :sign_version => true
-  end
-
   it "should correctly sign_request" do
     params = Cloudinary::Utils.sign_request(
       {

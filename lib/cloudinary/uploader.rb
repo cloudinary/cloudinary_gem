@@ -5,14 +5,6 @@ require 'cloudinary/cache'
 
 class Cloudinary::Uploader
   @adapter = nil
-
-  REMOTE_URL_REGEX = Cloudinary::Utils::REMOTE_URL_REGEX
-  # @deprecated use {Cloudinary::Utils.build_eager} instead
-  def self.build_eager(eager)
-    Cloudinary::Utils.build_eager(eager)
-  end
-
-  # @private
   def self.build_upload_params(options, as_bool = false)
     #symbolize keys
     options = options.clone
