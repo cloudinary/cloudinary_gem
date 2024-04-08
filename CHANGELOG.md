@@ -1,3 +1,36 @@
+2.0.0 / 2024-04-08
+==================
+
+Breaking Changes
+----------------
+
+* Set minimal Ruby version to `3.0`
+  * For older Rubies use version `1.x` of this library
+* Replace `rest-client` with `faraday`
+* Set config `secure` to `true` by default
+  * All delivery URLs are set to be `https://` by default 
+  * To disable - set `secure` to `false` in config/options
+* Add support for URL Analytics
+  * Adds analytics signature query parameter to the delivery URLs 
+  * To disable - set `analytics` to `false` in config/options
+* Remove deprecated methods
+  * `Cloudinary::Utils.unsigned_download_url`
+    * use `Cloudinary::Utils.cloudinary_url` instead
+  * `Cloudinary::Utils.signed_download_url`
+    * use `Cloudinary::Utils.cloudinary_url` instead
+  * `Cloudinary::Utils.zip_download_url`
+    * use `Cloudinary::Utils.download_zip_url` instead
+  * `cl_zip_download_url`
+    * use `cl_download_zip_url` instead
+* Remove deprecated constants
+
+New functionality and features
+------------------------------
+
+  * Add support for `analyze` API
+  * Support chunked uploads with CarrierWave
+  * Filter users by last login in `users` Provisioning API
+
 1.29.0 / 2024-02-26
 ==================
 
