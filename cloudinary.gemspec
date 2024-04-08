@@ -19,10 +19,11 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.required_ruby_version = '~> 3'
-  
+
   s.add_dependency "faraday", ">= 2.0.1", "< 3.0.0"
   s.add_dependency "faraday-multipart", "~> 1.0", ">= 1.0.4"
 
+  s.add_development_dependency 'faraday-follow_redirects', '~> 0.3.0'
   s.add_development_dependency "rails", ">= 6.1.7", "< 8.0.0"
   s.add_development_dependency "rexml", ">= 3.2.5", "< 4.0.0"
   s.add_development_dependency "actionpack", ">= 6.1.7", "< 8.0.0"

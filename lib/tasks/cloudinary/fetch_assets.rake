@@ -1,7 +1,9 @@
 require 'tmpdir'
 require 'faraday'
+require 'faraday/follow_redirects'
 require 'json'
 require 'rubygems/package'
+require 'stringio'
 
 unless Rake::Task.task_defined?('cloudinary:fetch_assets') # prevent double-loading/execution
   namespace :cloudinary do
@@ -20,7 +22,11 @@ unless Rake::Task.task_defined?('cloudinary:fetch_assets') # prevent double-load
       FileUtils.mkdir_p js_folder
 
       puts "Fetching cloudinary_js version #{release["tag_name"]}\n\n"
-      sio = StringIO.new(Faraday.get(release["tarball_url"]).body)
+      conn = Faraday.new do |faraday|
+        faraday.response :follow_redirects
+        faraday.adapter Faraday.default_adapter
+      end
+      sio = StringIO.new(conn.get(release["tarball_url"]).body)
       file = Zlib::GzipReader.new(sio)
       tar = Gem::Package::TarReader.new(file)
       tar.each_entry do |entry|
