@@ -66,7 +66,7 @@ require 'cloudinary'
 - [See full documentation](https://cloudinary.com/documentation/rails_image_manipulation).
 
 ```ruby
- cl_image_tag("sample.jpg", :width => 100, :height => 150, :crop => :fill)
+ cl_image_tag("sample.jpg", width: 100, height: 150, crop: "fill")
 ```
 
 ### Upload
