@@ -179,7 +179,7 @@ module CloudinaryHelper
     version_store = options.delete(:version_store)
     if options[:version].blank? && (version_store == :file) && defined?(Rails) && defined?(Rails.root)
       file_name = "#{Rails.root}/tmp/cloudinary/cloudinary_sprite_#{source.sub(/\..*/, '')}.version"
-      if File.exists?(file_name)
+      if File.exist?(file_name)
         options[:version] = File.read(file_name).chomp
       end
     end
