@@ -223,5 +223,22 @@ describe Cloudinary::AccountApi do
       expect(updated_key['name']).to eq 'updated_key'
       expect(updated_key['enabled']).to be_truthy
     end
+
+    it "should delete access key" do
+      key_name =  UNIQUE_TEST_ID + "_delete_key"
+      named_key_name = UNIQUE_TEST_ID + "_delete_by_name_key"
+
+      access_key = @api.generate_access_key(cloud_id, key_name)
+      named_access_key = @api.generate_access_key(cloud_id, named_key_name)
+
+      expect(access_key["name"]).to eq key_name
+      expect(named_access_key["name"]).to eq named_key_name
+
+      key_del_res = @api.delete_access_key(cloud_id, access_key["api_key"])
+      expect(key_del_res["message"]).to eq "ok"
+
+      named_key_del_res = @api.delete_access_key(cloud_id, nil, named_key_name)
+      expect(named_key_del_res["message"]).to eq "sok"
+    end
   end
 end
