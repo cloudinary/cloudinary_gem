@@ -223,6 +223,13 @@ describe 'active_storage' do
     expect(url).to include(folder)
   end
 
+  it "should omit global folder configuration for fetch urls" do
+    folder = SERVICE_CONFIGURATIONS[:cloudinary][:folder]
+    expect(folder).not_to be_empty, "Please set a folder value under cloudinary in #{CONFIGURATION_PATH}"
+    url = @service.url(TEST_IMAGE_URL, type: "fetch")
+    expect(url).not_to include(folder)
+  end
+
   it "should accept options that override global configuration" do
     tags = SERVICE_CONFIGURATIONS[:cloudinary][:tags]
     expect(tags).not_to be_empty, "Please set a tags value under cloudinary in #{CONFIGURATION_PATH}"
