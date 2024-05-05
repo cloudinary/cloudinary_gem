@@ -17,7 +17,7 @@ module CloudinaryHelper
   alias cloudinary_url_internal_original cloudinary_url_internal
 
   def cloudinary_url_internal(source, options = {})
-    if defined? ActiveStorage::Blob.service.public_id && options.fetch(:type, "").to_s != "fetch"
+    if defined?(ActiveStorage::Blob.service.public_id) && options.fetch(:type, "").to_s != "fetch"
       source = ActiveStorage::Blob.service.public_id(source)
     end
     cloudinary_url_internal_original(source, options)
