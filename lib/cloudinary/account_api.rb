@@ -260,6 +260,24 @@ class Cloudinary::AccountApi
     call_account_api(:put, ['sub_accounts', sub_account_id, 'access_keys', api_key], params, options.merge(content_type: :json))
   end
 
+  # Deletes access key.
+  #
+  # @param [String]        sub_account_id  The ID of the sub-account.
+  # @param [String, nil]   api_key         The API key.
+  # @param [String, nil]   name            The display name as shown in the management console.
+  # @param [Object]        options         Additional options.
+  def self.delete_access_key(sub_account_id, api_key = nil, name = nil, options = {})
+    uri = ['sub_accounts', sub_account_id, 'access_keys']
+    unless api_key.blank?
+      uri.append(api_key)
+    end
+
+    params = {
+      name: name,
+    }
+    call_account_api(:delete, uri, params, options.merge(content_type: :json))
+  end
+
   def self.call_account_api(method, uri, params, options)
     account_id = options[:account_id] || Cloudinary.account_config.account_id || raise('Must supply account_id')
     api_key    = options[:provisioning_api_key] || Cloudinary.account_config.provisioning_api_key || raise('Must supply provisioning api_key')
