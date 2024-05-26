@@ -153,7 +153,7 @@ class Cloudinary::Utils
       zoom
   ].map(&:to_sym)
 
-  REMOTE_URL_REGEX = %r(^ftp:|^https?:|^s3:|^gs:|^data:([\w-]+\/[\w-]+(\+[\w-]+)?)?(;[\w-]+=[\w-]+)*;base64,([a-zA-Z0-9\/+\n=]+)$)
+  REMOTE_URL_REGEX = %r(^ftp:|^https?:|^s3:|^gs:|^data:([\w-]+\/[\w-]+(\.[\w-]+)*(\+[\w-]+)?)?(;[\w-]+=[\w-]+)*;base64,([a-zA-Z0-9\/+\n=]+)$)
 
   LONG_URL_SIGNATURE_LENGTH = 32
   SHORT_URL_SIGNATURE_LENGTH = 8
