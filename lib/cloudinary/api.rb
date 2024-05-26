@@ -731,6 +731,21 @@ class Cloudinary::Api
     call_api(:post, "folders/#{folder_name}", {}, options)
   end
 
+  # Renames existing asset folder.
+  #
+  # @param [String] from_path The full path of an existing asset folder.
+  # @param [String] to_path   The full path of the new asset folder.
+  # @param [Hash]   options   The optional parameters.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  #
+  # @see https://cloudinary.com/documentation/admin_api#rename_folder
+  def self.rename_folder(from_path, to_path, options={})
+    call_api(:put, "folders/#{from_path}", {:to_folder => to_path}, options)
+  end
+
   # Lists upload mappings by folder and its mapped template (URL).
   #
   # @param [Hash] options The optional parameters. See the
