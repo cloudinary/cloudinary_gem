@@ -741,6 +741,15 @@ describe Cloudinary::Api do
       res = @mock_api.create_folder(UNIQUE_TEST_FOLDER)
       expect(res).to have_deep_hash_values_of(expected)
     end
+    it 'should rename folder' do
+      expected = {
+        [:url] => /.*\/folders\/#{UNIQUE_TEST_FOLDER}$/,
+        [:method] => :put,
+        [:payload, :to_folder] => UNIQUE_TEST_FOLDER + "_new",
+      }
+      res = @mock_api.rename_folder(UNIQUE_TEST_FOLDER, UNIQUE_TEST_FOLDER + "_new")
+      expect(res).to have_deep_hash_values_of(expected)
+    end
     it "should support listing folders" do
       res = @mock_api.root_folders
       expect(res).to have_deep_hash_values_of([:url] => /.*\/folders$/, [:method] => :get)
