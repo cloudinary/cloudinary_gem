@@ -1,3 +1,19 @@
+2.1.0 / 2024-05-27
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for `rename_folder` Admin API
+  * Add support for `delete_access_key` in Provisioning API
+
+Other Changes
+-------------
+
+  * Fix detection of base64 encoded files with complex MIME type
+  * Fix `fetch` url generation with Active Storage `folder` configuration
+  * Fix usage of deprecated `File.exists?` method
+
 2.0.2 / 2024-04-09
 ==================
 
