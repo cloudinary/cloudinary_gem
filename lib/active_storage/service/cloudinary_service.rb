@@ -238,7 +238,7 @@ module ActiveStorage
 
       options = @options.merge(options)
 
-      return public_id if !options[:folder] || options.fetch(:type).to_s == "fetch"
+      return public_id if !options[:folder] || options.fetch(:type, "").to_s == "fetch"
 
       File.join(@options.fetch(:folder), public_id)
     end
