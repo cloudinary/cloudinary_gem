@@ -13,6 +13,10 @@ Gem::Specification.new do |s|
   s.summary     = %q{Client library for easily using the Cloudinary service}
   s.description = %q{Client library for easily using the Cloudinary service}
 
+  s.metadata = {
+    "changelog_uri" => "https://github.com/cloudinary/cloudinary_gem/blob/master/CHANGELOG.md"
+  }
+
   s.files         = `git ls-files`.split("\n").select { |f| !f.start_with?("test", "spec", "features", "samples") } +
     Dir.glob("vendor/assets/javascripts/*/*") + Dir.glob("vendor/assets/html/*")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
