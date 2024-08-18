@@ -7,6 +7,6 @@ module YAML
     alias_method :load, :unsafe_load if YAML.respond_to? :unsafe_load
   end
 end
-ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-ActiveRecord::Base.connection.migration_context.migrate
+connection = ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+connection.migration_context.migrate
 ActiveStorageCreateUsers.migrate(:up)
