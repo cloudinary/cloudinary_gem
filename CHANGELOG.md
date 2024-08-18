@@ -1,3 +1,9 @@
+2.1.2 / 2024-08-18
+==================
+
+  * Fix ActiveStorage type detection for email files
+  * Add `changelog_uri` to `gemspec`
+
 2.1.1 / 2024-05-28
 ==================
 
