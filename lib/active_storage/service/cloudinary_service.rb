@@ -255,7 +255,7 @@ module ActiveStorage
       case type
       when 'video', 'audio'
         'video'
-      when 'text'
+      when 'text', 'message'
         'raw'
       when 'application'
         case subtype

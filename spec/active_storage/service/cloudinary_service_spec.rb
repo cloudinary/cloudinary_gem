@@ -108,7 +108,7 @@ describe 'active_storage' do
 
     it "should set raw resource_type for raw formats" do
       key = SecureRandom.base58(24)
-      types = %w[text/* application/*]
+      types = %w[text/* application/* message/*]
 
       types.each do |content_type|
         url = @service.url_for_direct_upload(key, content_type: content_type)

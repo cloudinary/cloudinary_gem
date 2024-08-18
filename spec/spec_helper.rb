@@ -1,5 +1,6 @@
 SUFFIX = ENV['TRAVIS_JOB_ID'] || rand(999999999).to_s
 
+require 'bundler/setup'
 require 'rspec'
 require 'rspec/retry'
 require 'rexml/parsers/ultralightparser'
