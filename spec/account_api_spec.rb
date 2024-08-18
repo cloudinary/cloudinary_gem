@@ -238,7 +238,7 @@ describe Cloudinary::AccountApi do
       expect(key_del_res["message"]).to eq "ok"
 
       named_key_del_res = @api.delete_access_key(cloud_id, nil, named_key_name)
-      expect(named_key_del_res["message"]).to eq "sok"
+      expect(named_key_del_res["message"]).to eq "ok"
     end
   end
 end
