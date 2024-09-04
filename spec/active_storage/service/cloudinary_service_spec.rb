@@ -274,10 +274,10 @@ describe 'Active Storage CloudinaryHelper' do
   end
 
   it 'should respect custom service_name in cl_image_path' do
-    tag = helper.cl_image_path(custom_service_key)
+    path = helper.cl_image_path(custom_service_key)
 
-    expect(tag).to include(conf[:folder])
-    expect(tag).to include(conf[:cloud_name])
+    expect(path).to include(conf[:folder])
+    expect(path).to include(conf[:cloud_name])
   end
 
   it 'should respect custom service_name in cl_image_tag' do
