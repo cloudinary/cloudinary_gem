@@ -1,3 +1,17 @@
 local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
+
+cloudinary:
+  service: Cloudinary
+  type: authenticated
+  tags:
+    - ActiveStorageTestTag
+  folder: active_storage_test_folder
+
+cloudinary2:
+  service: Cloudinary
+  tags:
+    - ActiveStorageTestTag2
+  folder: active_storage_test_folder2
+  cloud_name: test2
