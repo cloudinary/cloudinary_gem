@@ -3,7 +3,7 @@ require 'spec_helper'
 AS_TAG = "active_storage_" + SUFFIX
 BASENAME = File.basename(TEST_IMG, '.*')
 
-CONFIGURATION_PATH = Pathname.new(File.expand_path("service/configurations.yml", __dir__))
+CONFIGURATION_PATH = Pathname.new(File.expand_path("dummy/config/storage.yml", __dir__))
 SERVICE = ActiveStorage::Service.configure(:cloudinary, SERVICE_CONFIGURATIONS)
 
 TEST_IMG_PATH = Pathname.new(TEST_IMG)
@@ -251,3 +251,39 @@ describe 'active_storage' do
   end
 end
 
+describe 'Active Storage CloudinaryHelper' do
+  before :all do
+    ActionView::Base.send :include, CloudinaryHelper
+  end
+
+  let(:helper) {
+    ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil)
+  }
+  let(:custom_service_key) {
+    ActiveStorage::BlobKey.new key: SecureRandom.base58(24), filename: BASENAME, service_name: 'cloudinary2'
+  }
+  let(:conf) {
+    SERVICE_CONFIGURATIONS[:cloudinary2]
+  }
+
+  it 'should respect custom service_name in cloudinary_url' do
+    url = helper.cloudinary_url(custom_service_key)
+
+    expect(url).to include(conf[:folder])
+    expect(url).to include(conf[:cloud_name])
+  end
+
+  it 'should respect custom service_name in cl_image_path' do
+    path = helper.cl_image_path(custom_service_key)
+
+    expect(path).to include(conf[:folder])
+    expect(path).to include(conf[:cloud_name])
+  end
+
+  it 'should respect custom service_name in cl_image_tag' do
+    tag = helper.cl_image_tag(custom_service_key)
+
+    expect(tag).to include(conf[:folder])
+    expect(tag).to include(conf[:cloud_name])
+  end
+end

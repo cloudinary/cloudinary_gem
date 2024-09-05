@@ -27,11 +27,11 @@ ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 
 require "yaml"
 SERVICE_CONFIGURATIONS = begin
-  erb = ERB.new(Pathname.new(File.expand_path("service/configurations.yml", __dir__)).read)
+  erb = ERB.new(Pathname.new(File.expand_path("dummy/config/storage.yml", __dir__)).read)
   configuration = YAML.load(erb.result) || {}
   configuration.deep_symbolize_keys
 rescue Errno::ENOENT
-  puts "Missing service configuration file in test/service/configurations.yml"
+  puts "Missing service configuration file in dummy/config/storage.yml"
   {}
 end
 
