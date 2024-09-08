@@ -1,16 +1,16 @@
 dist: jammy
 language: ruby
 rvm:
-  - 3.1.4
-  - 3.2.2
-  - 3.3.0
+  - 3.1.6
+  - 3.2.5
+  - 3.3.5
 
 matrix:
   include:
     # There is an OpenSSL issue on Jammy with Ruby 3.0
-    - name: "Ruby: 3.0.6"
+    - name: "Ruby: 3.0.7"
       dist: focal
-      rvm: 3.0.6
+      rvm: 3.0.7
 
 before_script: >
   export CLOUDINARY_URL=$(bash tools/get_test_cloud.sh);
