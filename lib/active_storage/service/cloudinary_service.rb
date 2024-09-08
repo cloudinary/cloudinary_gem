@@ -62,6 +62,7 @@ module ActiveStorage
     end
 
     def url(key, filename: nil, content_type: '', **options)
+      key = find_blob_or_use_key(key)
       instrument :url, key: key do |payload|
         url = Cloudinary::Utils.cloudinary_url(
           full_public_id_internal(key, options),
@@ -105,6 +106,7 @@ module ActiveStorage
     end
 
     def delete(key)
+      key = find_blob_or_use_key(key)
       instrument :delete, key: key do
         options = {
           resource_type: resource_type(nil, key),
@@ -121,6 +123,7 @@ module ActiveStorage
     end
 
     def exist?(key)
+      key = find_blob_or_use_key(key)
       instrument :exist, key: key do |payload|
         begin
           options = {
@@ -157,8 +160,7 @@ module ActiveStorage
 
     # Return the partial content in the byte +range+ of the file at the +key+.
     def download_chunk(key, range)
-      url = Cloudinary::Utils.cloudinary_url(public_id(key), resource_type: resource_type(nil, key))
-      uri = URI(url)
+      uri = URI(url(key))
       instrument :download, key: key do
         req = Net::HTTP::Get.new(uri)
         range_end = case
@@ -308,6 +310,20 @@ module ActiveStorage
         content_type = options[:content_type] || (io.nil? ? '' : Marcel::MimeType.for(io))
       end
       content_type_to_resource_type(content_type)
+    end
+
+    def find_blob_or_use_key(key)
+      if key.is_a?(ActiveStorage::BlobKey)
+        key
+      else
+        begin
+          blob = ActiveStorage::Blob.find_by(key: key)
+          blob ? ActiveStorage::BlobKey.new(blob.attributes.as_json) : key
+        rescue ActiveRecord::StatementInvalid => e
+          # Return the original key if an error occurs
+          key
+        end
+      end
     end
   end
 end
