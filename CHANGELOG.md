@@ -1,3 +1,17 @@
+2.2.0 / 2024-09-08
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for ActiveStorage model service configuration
+
+Other Changes
+-------------
+
+  * Fix asset type detection in ActiveStorage
+  * Add explicit `ostruct` dependency
+
 2.1.2 / 2024-08-18
 ==================
 
