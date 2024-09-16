@@ -28,6 +28,20 @@ module CloudinaryHelper
   end
 end
 
+class CloudinaryLogSubscriber < ActiveSupport::LogSubscriber
+  def service_upload(event)
+    message = "Uploaded file to key: #{event.payload[:key]}"
+    message += " (filename: #{event.payload[:filename]})" if event.payload[:filename]
+    message += " (secure_url: #{event.payload[:secure_url]})" if event.payload[:secure_url]
+
+    formatted_message = color("\t#{message}", GREEN)
+
+    info formatted_message
+  end
+
+  attach_to :active_storage
+end
+
 module ActiveStorage
   class Service::CloudinaryService < Service
     module Headers
@@ -41,13 +55,13 @@ module ActiveStorage
     end
 
     def upload(key, io, filename: nil, checksum: nil, **options)
-      instrument :upload, key: key, checksum: checksum do
+      instrument :upload, key: key, checksum: checksum do |payload|
         begin
           extra_headers = checksum.nil? ? {} : {Headers::CONTENT_MD5 => checksum}
           options = @options.merge(options)
           resource_type = resource_type(io, key)
-          options[:format] = ext_for_file(key) if resource_type == "raw"
-          Cloudinary::Uploader.upload_large(
+          options[:format] = ext_for_file(key, filename) if resource_type == "raw"
+          res = Cloudinary::Uploader.upload_large(
             io,
             public_id: public_id_internal(key),
             resource_type: resource_type,
@@ -55,6 +69,8 @@ module ActiveStorage
             extra_headers: extra_headers,
             **options
           )
+          payload[:filename] = filename
+          payload[:secure_url] = res["secure_url"]
         rescue CloudinaryException => e
           raise ActiveStorage::IntegrityError, e.message, e.backtrace
         end
@@ -240,28 +256,31 @@ module ActiveStorage
     #
     # It does the best effort when original filename does not include extension, but we know the mime-type.
     #
-    # @param [ActiveStorage::BlobKey]   key          The blob key with attributes.
-    # @param [ActiveStorage::Filename]  filename     The original filename.
-    # @param [string]                   content_type The content type of the file.
+    # @param [ActiveStorage::BlobKey]       key          The blob key with attributes.
+    # @param [ActiveStorage::Filename, nil] filename     [optional] The original filename.
+    # @param [string, nil]                  content_type [optional] The content type of the file.
     #
-    # @return [string] The extension of the filename.
+    # @return [string, ActiveStorage::Filename] The extension of the filename.
     def ext_for_file(key, filename = nil, content_type = nil)
-      if filename.blank?
-        options = key.respond_to?(:attributes) ? key.attributes : {}
-        filename = ActiveStorage::Filename.new(options[:filename]) if options.has_key?(:filename)
-      end
+      options = key.respond_to?(:attributes) ? key.attributes : {}
+
+      filename = ActiveStorage::Filename.new(options[:filename]) if filename.blank? && options[:filename].present?
+
       ext = filename.respond_to?(:extension_without_delimiter) ? filename.extension_without_delimiter : nil
 
       return ext unless ext.blank?
+
+      content_type = options[:content_type] if content_type.blank? && options[:content_type].present?
 
       # Raw files are not convertible, no extension guessing for them
       return nil if content_type_to_resource_type(content_type).eql?('raw')
 
       # Fallback when there is no extension.
-      @formats ||= Hash.new do |h, key|
-        ext = Rack::Mime::MIME_TYPES.invert[key]
-        h[key] = ext.slice(1..-1) unless ext.nil?
+      @formats ||= Hash.new do |h, k|
+        ext = Rack::Mime::MIME_TYPES.invert[k]
+        h[k] = ext.slice(1..-1) unless ext.nil?
       end
+
       @formats[content_type]
     end
 
