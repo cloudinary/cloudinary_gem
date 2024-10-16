@@ -14,6 +14,22 @@ class Cloudinary::Api
     call_api(:get, "ping", {}, options)
   end
 
+  # Retrieves account configuration details.
+  #
+  # @param [Hash] options The optional parameters.
+  #
+  # @return [Cloudinary::Api::Response]
+  #
+  # @raise [Cloudinary::Api::Error]
+  #
+  # @see https://cloudinary.com/documentation/admin_api#config
+  def self.config(options={})
+    uri = "config"
+    params = only(options, :settings)
+
+    call_api(:get, uri, params, options)
+  end
+
   # Gets cloud usage details.
   #
   # Returns a report detailing your current Cloudinary cloud usage details, including

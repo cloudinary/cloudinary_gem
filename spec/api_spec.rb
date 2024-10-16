@@ -722,6 +722,25 @@ describe Cloudinary::Api do
     end
   end
 
+  describe 'config' do
+    let(:cloud_name) { Cloudinary.config.cloud_name }
+
+    it 'should return the correct cloud name' do
+      res = @api.config
+      expect(res['cloud_name']).to eq(cloud_name)
+    end
+
+    it 'should not include settings by default' do
+      res = @api.config
+      expect(res).not_to have_key('settings')
+    end
+
+    it 'should include settings when requested' do
+      res = @api.config(settings: 'true')
+      expect(res).to have_key('settings')
+    end
+  end
+  
   it 'should list assets from an asset folder' do
     expected = { #resources/by_asset_folder
         [:url] => /.*\/resources\/by_asset_folder$/,
