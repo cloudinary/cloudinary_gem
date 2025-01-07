@@ -183,7 +183,8 @@ describe 'Metadata' do
         'label' => @external_id_enum,
         'datasource' => {
           'values' => @datasource_single
-        }
+        },
+        'allow_dynamic_list_values' => true
       }
       expected = {
         :url => /.*\/metadata_fields$/,
@@ -203,10 +204,12 @@ describe 'Metadata' do
         },
         'external_id' => @external_id_set,
         'label' => @external_id_set,
-        'type' => 'set'
+        'type' => 'set',
+        'allow_dynamic_list_values' => true
       )
 
-      expect(result).to be_a_metadata_field('set', 'label' => @external_id_set, 'external_id' => @external_id_set, 'mandatory' => false)
+      expect(result).to be_a_metadata_field('set', 'label' => @external_id_set, 'external_id' => @external_id_set,
+                                            'mandatory' => false, 'allow_dynamic_list_values' => true)
     end
 
     it 'should validate default value of a date field' do
