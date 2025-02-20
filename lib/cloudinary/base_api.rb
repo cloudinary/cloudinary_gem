@@ -57,7 +57,7 @@ module Cloudinary::BaseApi
                       when 403 then NotAllowed
                       when 404 then NotFound
                       when 409 then AlreadyExists
-                      when 420 then RateLimited
+                      when 420, 429 then RateLimited
                       when 500 then GeneralError
                       else raise GeneralError.new("Server returned unexpected status code - #{response.status} - #{response.body}")
                       end
