@@ -150,12 +150,11 @@ class Cloudinary::Uploader
   def self.exists?(public_id, options={})
     cloudinary_url = Cloudinary::Utils.cloudinary_url(public_id, options)
     begin
-      code = RestClient::Request.execute(:method => :head, :url => cloudinary_url, :timeout => 5).code
+      code = Faraday.new(request: { timeout: 5 }).head(cloudinary_url).status
       code >= 200 && code < 300
-    rescue RestClient::ResourceNotFound
+    rescue Faraday::ResourceNotFound
       return false
     end
-
   end
 
   def self.explicit(public_id, options={})
