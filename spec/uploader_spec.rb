@@ -608,6 +608,15 @@ describe Cloudinary::Uploader do
     end
   end
 
+  it "should correctly report resource existence" do
+    upload_res = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
+    public_id  = upload_res["public_id"]
+
+    expect(Cloudinary::Uploader.exists?(public_id)).to be true
+    expect(Cloudinary::Uploader.exists?("non_existing_resource_#{UNIQUE_TEST_ID}")).to be false
+  end
+
+
   describe ":timeout" do
     before do
       @timeout = Cloudinary.config.timeout
