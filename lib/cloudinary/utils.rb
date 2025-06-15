@@ -469,8 +469,24 @@ class Cloudinary::Utils
     end
   end
 
+  # Encodes a parameter for safe inclusion in URL query strings.
+  #
+  # Specifically replaces "&" characters with their percent-encoded equivalent "%26"
+  # to prevent them from being interpreted as parameter separators in URL query strings.
+  #
+  # @param [Object] value The parameter to encode
+  # @return [String] Encoded parameter
+  # @private
+  def self.encode_param(value)
+    value.to_s.gsub("&", "%26")
+  end
+
   def self.api_string_to_sign(params_to_sign)
-    params_to_sign.map{|k,v| [k.to_s, v.is_a?(Array) ? v.join(",") : v]}.reject{|k,v| v.nil? || v == ""}.sort_by(&:first).map{|k,v| "#{k}=#{v}"}.join("&")
+    params_to_sign.map { |k, v| [k.to_s, v.is_a?(Array) ? v.join(",") : v] }
+                  .reject { |k, v| v.nil? || v == "" }
+                  .sort_by(&:first)
+                  .map { |k, v| encode_param("#{k}=#{v}") }
+                  .join("&")
   end
 
   def self.api_sign_request(params_to_sign, api_secret, signature_algorithm = nil)
