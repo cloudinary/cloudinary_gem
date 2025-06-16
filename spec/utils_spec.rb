@@ -3,6 +3,8 @@ require 'cloudinary'
 
 describe Cloudinary::Utils do
   SIGNATURE_VERIFICATION_API_SECRET = "X7qLTrsES31MzxxkxPPA-pAGGfU"
+  API_SIGN_REQUEST_TEST_SECRET      = "hdcixPpR2iKERPwqvH6sHdK9cyac"
+  API_SIGN_REQUEST_CLOUD_NAME       = "dn6ot3ged"
 
   before :each do
     Cloudinary.reset_config
@@ -971,26 +973,59 @@ describe Cloudinary::Utils do
   end
 
   it "should sign an API request using SHA1 by default" do
-    signature = Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged", :timestamp => 1568810420, :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac")
+    signature = Cloudinary::Utils.api_sign_request({ :cloud_name => API_SIGN_REQUEST_CLOUD_NAME, :timestamp => 1568810420, :username => "user@cloudinary.com" }, API_SIGN_REQUEST_TEST_SECRET)
     expect(signature).to eq("14c00ba6d0dfdedbc86b316847d95b9e6cd46d94")
   end
 
   it "should sign an API request using SHA256" do
     Cloudinary.config.signature_algorithm = Cloudinary::Utils::ALGO_SHA256
-    signature                             = Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged", :timestamp => 1568810420, :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac")
+    signature                             = Cloudinary::Utils.api_sign_request({ :cloud_name => API_SIGN_REQUEST_CLOUD_NAME, :timestamp => 1568810420, :username => "user@cloudinary.com" }, API_SIGN_REQUEST_TEST_SECRET)
     expect(signature).to eq("45ddaa4fa01f0c2826f32f669d2e4514faf275fe6df053f1a150e7beae58a3bd")
   end
 
   it "should sign an API request using SHA256 via parameter" do
-    signature = Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged", :timestamp => 1568810420, :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac", :sha256)
+    signature = Cloudinary::Utils.api_sign_request({ :cloud_name => API_SIGN_REQUEST_CLOUD_NAME, :timestamp => 1568810420, :username => "user@cloudinary.com" }, API_SIGN_REQUEST_TEST_SECRET, :sha256)
     expect(signature).to eq("45ddaa4fa01f0c2826f32f669d2e4514faf275fe6df053f1a150e7beae58a3bd")
   end
 
   it "should raise when unsupported algorithm is passed" do
     signature_algorithm = "unsupported_algorithm"
 
-    expect { Cloudinary::Utils.api_sign_request({ :cloud_name => "dn6ot3ged", :timestamp => 1568810420, :username => "user@cloudinary.com" }, "hdcixPpR2iKERPwqvH6sHdK9cyac", signature_algorithm) }
+    expect { Cloudinary::Utils.api_sign_request({ :cloud_name => API_SIGN_REQUEST_CLOUD_NAME, :timestamp => 1568810420, :username => "user@cloudinary.com" }, API_SIGN_REQUEST_TEST_SECRET, signature_algorithm) }
       .to raise_error("Unsupported algorithm 'unsupported_algorithm'")
+  end
+
+  it "should prevent parameter smuggling via & characters in parameter values with signature version 2" do
+    params_with_ampersand = {
+      :cloud_name       => API_SIGN_REQUEST_CLOUD_NAME,
+      :timestamp        => 1568810420,
+      :notification_url => "https://fake.com/callback?a=1&tags=hello,world"
+    }
+
+    signature_v1_with_ampersand = Cloudinary::Utils.api_sign_request(params_with_ampersand, API_SIGN_REQUEST_TEST_SECRET, nil, 1)
+    signature_v2_with_ampersand = Cloudinary::Utils.api_sign_request(params_with_ampersand, API_SIGN_REQUEST_TEST_SECRET, nil, 2)
+
+    params_smuggled = {
+      :cloud_name       => API_SIGN_REQUEST_CLOUD_NAME,
+      :timestamp        => 1568810420,
+      :notification_url => "https://fake.com/callback?a=1",
+      :tags             => "hello,world"
+    }
+
+    signature_v1_smuggled = Cloudinary::Utils.api_sign_request(params_smuggled, API_SIGN_REQUEST_TEST_SECRET, nil, 1)
+    signature_v2_smuggled = Cloudinary::Utils.api_sign_request(params_smuggled, API_SIGN_REQUEST_TEST_SECRET, nil, 2)
+
+    # Version 1 is vulnerable to parameter smuggling
+    expect(signature_v1_with_ampersand).to eq(signature_v1_smuggled)
+
+    # Version 2 prevents parameter smuggling
+    expect(signature_v2_with_ampersand).not_to eq(signature_v2_smuggled)
+
+    expected_v2_signature = "4fdf465dd89451cc1ed8ec5b3e314e8a51695704"
+    expect(signature_v2_with_ampersand).to eq(expected_v2_signature)
+
+    expected_v2_smuggled_signature = "7b4e3a539ff1fa6e6700c41b3a2ee77586a025f9"
+    expect(signature_v2_smuggled).to eq(expected_v2_smuggled_signature)
   end
 
   describe ":if" do
@@ -1283,6 +1318,43 @@ describe Cloudinary::Utils do
           api_response_signature_sha256,
           Cloudinary::Utils::ALGO_SHA256)
       ).to be true
+    end
+
+    it "should use signature version 1 (without parameter encoding) for backward compatibility" do
+      public_id_with_ampersand = 'tests/logo&version=2'
+      
+      expected_signature_v1 = Cloudinary::Utils.api_sign_request(
+        { :public_id => public_id_with_ampersand, :version => test_version },
+        SIGNATURE_VERIFICATION_API_SECRET,
+        nil,
+        1
+      )
+      
+      expected_signature_v2 = Cloudinary::Utils.api_sign_request(
+        { :public_id => public_id_with_ampersand, :version => test_version },
+        SIGNATURE_VERIFICATION_API_SECRET,
+        nil,
+        2
+      )
+      
+      expect(expected_signature_v1).not_to eq(expected_signature_v2)
+      
+      # verify_api_response_signature should use version 1 for backward compatibility
+      expect(
+        Cloudinary::Utils.verify_api_response_signature(
+          public_id_with_ampersand,
+          test_version,
+          expected_signature_v1
+        )
+      ).to be true
+      
+      expect(
+        Cloudinary::Utils.verify_api_response_signature(
+          public_id_with_ampersand,
+          test_version,
+          expected_signature_v2
+        )
+      ).to be false
     end
   end
 

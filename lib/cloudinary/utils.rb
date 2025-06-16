@@ -469,12 +469,49 @@ class Cloudinary::Utils
     end
   end
 
-  def self.api_string_to_sign(params_to_sign)
-    params_to_sign.map{|k,v| [k.to_s, v.is_a?(Array) ? v.join(",") : v]}.reject{|k,v| v.nil? || v == ""}.sort_by(&:first).map{|k,v| "#{k}=#{v}"}.join("&")
+  # Encodes a parameter for safe inclusion in URL query strings.
+  #
+  # Specifically replaces "&" characters with their percent-encoded equivalent "%26"
+  # to prevent them from being interpreted as parameter separators in URL query strings.
+  #
+  # @param [Object] value The parameter to encode
+  # @return [String] Encoded parameter
+  # @private
+  def self.encode_param(value)
+    value.to_s.gsub("&", "%26")
   end
 
-  def self.api_sign_request(params_to_sign, api_secret, signature_algorithm = nil)
-    to_sign = api_string_to_sign(params_to_sign)
+  # Generates a string to be signed for API requests
+  #
+  # @param [Hash] params_to_sign Parameters to include in the signature
+  # @param [Integer] signature_version Version of signature algorithm to use:
+  #   - Version 1: Original behavior without parameter encoding
+  #   - Version 2+ (default): Includes parameter encoding to prevent parameter smuggling
+  # @return [String] String to be signed
+  # @private
+  def self.api_string_to_sign(params_to_sign, signature_version = 2)
+    params_to_sign.map { |k, v| [k.to_s, v.is_a?(Array) ? v.join(",") : v] }
+                  .reject { |k, v| v.nil? || v == "" }
+                  .sort_by(&:first)
+                  .map { |k, v| 
+                    param_string = "#{k}=#{v}"
+                    signature_version >= 2 ? encode_param(param_string) : param_string
+                  }
+                  .join("&")
+  end
+
+  # Signs API request parameters
+  #
+  # @param [Hash] params_to_sign Parameters to include in the signature
+  # @param [String] api_secret API secret for signing
+  # @param [Symbol] signature_algorithm Hash algorithm to use (:sha1 or :sha256)
+  # @param [Integer] signature_version Version of signature algorithm to use:
+  #   - Version 1: Original behavior without parameter encoding
+  #   - Version 2+ (default): Includes parameter encoding to prevent parameter smuggling
+  # @return [String] Hexadecimal signature
+  # @private
+  def self.api_sign_request(params_to_sign, api_secret, signature_algorithm = nil, signature_version = 2)
+    to_sign = api_string_to_sign(params_to_sign, signature_version)
     hash("#{to_sign}#{api_secret}", signature_algorithm, :hexdigest)
   end
 
@@ -1351,7 +1388,7 @@ class Cloudinary::Utils
       :version => version
     }
 
-    signature == api_sign_request(parameters_to_sign, api_secret, signature_algorithm)
+    signature == api_sign_request(parameters_to_sign, api_secret, signature_algorithm, 1)
   end
 
   # Verifies the authenticity of a notification signature.
