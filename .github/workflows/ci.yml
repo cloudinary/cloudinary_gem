@@ -37,6 +37,6 @@ jobs:
         echo "cloud_name: $(echo $CLOUDINARY_URL | cut -d'@' -f2)"
 
     - name: 🧪 Run tests
-      run: bundle exec rspec
+      run: bundle exec rspec --format documentation --color
       env:
         CLOUDINARY_URL: ${{ env.CLOUDINARY_URL }}
