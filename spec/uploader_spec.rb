@@ -764,4 +764,59 @@ describe Cloudinary::Uploader do
     expect(pdf_result["url"]).to include("w_111")
     expect(pdf_result["url"]).to end_with(".pdf")
   end
+
+  describe "signature_version parameter support" do
+    it "should support signature_version option in upload calls" do
+      # Mock the upload to check the signature_version parameter is passed through
+      expected = {
+        [:method] => :post,
+        [:payload, :signature_version] => 1
+      }
+      
+      res = MockedUploader.upload(TEST_IMG, 
+        :signature_version => 1,
+        :tags => [TEST_TAG, TIMESTAMP_TAG]
+      )
+      expect(res).to have_deep_hash_values_of(expected)
+    end
+
+    it "should support signature_version option in explicit calls" do
+      expected = {
+        [:method] => :post,
+        [:payload, :signature_version] => 2
+      }
+      
+      res = MockedUploader.explicit("test_public_id", 
+        :type => "upload",
+        :signature_version => 2,
+        :tags => [TEST_TAG, TIMESTAMP_TAG]
+      )
+      expect(res).to have_deep_hash_values_of(expected)
+    end
+
+    it "should use signature_version from config when not specified" do
+      original_signature_version = Cloudinary.config.signature_version
+      Cloudinary.config.signature_version = 1
+      
+      begin
+        # Test that configuration signature_version affects signing
+        upload_result = Cloudinary::Uploader.upload(TEST_IMG, :tags => [TEST_TAG, TIMESTAMP_TAG])
+        public_id = upload_result["public_id"]
+        version = upload_result["version"]
+        
+        # Verify the signature was created with version 1
+        expected_signature_v1 = Cloudinary::Utils.api_sign_request(
+          { :public_id => public_id, :version => version },
+          Cloudinary.config.api_secret,
+          nil,
+          1
+        )
+        
+        expect(upload_result["signature"]).to eq(expected_signature_v1)
+      ensure
+        # Reset config to original value
+        Cloudinary.config.signature_version = original_signature_version
+      end
+    end
+  end
 end
