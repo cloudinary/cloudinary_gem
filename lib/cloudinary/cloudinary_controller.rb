@@ -2,10 +2,12 @@ module Cloudinary::CloudinaryController
   protected
 
   def valid_cloudinary_response?
-    received_signature = request.query_parameters[:signature]
-    calculated_signature = Cloudinary::Utils.api_sign_request(
-      request.query_parameters.select{|key, value| [:public_id, :version].include?(key.to_sym)},
-      Cloudinary.config.api_secret)
-    return received_signature == calculated_signature
+    params = request.query_parameters.select { |key, value| [:public_id, :version, :signature].include?(key.to_sym) }.transform_keys(&:to_sym)
+    
+    Cloudinary::Utils.verify_api_response_signature(
+      params[:public_id],
+      params[:version],
+      params[:signature]
+    )
   end
 end

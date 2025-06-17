@@ -504,13 +504,14 @@ class Cloudinary::Utils
   #
   # @param [Hash] params_to_sign Parameters to include in the signature
   # @param [String] api_secret API secret for signing
-  # @param [Symbol] signature_algorithm Hash algorithm to use (:sha1 or :sha256)
-  # @param [Integer] signature_version Version of signature algorithm to use:
+  # @param [Symbol|nil] signature_algorithm Hash algorithm to use (:sha1 or :sha256)
+  # @param [Integer|nil] signature_version Version of signature algorithm to use:
   #   - Version 1: Original behavior without parameter encoding
   #   - Version 2+ (default): Includes parameter encoding to prevent parameter smuggling
   # @return [String] Hexadecimal signature
   # @private
-  def self.api_sign_request(params_to_sign, api_secret, signature_algorithm = nil, signature_version = 2)
+  def self.api_sign_request(params_to_sign, api_secret, signature_algorithm = nil, signature_version = nil)
+    signature_version ||= Cloudinary.config.signature_version || 2
     to_sign = api_string_to_sign(params_to_sign, signature_version)
     hash("#{to_sign}#{api_secret}", signature_algorithm, :hexdigest)
   end
@@ -783,8 +784,9 @@ class Cloudinary::Utils
     api_key = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
     api_secret = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
     signature_algorithm = options[:signature_algorithm]
+    signature_version = options[:signature_version]
     params = params.reject{|k, v| self.safe_blank?(v)}
-    params[:signature] = api_sign_request(params, api_secret, signature_algorithm)
+    params[:signature] = api_sign_request(params, api_secret, signature_algorithm, signature_version)
     params[:api_key] = api_key
     params
   end

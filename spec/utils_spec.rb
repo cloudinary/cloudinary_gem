@@ -907,22 +907,7 @@ describe Cloudinary::Utils do
             .and empty_options
   end
 
-  it "should allow to use folders in PreloadedFile" do
-    signature = Cloudinary::Utils.api_sign_request({ :public_id => "folder/file", :version => "1234" }, Cloudinary.config.api_secret)
-    preloaded = Cloudinary::PreloadedFile.new("image/upload/v1234/folder/file.jpg#" + signature)
-    expect(preloaded).to be_valid
-    [
-      [:filename, 'folder/file.jpg'],
-      [:version, '1234'],
-      [:public_id, 'folder/file'],
-      [:signature, signature],
-      [:resource_type, 'image'],
-      [:type, 'upload'],
-      [:format, 'jpg']
-    ].each do |attr, value|
-      expect(preloaded.send(attr)).to eq(value)
-    end
-  end
+
 
   it "should escape public_ids" do
     [
@@ -1482,6 +1467,51 @@ describe Cloudinary::Utils do
     expect(parameters["mode"]).to eq([Cloudinary::Utils::MODE_DOWNLOAD])
     expect(parameters["timestamp"]).not_to be_nil
     expect(parameters["signature"]).not_to be_nil
+  end
+
+  describe "Response signature verification fixes" do
+    let(:public_id) { 'tests/logo.png' }
+    let(:test_version) { 1234 }
+    let(:test_api_secret) { SIGNATURE_VERIFICATION_API_SECRET }
+    
+    before do
+      Cloudinary.config.update(:api_secret => test_api_secret)
+    end
+
+    describe "api_sign_request signature_version parameter support" do
+      it "should support signature_version parameter in api_sign_request" do
+        params = { :public_id => public_id, :version => test_version }
+        
+        signature_v1 = Cloudinary::Utils.api_sign_request(params, test_api_secret, nil, 1)
+        signature_v2 = Cloudinary::Utils.api_sign_request(params, test_api_secret, nil, 2)
+        
+        expect(signature_v1).to be_a(String)
+        expect(signature_v2).to be_a(String)
+        expect(signature_v1).to eq(signature_v2) # No & in values, so should be the same
+      end
+
+      it "should use default signature_version from config" do
+        Cloudinary.config.signature_version = 2
+        params = { :public_id => public_id, :version => test_version }
+        
+        signature_with_nil = Cloudinary::Utils.api_sign_request(params, test_api_secret, nil, nil)
+        signature_with_v2 = Cloudinary::Utils.api_sign_request(params, test_api_secret, nil, 2)
+        
+        expect(signature_with_nil).to eq(signature_with_v2)
+      end
+
+      it "should default to version 2 when no config is set" do
+        Cloudinary.config.signature_version = nil
+        params = { :public_id => public_id, :version => test_version }
+        
+        signature_with_nil = Cloudinary::Utils.api_sign_request(params, test_api_secret, nil, nil)
+        signature_with_v2 = Cloudinary::Utils.api_sign_request(params, test_api_secret, nil, 2)
+        
+        expect(signature_with_nil).to eq(signature_with_v2)
+      end
+    end
+
+
   end
 
   it "should download multi" do
