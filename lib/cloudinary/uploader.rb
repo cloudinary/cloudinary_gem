@@ -360,7 +360,8 @@ class Cloudinary::Uploader
       api_key             = options[:api_key] || Cloudinary.config.api_key || raise(CloudinaryException, "Must supply api_key")
       api_secret          = options[:api_secret] || Cloudinary.config.api_secret || raise(CloudinaryException, "Must supply api_secret")
       signature_algorithm = options[:signature_algorithm]
-      params[:signature]  = Cloudinary::Utils.api_sign_request(params.reject { |k, v| non_signable.include?(k) }, api_secret, signature_algorithm)
+      signature_version   = options[:signature_version]
+      params[:signature]  = Cloudinary::Utils.api_sign_request(params.reject { |k, v| non_signable.include?(k) }, api_secret, signature_algorithm, signature_version)
       params[:api_key]    = api_key
     end
 

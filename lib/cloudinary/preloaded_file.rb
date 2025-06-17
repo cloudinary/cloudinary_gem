@@ -9,8 +9,7 @@ class Cloudinary::PreloadedFile
   
   def valid?
     public_id = @resource_type == "raw" ? self.filename : self.public_id
-    expected_signature = Cloudinary::Utils.api_sign_request({:public_id=>public_id, :version=>version}, Cloudinary.config.api_secret)
-    @signature == expected_signature
+    Cloudinary::Utils.verify_api_response_signature(public_id, version, Cloudinary.config.api_secret, @signature)
   end
   
   def identifier
