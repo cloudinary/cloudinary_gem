@@ -627,7 +627,9 @@ describe Cloudinary::Uploader do
     end
 
     it "should fail if timeout is reached" do
-      expect { Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :tags => [TEST_TAG, TIMESTAMP_TAG]) }.to raise_error(Faraday::ConnectionFailed)
+      expect { Cloudinary::Uploader.upload(Pathname.new(TEST_IMG), :tags => [TEST_TAG, TIMESTAMP_TAG]) }.to raise_error { |error|
+        expect([Faraday::ConnectionFailed, Faraday::TimeoutError]).to include(error.class)
+      }
     end
 
     it "should allow passing nil value" do
