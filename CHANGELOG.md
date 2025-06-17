@@ -1,3 +1,10 @@
+2.3.1 / 2025-06-17
+==================
+
+  * Fix API parameters signature
+  * Allow passing tag attributes for `cloudinary_js_config` tag
+  * Fix `Cloudinary::Uploader.exists?` method
+
 2.3.0 / 2025-02-20
 ==================
 
