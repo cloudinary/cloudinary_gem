@@ -402,7 +402,7 @@ class Cloudinary::Api
   #
   # @raise [Cloudinary::Api::Error]
   #
-  # @see https://cloudinary.com/documentation/admin_api##delete_resources
+  # @see https://cloudinary.com/documentation/admin_api#delete_resources
   def self.delete_derived_resources(derived_resource_ids, options={})
     uri = "derived_resources"
     call_api(:delete, uri, { :derived_resource_ids => derived_resource_ids }, options)
