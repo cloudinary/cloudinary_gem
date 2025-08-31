@@ -35,6 +35,10 @@ class Cloudinary::CarrierWave::Storage < ::CarrierWave::Storage::Abstract
       params[:eager] = eager_versions.map{|version| [version.transformation, version.format]} if eager_versions.length > 0
       params[:type]=uploader.class.storage_type
 
+      # Merge any custom upload parameters
+      custom_params = uploader.upload_params
+      params.merge!(custom_params) if custom_params.present?
+
       params[:resource_type] ||= :auto
       upload_method = uploader.respond_to?(:upload_chunked?) && uploader.upload_chunked? ? "upload_large" : "upload"
       uploader.metadata = Cloudinary::Uploader.send(upload_method, data, params)

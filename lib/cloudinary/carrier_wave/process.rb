@@ -48,6 +48,10 @@ module Cloudinary::CarrierWave
     def tags(*tags)
       process :tags=>tags
     end
+
+    def upload_params(params={})
+      process :upload_params => params
+    end
   end
 
   def set_or_yell(hash, attr, value)
@@ -133,6 +137,19 @@ module Cloudinary::CarrierWave
     @tags ||= self.all_processors.select{|processor| processor[0] == :tags}.map(&:second).first
     raise CloudinaryException, "tags cannot be used in versions." if @tags.present? && self.version_name.present?
     @tags
+  end
+
+  def upload_params
+    @upload_params ||= begin
+      params_processors = self.all_processors.select{|processor| processor[0] == :upload_params}
+      merged_params = {}
+      params_processors.each do |processor|
+        merged_params.merge!(processor[1] || {})
+      end
+      merged_params
+    end
+    raise CloudinaryException, "upload_params cannot be used in versions." if @upload_params.present? && self.version_name.present?
+    @upload_params
   end
 
   def requested_format
