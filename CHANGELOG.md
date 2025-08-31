@@ -1,3 +1,11 @@
+2.4.0 / 2025-08-31
+==================
+
+New functionality and features
+------------------------------
+
+  * Add support for providing upload parameters in CarrierWave
+
 2.3.1 / 2025-06-17
 ==================
 
