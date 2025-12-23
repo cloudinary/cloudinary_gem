@@ -9,8 +9,8 @@ describe Cloudinary do
     Cloudinary.user_platform = @user_platform
   end
 
-  CLOUDINARY_USER_AGENT_REGEXP    = %r"^CloudinaryRuby\/[\d.]+ \(Ruby [\d\.]+-p\d+\)$"
-  CLOUDINARY_USER_PLATFORM_REGEXP = %r"^Rails\/[\d.]+ CloudinaryRuby\/[\d.]+ \(Ruby [\d\.]+-p\d+\)$"
+  CLOUDINARY_USER_AGENT_REGEXP    = %r"^CloudinaryRuby\/[\d.]+ \(Ruby [\d\.]+-p-?\d+\)$"
+  CLOUDINARY_USER_PLATFORM_REGEXP = %r"^Rails\/[\d.]+ CloudinaryRuby\/[\d.]+ \(Ruby [\d\.]+-p-?\d+\)$"
 
   it "should return the USER_AGENT without user_platform if there's no Rails or set to empty" do
     Cloudinary.user_platform = ""
