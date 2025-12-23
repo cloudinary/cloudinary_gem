@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.required_ruby_version = '~> 3'
+  s.required_ruby_version = '>= 3', '< 5'
 
   s.add_dependency "faraday", ">= 2.0.1", "< 3.0.0"
   s.add_dependency "faraday-multipart", "~> 1.0", ">= 1.0.4"
