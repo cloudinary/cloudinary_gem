@@ -1307,23 +1307,23 @@ describe Cloudinary::Utils do
 
     it "should use signature version 1 (without parameter encoding) for backward compatibility" do
       public_id_with_ampersand = 'tests/logo&version=2'
-      
+
       expected_signature_v1 = Cloudinary::Utils.api_sign_request(
         { :public_id => public_id_with_ampersand, :version => test_version },
         SIGNATURE_VERIFICATION_API_SECRET,
         nil,
         1
       )
-      
+
       expected_signature_v2 = Cloudinary::Utils.api_sign_request(
         { :public_id => public_id_with_ampersand, :version => test_version },
         SIGNATURE_VERIFICATION_API_SECRET,
         nil,
         2
       )
-      
+
       expect(expected_signature_v1).not_to eq(expected_signature_v2)
-      
+
       # verify_api_response_signature should use version 1 for backward compatibility
       expect(
         Cloudinary::Utils.verify_api_response_signature(
@@ -1332,7 +1332,7 @@ describe Cloudinary::Utils do
           expected_signature_v1
         )
       ).to be true
-      
+
       expect(
         Cloudinary::Utils.verify_api_response_signature(
           public_id_with_ampersand,
@@ -1457,13 +1457,13 @@ describe Cloudinary::Utils do
     expect(url_from_urls).to include("urls[]=#{url1}")
     expect(url_from_urls).to include("urls[]=#{url2}")
 
-    parameters = CGI::parse(url_from_tag)
+    parameters = parse_query_params(URI(url_from_tag).query)
     expect(parameters["tag"]).to eq([sprite_test_tag])
     expect(parameters["mode"]).to eq([Cloudinary::Utils::MODE_DOWNLOAD])
     expect(parameters["timestamp"]).not_to be_nil
     expect(parameters["signature"]).not_to be_nil
 
-    parameters = CGI::parse(url_from_urls)
+    parameters = parse_query_params(URI(url_from_urls).query)
     expect(parameters["mode"]).to eq([Cloudinary::Utils::MODE_DOWNLOAD])
     expect(parameters["timestamp"]).not_to be_nil
     expect(parameters["signature"]).not_to be_nil
@@ -1473,7 +1473,7 @@ describe Cloudinary::Utils do
     let(:public_id) { 'tests/logo.png' }
     let(:test_version) { 1234 }
     let(:test_api_secret) { SIGNATURE_VERIFICATION_API_SECRET }
-    
+
     before do
       Cloudinary.config.update(:api_secret => test_api_secret)
     end
@@ -1481,10 +1481,10 @@ describe Cloudinary::Utils do
     describe "api_sign_request signature_version parameter support" do
       it "should support signature_version parameter in api_sign_request" do
         params = { :public_id => public_id, :version => test_version }
-        
+
         signature_v1 = Cloudinary::Utils.api_sign_request(params, test_api_secret, nil, 1)
         signature_v2 = Cloudinary::Utils.api_sign_request(params, test_api_secret, nil, 2)
-        
+
         expect(signature_v1).to be_a(String)
         expect(signature_v2).to be_a(String)
         expect(signature_v1).to eq(signature_v2) # No & in values, so should be the same
@@ -1493,20 +1493,20 @@ describe Cloudinary::Utils do
       it "should use default signature_version from config" do
         Cloudinary.config.signature_version = 2
         params = { :public_id => public_id, :version => test_version }
-        
+
         signature_with_nil = Cloudinary::Utils.api_sign_request(params, test_api_secret, nil, nil)
         signature_with_v2 = Cloudinary::Utils.api_sign_request(params, test_api_secret, nil, 2)
-        
+
         expect(signature_with_nil).to eq(signature_with_v2)
       end
 
       it "should default to version 2 when no config is set" do
         Cloudinary.config.signature_version = nil
         params = { :public_id => public_id, :version => test_version }
-        
+
         signature_with_nil = Cloudinary::Utils.api_sign_request(params, test_api_secret, nil, nil)
         signature_with_v2 = Cloudinary::Utils.api_sign_request(params, test_api_secret, nil, 2)
-        
+
         expect(signature_with_nil).to eq(signature_with_v2)
       end
     end
@@ -1527,13 +1527,13 @@ describe Cloudinary::Utils do
     expect(url_from_urls).to include("urls[]=#{url1}")
     expect(url_from_urls).to include("urls[]=#{url2}")
 
-    parameters = CGI::parse(url_from_tag)
+    parameters = parse_query_params(URI(url_from_tag).query)
     expect(parameters["tag"]).to eq([multi_test_tag])
     expect(parameters["mode"]).to eq([Cloudinary::Utils::MODE_DOWNLOAD])
     expect(parameters["timestamp"]).not_to be_nil
     expect(parameters["signature"]).not_to be_nil
 
-    parameters = CGI::parse(url_from_urls)
+    parameters = parse_query_params(URI(url_from_urls).query)
     expect(parameters["mode"]).to eq([Cloudinary::Utils::MODE_DOWNLOAD])
     expect(parameters["timestamp"]).not_to be_nil
     expect(parameters["signature"]).not_to be_nil

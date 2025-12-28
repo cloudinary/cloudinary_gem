@@ -10,6 +10,13 @@ require 'faraday'
 require 'active_storage/test_helper'
 require 'cloudinary'
 
+# Replacement for CGI.parse
+def parse_query_params(query_string)
+  URI.decode_www_form(query_string.to_s).each_with_object(Hash.new { |h, k| h[k] = [] }) do |(k, v), h|
+    h[k] << v
+  end
+end
+
 Cloudinary.config.enhance_image_tag = true
 
 DUMMY_CLOUD = "test123"
@@ -551,4 +558,3 @@ class MockedSearchFoldersApi < Cloudinary::SearchFolders
     MockedApi.call_api(:post, uri, to_h, options)
   end
 end
-

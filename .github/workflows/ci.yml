@@ -5,6 +5,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -14,10 +15,10 @@ jobs:
       matrix:
         ruby-version:
           - '3.1.7'
-          - '3.2.8'
-          - '3.3.8'
-          - '3.4.4'
-          - '4.0.0-preview3'
+          - '3.2.9'
+          - '3.3.10'
+          - '3.4.8'
+          - '4.0.0'
 
     runs-on: ubuntu-22.04
 
