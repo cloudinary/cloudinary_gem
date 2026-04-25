@@ -1,6 +1,7 @@
 # Copyright Cloudinary
 
 # frozen_string_literal: true
+require 'base64'
 require 'digest/sha1'
 require 'zlib'
 require 'uri'
