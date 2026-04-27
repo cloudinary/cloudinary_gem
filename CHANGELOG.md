@@ -1,3 +1,8 @@
+2.4.5 / 2026-04-27
+==================
+
+  * Fix missing `require` statements for Ruby standard libraries
+
 2.4.4 / 2026-02-09
 ==================
 
