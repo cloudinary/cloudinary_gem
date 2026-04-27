@@ -1,3 +1,6 @@
+require "base64"
+require "json"
+
 class Cloudinary::Search
   ENDPOINT = 'resources'
 

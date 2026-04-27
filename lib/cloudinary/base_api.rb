@@ -1,5 +1,7 @@
+require "base64"
 require "faraday"
 require "json"
+require "time"
 
 module Cloudinary::BaseApi
   @adapter = nil
