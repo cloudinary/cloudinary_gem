@@ -1,129 +1,112 @@
-[![Build Status](https://app.travis-ci.com/cloudinary/cloudinary_gem.svg?branch=master)](https://app.travis-ci.com/github/cloudinary/cloudinary_gem)
-[![Gem Version](https://badge.fury.io/rb/cloudinary.svg)](https://rubygems.org/gems/cloudinary)
-[![Gem Version](https://badgen.net/rubygems/dt/cloudinary)](https://rubygems.org/gems/cloudinary)
+# Cloudinary Ruby and Rails SDK
 
-Cloudinary Ruby on Rails SDK
-===================
+[![Gem Version](https://img.shields.io/gem/v/cloudinary.svg)](https://rubygems.org/gems/cloudinary)
+[![license](https://img.shields.io/badge/license-MIT-green.svg)](https://rubygems.org/gems/cloudinary)
+[![CI](https://github.com/cloudinary/cloudinary_gem/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/cloudinary/cloudinary_gem/actions/workflows/ci.yml)
 
-## About
-
-The Cloudinary Ruby on Rails SDK allows you to quickly and easily integrate your application with Cloudinary.
-Effortlessly optimize, transform, upload and manage your cloud's assets.
-
-#### Note
-
-This Readme provides basic installation and usage information. For the complete documentation, see
-the [Ruby on Rails SDK Guide](https://cloudinary.com/documentation/rails_integration).
-
-## Table of Contents
-
-- [Key Features](#key-features)
-- [Version Support](#Version-Support)
-- [Installation](#installation)
-- [Usage](#usage)
-    - [Setup](#Setup)
-    - [Transform and Optimize Assets](#Transform-and-Optimize-Assets)
-    - [CarrierWave Integration](#CarrierWave-Integration)
-    - [Active Storage Integration](#Active-Storage-Integration)
-
-## Key Features
-
-- [Transform](https://cloudinary.com/documentation/rails_video_manipulation#video_transformation_examples) and
-  [optimize](https://cloudinary.com/documentation/rails_image_manipulation#image_optimizations) assets.
-- Generate [image](https://cloudinary.com/documentation/rails_image_manipulation#deliver_and_transform_images) and
-  [video](https://cloudinary.com/documentation/rails_video_manipulation#rails_video_transformation_code_examples) tags.
-- [Asset Management](https://cloudinary.com/documentation/rails_asset_administration).
-- [Secure URLs](https://cloudinary.com/documentation/video_manipulation_and_delivery#generating_secure_https_urls_using_sdks)
-  .
-
-## Version Support
-
-| SDK Version | Ruby 1.9.3 | Ruby 2.x | Ruby 3.x | Ruby 4.x |
-|-------------|------------|----------|----------|----------|
-| 2.x         | ✘          | ✘        | ✔        | ✔        |
-| 1.x         | ✔          | ✔        | ✔        | ✘        |
-
-| SDK Version | Rails 5.x | Rails 6.x | Rails 7.x | Rails 8.x |
-|-------------|-----------|-----------|-----------|-----------|
-| 2.x         | ✘         | ✔         | ✔         | ✔         |
-| 1.x         | ✔         | ✔         | ✔         | ✘         |
+The `cloudinary` gem is the server-side Cloudinary SDK for Ruby and Rails. Use it in a Rails app, a Sinatra service, a background job, or a plain Ruby script to upload assets, build transformation and delivery URLs, render view tags, and call the Admin API. It holds the API secret, so it handles the operations that can't run in a browser: signed uploads, signed delivery URLs, and asset administration. The current release (2.4.5) requires Ruby 3.x or 4.x.
 
 ## Installation
+
+Add the gem to your `Gemfile`:
+
+```ruby
+gem "cloudinary"
+```
+
+Then run `bundle install`. To install it directly:
 
 ```bash
 gem install cloudinary
 ```
 
-# Usage
+## Configuration
 
-### Setup
+The SDK reads credentials automatically from the `CLOUDINARY_URL` environment variable:
 
-```ruby
-require 'cloudinary'
+```bash
+export CLOUDINARY_URL=cloudinary://<API_KEY>:<API_SECRET>@<CLOUD_NAME>
 ```
 
-### Transform and Optimize Assets
-- [See full documentation](https://cloudinary.com/documentation/rails_image_manipulation).
+To set them in code instead, call `Cloudinary.config`:
 
 ```ruby
- cl_image_tag("sample.jpg", width: 100, height: 150, crop: "fill")
+require "cloudinary"
+
+Cloudinary.config do |config|
+  config.cloud_name = "my_cloud_name"
+  config.api_key    = "my_key"
+  config.api_secret = "my_secret"
+  config.secure     = true
+end
 ```
 
-### Upload
-- [See full documentation](https://cloudinary.com/documentation/rails_image_and_video_upload).
-- [Learn more about configuring your uploads with upload presets](https://cloudinary.com/documentation/upload_presets).
+Keep the API secret on the server. Don't put it in client-side code or commit it to version control.
+
+## Quick examples
+
+### Upload a file with the Ruby SDK
+
+`Cloudinary::Uploader.upload` takes a local path, a remote URL, an IO or `File` object, or a data URI as its first argument. It's synchronous and returns a `Hash` of the parsed JSON response, including `public_id` and `secure_url`:
 
 ```ruby
-Cloudinary::Uploader.upload("my_picture.jpg")
+require "cloudinary"
+# Credentials come from CLOUDINARY_URL in the environment.
+
+result = Cloudinary::Uploader.upload("my_picture.jpg",
+  public_id: "cms/hero") # optional: where the asset lives in your media library
+puts result["public_id"]
+puts result["secure_url"]
 ```
 
-### CarrierWave Integration
-- [See full documentation](https://cloudinary.com/documentation/rails_carrierwave).
+### Transform and optimize a delivery URL
 
-### Active Storage Integration
-- [See full documentation](https://cloudinary.com/documentation/rails_activestorage).
+`Cloudinary::Utils.cloudinary_url` is synchronous and returns a string — no network call. This one resizes to a 100x150 fill crop and lets Cloudinary pick the format and quality for the requesting browser (`f_auto`, `q_auto`):
 
-### Security options
-- [See full documentation](https://cloudinary.com/documentation/solution_overview#security).
+```ruby
+require "cloudinary"
 
-### Samples
- - See [samples folder](https://github.com/cloudinary/cloudinary_gem/tree/master/samples).
+url = Cloudinary::Utils.cloudinary_url("sample.jpg",
+  width: 100, height: 150, crop: "fill",
+  fetch_format: :auto, quality: :auto)
+# https://res.cloudinary.com/demo/image/upload/c_fill,f_auto,h_150,q_auto,w_100/sample.jpg
+```
 
-## Contributions
- - See [CONTRIBUTING](CONTRIBUTING.md).
+In a Rails view, the `cl_image_tag` helper renders a full `<img>` tag with the same options:
 
-## Get Help
+```erb
+<%= cl_image_tag("sample.jpg", width: 100, height: 150, crop: "fill", fetch_format: :auto, quality: :auto) %>
+```
 
-If you run into an issue or have a question, you can either:
+### Retrieve asset details
 
-- Issues related to the SDK: [Open a GitHub issue](https://github.com/cloudinary/cloudinary_gem/issues).
-- Issues related to your account: [Open a support ticket](https://cloudinary.com/contact)
+`Cloudinary::Api.resource` takes a public ID and returns the asset's metadata as a `Hash`, including its dimensions, format, and `secure_url`:
 
-## About Cloudinary
+```ruby
+require "cloudinary"
+# Credentials come from CLOUDINARY_URL in the environment.
 
-Cloudinary is a powerful media API for websites and mobile apps alike, Cloudinary enables developers to efficiently
-manage, transform, optimize, and deliver images and videos through multiple CDNs. Ultimately, viewers enjoy responsive
-and personalized visual-media experiences—irrespective of the viewing device.
+asset = Cloudinary::Api.resource("sample")
+puts [asset["format"], asset["width"], asset["height"], asset["secure_url"]].join(" ")
+```
 
-## Additional Resources
+## For AI agents
 
-- [Cloudinary Transformation and REST API References](https://cloudinary.com/documentation/cloudinary_references):
-  Comprehensive references, including syntax and examples for all SDKs.
-- [MediaJams.dev](https://mediajams.dev/): Bite-size use-case tutorials written by and for Cloudinary Developers
-- [DevJams](https://www.youtube.com/playlist?list=PL8dVGjLA2oMr09amgERARsZyrOz_sPvqw): Cloudinary developer podcasts on
-  YouTube.
-- [Cloudinary Academy](https://training.cloudinary.com/): Free self-paced courses, instructor-led virtual courses, and
-  on-site courses.
-- [Code Explorers and Feature Demos](https://cloudinary.com/documentation/code_explorers_demos_index): A one-stop shop
-  for all code explorers, Postman collections, and feature demos found in the docs.
-- [Cloudinary Roadmap](https://cloudinary.com/roadmap): Your chance to follow, vote, or suggest what Cloudinary should
-  develop next.
-- [Cloudinary Facebook Community](https://www.facebook.com/groups/CloudinaryCommunity): Learn from and offer help to
-  other Cloudinary developers.
-- [Cloudinary Account Registration](https://cloudinary.com/users/register/free): Free Cloudinary account registration.
-- [Cloudinary Website](https://cloudinary.com): Learn about Cloudinary's products, partners, customers, pricing, and
-  more.
+`cloudinary` is the Ruby and Rails server-side SDK. Choose it for backend upload, asset administration, view-tag and signed-URL generation, and Active Storage or CarrierWave integration, where the API secret stays private. The core classes (`Cloudinary::Uploader`, `Cloudinary::Api`, `Cloudinary::Utils`, `Cloudinary::Search`) load in plain Ruby; the `cl_image_tag` and `cl_video_tag` view helpers require Rails. For tasks this gem doesn't cover, choose a different package:
 
-## Licence
+| Task | Package |
+|---|---|
+| Build delivery URLs in the browser | [`@cloudinary/url-gen`](https://github.com/cloudinary/js-url-gen) |
+| Legacy Rails attachment handling | [`attachinary`](https://github.com/cloudinary/attachinary) — deprecated; prefer Active Storage |
+| Run Cloudinary operations as agent tools | [Cloudinary MCP servers](https://github.com/cloudinary/mcp-servers) |
+
+## Links
+
+- [Ruby on Rails SDK guide](https://cloudinary.com/documentation/rails_integration)
+- [Upload](https://cloudinary.com/documentation/rails_image_and_video_upload)
+- [Asset administration (Admin API)](https://cloudinary.com/documentation/rails_asset_administration)
+- [Transformation and API references](https://cloudinary.com/documentation/cloudinary_references)
+- [Documentation llms.txt index](https://cloudinary.com/documentation/llms.txt)
+- [Gem on RubyGems](https://rubygems.org/gems/cloudinary)
 
 Released under the MIT license.
