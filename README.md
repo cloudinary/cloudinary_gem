@@ -1,129 +1,138 @@
-[![Build Status](https://app.travis-ci.com/cloudinary/cloudinary_gem.svg?branch=master)](https://app.travis-ci.com/github/cloudinary/cloudinary_gem)
+[![CI](https://github.com/cloudinary/cloudinary_gem/actions/workflows/ci.yml/badge.svg)](https://github.com/cloudinary/cloudinary_gem/actions/workflows/ci.yml)
 [![Gem Version](https://badge.fury.io/rb/cloudinary.svg)](https://rubygems.org/gems/cloudinary)
-[![Gem Version](https://badgen.net/rubygems/dt/cloudinary)](https://rubygems.org/gems/cloudinary)
+[![License](https://img.shields.io/github/license/cloudinary/cloudinary_gem.svg)](LICENSE)
 
-Cloudinary Ruby on Rails SDK
-===================
+# Cloudinary Ruby on Rails SDK
 
-## About
+Upload, transform, optimize, and manage images and videos with Cloudinary from Ruby and Rails — the `cloudinary` gem on RubyGems.
 
-The Cloudinary Ruby on Rails SDK allows you to quickly and easily integrate your application with Cloudinary.
-Effortlessly optimize, transform, upload and manage your cloud's assets.
-
-#### Note
-
-This Readme provides basic installation and usage information. For the complete documentation, see
-the [Ruby on Rails SDK Guide](https://cloudinary.com/documentation/rails_integration).
-
-## Table of Contents
-
-- [Key Features](#key-features)
-- [Version Support](#Version-Support)
-- [Installation](#installation)
-- [Usage](#usage)
-    - [Setup](#Setup)
-    - [Transform and Optimize Assets](#Transform-and-Optimize-Assets)
-    - [CarrierWave Integration](#CarrierWave-Integration)
-    - [Active Storage Integration](#Active-Storage-Integration)
-
-## Key Features
-
-- [Transform](https://cloudinary.com/documentation/rails_video_manipulation#video_transformation_examples) and
-  [optimize](https://cloudinary.com/documentation/rails_image_manipulation#image_optimizations) assets.
-- Generate [image](https://cloudinary.com/documentation/rails_image_manipulation#deliver_and_transform_images) and
-  [video](https://cloudinary.com/documentation/rails_video_manipulation#rails_video_transformation_code_examples) tags.
-- [Asset Management](https://cloudinary.com/documentation/rails_asset_administration).
-- [Secure URLs](https://cloudinary.com/documentation/video_manipulation_and_delivery#generating_secure_https_urls_using_sdks)
-  .
-
-## Version Support
-
-| SDK Version | Ruby 1.9.3 | Ruby 2.x | Ruby 3.x | Ruby 4.x |
-|-------------|------------|----------|----------|----------|
-| 2.x         | ✘          | ✘        | ✔        | ✔        |
-| 1.x         | ✔          | ✔        | ✔        | ✘        |
-
-| SDK Version | Rails 5.x | Rails 6.x | Rails 7.x | Rails 8.x |
-|-------------|-----------|-----------|-----------|-----------|
-| 2.x         | ✘         | ✔         | ✔         | ✔         |
-| 1.x         | ✔         | ✔         | ✔         | ✘         |
-
-## Installation
+## Install
 
 ```bash
 gem install cloudinary
 ```
 
-# Usage
-
-### Setup
+Or add it to your `Gemfile`:
 
 ```ruby
-require 'cloudinary'
+gem "cloudinary"
 ```
 
-### Transform and Optimize Assets
-- [See full documentation](https://cloudinary.com/documentation/rails_image_manipulation).
+## Quick start
+
+Set your API environment variable (Console > Settings > API Keys):
+
+```bash
+export CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>
+```
+
+Upload an image and get an optimized delivery URL:
 
 ```ruby
- cl_image_tag("sample.jpg", width: 100, height: 150, crop: "fill")
+require "cloudinary"
+
+result = Cloudinary::Uploader.upload(
+  "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+  public_id: "quickstart-sample"
+)
+puts "Uploaded: #{result['public_id']}"
+
+# Build a 400x400 auto-cropped URL with automatic format and quality
+url = Cloudinary::Utils.cloudinary_url(
+  result["public_id"],
+  width: 400, height: 400, crop: "fill",
+  gravity: "auto", fetch_format: "auto", quality: "auto"
+)
+puts "Optimized URL: #{url}"
 ```
 
-### Upload
-- [See full documentation](https://cloudinary.com/documentation/rails_image_and_video_upload).
-- [Learn more about configuring your uploads with upload presets](https://cloudinary.com/documentation/upload_presets).
+Save as `quickstart.rb` and run `ruby quickstart.rb`. [Create a free account](https://cloudinary.com/users/register_free) if you don't have one — or run `npx @cloudinary/cloud` to [provision one without signing up](docs/get-credentials.md).
 
-```ruby
-Cloudinary::Uploader.upload("my_picture.jpg")
-```
+In Rails the same URL is a view helper: `<%= cl_image_tag("quickstart-sample", width: 400, height: 400, crop: "fill") %>`.
 
-### CarrierWave Integration
-- [See full documentation](https://cloudinary.com/documentation/rails_carrierwave).
+## Common tasks
 
-### Active Storage Integration
-- [See full documentation](https://cloudinary.com/documentation/rails_activestorage).
+- [Get Cloudinary credentials](docs/get-credentials.md)
+- [Configure Cloudinary](docs/configure-cloudinary.md)
+- [Upload an image](docs/upload-image.md)
+- [Upload a large video](docs/upload-large-video.md)
+- [Sign a browser upload](docs/sign-browser-upload.md)
+- [Transform and deliver an image](docs/transform-and-deliver-image.md)
+- [Transform and deliver a video](docs/transform-and-deliver-video.md)
+- [Search and manage assets](docs/search-and-manage-assets.md)
+- [Moderate an upload](docs/moderate-upload.md)
+- [Use structured metadata](docs/use-structured-metadata.md)
+- [Troubleshoot errors](docs/troubleshoot-errors.md)
 
-### Security options
-- [See full documentation](https://cloudinary.com/documentation/solution_overview#security).
+Rails integration, which ships in this gem:
 
-### Samples
- - See [samples folder](https://github.com/cloudinary/cloudinary_gem/tree/master/samples).
+- [Use with Rails](docs/use-with-rails.md) — view helpers, `cloudinary.yml`, credentials
+- [Upload with Active Storage](docs/upload-with-activestorage.md)
+- [Upload with CarrierWave](docs/upload-with-carrierwave.md)
 
-## Contributions
- - See [CONTRIBUTING](CONTRIBUTING.md).
+Runnable versions live in [`examples/`](examples/) — each is a complete file you can run directly.
 
-## Get Help
+## When to use this SDK
 
-If you run into an issue or have a question, you can either:
+Use this gem in **Ruby and Rails server-side code**: uploads, signed operations, asset
+administration, search, moderation, delivery URL generation, and Rails view helpers.
 
-- Issues related to the SDK: [Open a GitHub issue](https://github.com/cloudinary/cloudinary_gem/issues).
-- Issues related to your account: [Open a support ticket](https://cloudinary.com/contact)
+For other jobs, better-fitting tools exist:
 
-## About Cloudinary
+- Browser or frontend framework rendering: the [frontend SDKs](https://cloudinary.com/documentation/frontend_sdks) ([md](https://cloudinary.com/documentation/frontend_sdks.md)).
+- Complete in-browser upload UI: [Upload Widget](https://cloudinary.com/documentation/upload_widget) ([md](https://cloudinary.com/documentation/upload_widget.md)).
+- Text-to-image generation and image-to-video: [platform APIs](https://cloudinary.com/documentation/image_generation_addon) ([md](https://cloudinary.com/documentation/image_generation_addon.md)), not wrapped by this gem.
+- Multi-step media workflow automation: [MediaFlows](https://cloudinary.com/documentation/mediaflows_user_guide) ([md](https://cloudinary.com/documentation/mediaflows_user_guide.md)).
+- Interactive agent-driven asset operations: [Cloudinary MCP servers and Skills](https://cloudinary.com/documentation/cloudinary_llm_mcp) ([md](https://cloudinary.com/documentation/cloudinary_llm_mcp.md)).
 
-Cloudinary is a powerful media API for websites and mobile apps alike, Cloudinary enables developers to efficiently
-manage, transform, optimize, and deliver images and videos through multiple CDNs. Ultimately, viewers enjoy responsive
-and personalized visual-media experiences—irrespective of the viewing device.
+The full capability map — plus the Skills, MCP servers, and CLI worth setting up first —
+is in [docs/platform-capabilities.md](docs/platform-capabilities.md).
 
-## Additional Resources
+## Status and compatibility
 
-- [Cloudinary Transformation and REST API References](https://cloudinary.com/documentation/cloudinary_references):
-  Comprehensive references, including syntax and examples for all SDKs.
-- [MediaJams.dev](https://mediajams.dev/): Bite-size use-case tutorials written by and for Cloudinary Developers
-- [DevJams](https://www.youtube.com/playlist?list=PL8dVGjLA2oMr09amgERARsZyrOz_sPvqw): Cloudinary developer podcasts on
-  YouTube.
-- [Cloudinary Academy](https://training.cloudinary.com/): Free self-paced courses, instructor-led virtual courses, and
-  on-site courses.
-- [Code Explorers and Feature Demos](https://cloudinary.com/documentation/code_explorers_demos_index): A one-stop shop
-  for all code explorers, Postman collections, and feature demos found in the docs.
-- [Cloudinary Roadmap](https://cloudinary.com/roadmap): Your chance to follow, vote, or suggest what Cloudinary should
-  develop next.
-- [Cloudinary Facebook Community](https://www.facebook.com/groups/CloudinaryCommunity): Learn from and offer help to
-  other Cloudinary developers.
-- [Cloudinary Account Registration](https://cloudinary.com/users/register/free): Free Cloudinary account registration.
-- [Cloudinary Website](https://cloudinary.com): Learn about Cloudinary's products, partners, customers, pricing, and
-  more.
+Stable, actively maintained. See [CHANGELOG.md](CHANGELOG.md).
 
-## Licence
+| SDK version | Ruby | Rails |
+|-------------|------|-------|
+| 2.x         | 3.x, 4.x | 6.1 and later |
+| 1.x         | 1.9.3 – 3.x (no longer maintained) | 5.x – 7.x |
 
-Released under the MIT license.
+CI covers Ruby 3.1, 3.2, 3.3, 3.4, and 4.0.
+
+## Documentation
+
+- [Bundled task docs](docs/README.md) — ship inside the gem, version-matched.
+- [Ruby on Rails SDK guide](https://cloudinary.com/documentation/rails_integration) — the full documentation ([md](https://cloudinary.com/documentation/rails_integration.md)).
+
+Documentation links in this README point at the browsable HTML page, with an `(md)`
+companion link that returns the same page as raw Markdown. Inside `docs/` and `examples/`
+the links are Markdown-only, since those files are written to be read by coding agents.
+Either form works for any page: add `.md` for Markdown, drop it for HTML.
+
+## For AI coding agents
+
+- Contributing to this repo: read [AGENTS.md](AGENTS.md).
+- Using the installed gem: the docs in the gem's `docs/` directory match your installed
+  version and are the source of truth. Locate them with:
+
+  ```bash
+  ruby -e 'puts Gem::Specification.find_by_name("cloudinary").gem_dir + "/docs"'
+  ```
+
+  Start with [platform-capabilities](docs/platform-capabilities.md) before assuming a
+  feature exists.
+
+## Support
+
+- SDK bugs and feature requests: [GitHub issues](https://github.com/cloudinary/cloudinary_gem/issues)
+- Account and platform questions: [Cloudinary support](https://support.cloudinary.com)
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for private vulnerability reporting. Keep your
+`api_secret` in server-side code; for client uploads, use the server-signed pattern in
+[Sign a browser upload](docs/sign-browser-upload.md).
+
+## License
+
+Released under the MIT license — see [LICENSE](LICENSE). Copyright (c) Cloudinary Ltd.

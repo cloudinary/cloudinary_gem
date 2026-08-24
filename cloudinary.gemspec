@@ -14,11 +14,18 @@ Gem::Specification.new do |s|
   s.description = %q{Client library for easily using the Cloudinary service}
 
   s.metadata = {
-    "changelog_uri" => "https://github.com/cloudinary/cloudinary_gem/blob/master/CHANGELOG.md"
+    "changelog_uri"     => "https://github.com/cloudinary/cloudinary_gem/blob/master/CHANGELOG.md",
+    "documentation_uri" => "https://cloudinary.com/documentation/rails_integration",
+    "source_code_uri"   => "https://github.com/cloudinary/cloudinary_gem",
+    "bug_tracker_uri"   => "https://github.com/cloudinary/cloudinary_gem/issues"
   }
 
-  s.files         = `git ls-files`.split("\n").select { |f| !f.start_with?("test", "spec", "features", "samples") } +
-    Dir.glob("vendor/assets/javascripts/*/*") + Dir.glob("vendor/assets/html/*")
+  # docs/ and examples/ ship inside the gem so that agent-readable documentation is always
+  # version-matched to the installed code. They are listed explicitly (rather than relying
+  # on `git ls-files` alone) so that dropping them from the package is a deliberate change.
+  s.files         = (`git ls-files`.split("\n").select { |f| !f.start_with?("test", "spec", "features", "samples") } +
+    Dir.glob("docs/*.md") + Dir.glob("examples/*.rb") +
+    Dir.glob("vendor/assets/javascripts/*/*") + Dir.glob("vendor/assets/html/*")).uniq
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
