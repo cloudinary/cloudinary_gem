@@ -1,4 +1,7 @@
-# Upload an image flagged for manual moderation, then approve it.
+# Upload an image flagged for manual moderation, then record the verdict.
+#
+# Note: a "pending" asset is still deliverable — moderation status is metadata your
+# application gates on, not an access control. See the docs page.
 #
 # Prerequisites: CLOUDINARY_URL must be set.
 #   export CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>
@@ -28,8 +31,13 @@ def main
   pending = Cloudinary::Api.resources_by_moderation("manual", "pending", max_results: 100)
   puts "Awaiting review: #{pending['resources'].size} asset(s)"
 
+  # Record the verdict. This does not change what the delivery URL serves — your own
+  # code decides whether to render the asset based on this status.
   updated = Cloudinary::Api.update(PUBLIC_ID, moderation_status: "approved")
   puts "Now: #{moderation_status(updated)}"
+
+  deliverable = moderation_status(updated) == "approved"
+  puts "Render it? #{deliverable} (the URL itself works either way)"
 end
 
 begin

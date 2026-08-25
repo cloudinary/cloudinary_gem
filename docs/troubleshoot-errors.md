@@ -17,11 +17,15 @@ condition raises **different classes** depending on which class you called:
 | `Cloudinary::Search` | **`RuntimeError`** — `"Must supply cloud_name"` | same typed classes as `Cloudinary::Api` |
 | `Cloudinary::Utils.cloudinary_url` | `CloudinaryException` — `"Must supply cloud_name in tag or in configuration"` | n/a (local) |
 
-`RuntimeError` is **not** a `CloudinaryException`, so this misses the Admin API case
-entirely:
+The API-error classes are fine under a single rescue: `Cloudinary::Api::Error` descends
+from `CloudinaryException`, so `rescue CloudinaryException` catches `NotFound`,
+`RateLimited`, and the rest.
+
+The gap is **configuration** errors. `Cloudinary::Api` and `Cloudinary::Search` raise a
+bare `RuntimeError` for missing config, and `RuntimeError` is not a `CloudinaryException`:
 
 ```ruby
-# WRONG — will not catch a missing cloud_name from Cloudinary::Api
+# INCOMPLETE — catches API errors, but a missing cloud_name escapes as RuntimeError
 begin
   Cloudinary::Api.resource("x")
 rescue CloudinaryException => e
@@ -91,6 +95,26 @@ Never print the secret itself.
 Search returning zero with no error usually means the expression is valid but matches
 nothing — commonly `folder:` in a dynamic-folder environment. See
 [Search and manage assets](search-and-manage-assets.md#matching-a-folder).
+
+### `423` while an asset is still processing
+
+The asset is not yet available for the operation you requested — common right after
+uploading a large video, or while an eager or add-on-driven transformation is still
+running. This is transient: retry with backoff rather than treating it as a failure. For
+long jobs, prefer `eager_async: true` with a `notification_url` over polling.
+
+423 is **not** in this SDK's status-to-exception map (`lib/cloudinary/base_api.rb`), so it
+falls through to the unmapped-status branch and raises
+`Cloudinary::Api::GeneralError` — with the raw response body in the message, not the
+parsed `error.message` you get from mapped statuses:
+
+```
+Server returned unexpected status code - 423 - {"error":{"message":"..."}}
+```
+
+`rescue Cloudinary::Api::Error` still catches it, since `GeneralError` descends from
+`Error`. But do not match on the message text, and do not treat `GeneralError` as
+necessarily fatal — a 423 is worth a retry where a 500 usually is not.
 
 ## Delivery URL problems
 
